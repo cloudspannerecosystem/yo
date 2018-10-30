@@ -1,0 +1,19 @@
+[[constraint]]
+  name = "cloud.google.com/go"
+  version = "0.26.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gedex/inflector"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/knq/snaker"
+
+[[constraint]]
+  branch = "master"
+  name = "google.golang.org/api"
+
+[prune]
+  go-tests = true
+  unused-packages = true

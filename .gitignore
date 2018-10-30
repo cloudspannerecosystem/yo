@@ -1,6 +1,5 @@
-/xo
-/x
-/out
+.idea/
+.envrc
 
-*.sqlite3
-*.sqlite3-journal
+/yo
+/out

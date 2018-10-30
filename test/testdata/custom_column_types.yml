@@ -1,0 +1,11 @@
+tables:
+  - name: "CompositePrimaryKeys"
+    columns:
+      Id: "uint64"
+      PKey2: "uint32"
+      Error: "int8"
+  - name: "FullTypes"
+    columns:
+      FTInt: "int32"
+      FTInitNull: "uint64"
+      FTFloat: "float32"
