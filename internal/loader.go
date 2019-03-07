@@ -76,6 +76,24 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 	// tables
 	tableMap := make(map[string]*Type)
 	for _, ti := range tableList {
+		ignore := false
+
+		for _, ignoreTable := range args.IgnoreTables {
+			if ignoreTable == ti.TableName {
+				// Skip adding this table if user has specified they are not
+				// interested.
+				//
+				// This could be useful for tables which are managed by the
+				// database (e.g. SchemaMigrations) instead of
+				// via Go code.
+				ignore = true
+			}
+		}
+
+		if ignore {
+			continue
+		}
+
 		// create template
 		typeTpl := &Type{
 			Name:   SingularizeIdentifier(ti.TableName),
