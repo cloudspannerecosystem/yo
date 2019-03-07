@@ -52,6 +52,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&rootOpts.Package, "package", "p", "", "package name used in generated Go code")
 	rootCmd.Flags().StringVar(&rootOpts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
 	rootCmd.Flags().StringArrayVar(&rootOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
+	rootCmd.Flags().StringArrayVar(&rootOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	rootCmd.Flags().StringVar(&rootOpts.TemplatePath, "template-path", "", "user supplied template path")
 	rootCmd.Flags().StringVar(&rootOpts.Tags, "tags", "", "build tags to add to package header")
 
@@ -97,6 +98,10 @@ type ArgType struct {
 	// IgnoreFields allows the user to specify field names which should not be
 	// handled by yo in the generated code.
 	IgnoreFields []string
+
+	// IgnoreTables allows the user to specify table names which should not be
+	// handled by yo in the generated code.
+	IgnoreTables []string
 
 	// TemplatePath is the path to use the user supplied templates instead of
 	// the built in versions.
