@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"cloud.google.com/go/spanner"
 	"github.com/knq/snaker"
@@ -152,6 +153,16 @@ func SpanParseType(dt string, nullable bool) (int, string, string) {
 		}
 
 	default:
+		if strings.HasPrefix(dt, "ARRAY<") {
+			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
+			_, _, eleTyp := SpanParseType(eleDataType, false)
+			typ, nilVal = "[]"+eleTyp, "nil"
+			if !nullable {
+				nilVal = typ + "{}"
+			}
+			break
+		}
+
 		typ = snaker.SnakeToCamelIdentifier(dt)
 		nilVal = typ + "{}"
 	}
