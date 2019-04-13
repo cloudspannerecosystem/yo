@@ -49,6 +49,7 @@ Flags:
       --custom-types-file string     custom table field type definition file
   -h, --help                         help for yo
       --ignore-fields stringArray    fields to exclude from the generated Go code types
+      --ignore-tables stringArray    tables to exclude from the generated Go code types
   -o, --out string                   output path or file name
   -p, --package string               package name used in generated Go code
       --single-file                  toggle single file output
@@ -82,10 +83,6 @@ type Example struct {
 	CreatedAt time.Time `spanner:"CreatedAt" json:"CreatedAt"` // CreatedAt
 }
 ```
-
-**TODO**
-
-* STRUCT and ARRAY are not supported for now.
 
 ### Mutation methods
 
