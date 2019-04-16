@@ -15,7 +15,7 @@ type {{ .Name }} struct {
 
 {{ if .PrimaryKey }}
 func {{ .Name }}PrimaryKeys() []string {
-     return []string{
+	return []string{
 {{- range .PrimaryKeyFields }}
 		"{{ colname .Col }}",
 {{- end }}
@@ -88,21 +88,20 @@ func new{{ .Name }}_Decoder(cols []string) func(*spanner.Row) (*{{ .Name }}, err
 	}
 
 	return func(row *spanner.Row) (*{{ .Name }}, error) {
-        var {{ $short }} {{ .Name }}
-        ptrs, err := {{ $short }}.columnsToPtrs(cols, customPtrs)
-        if err != nil {
-            return nil, err
-        }
+		var {{ $short }} {{ .Name }}
+		ptrs, err := {{ $short }}.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
 
-        if err := row.Columns(ptrs...); err != nil {
-            return nil, err
-        }
-        {{- range .Fields }}
-            {{- if .CustomType }}
-                {{ $short }}.{{ .Name }} = {{ .CustomType }}({{ customtypeparam .Name }})
-            {{- end }}
-        {{- end }}
-
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+		{{- range .Fields }}
+			{{- if .CustomType }}
+				{{ $short }}.{{ .Name }} = {{ .CustomType }}({{ customtypeparam .Name }})
+			{{- end }}
+		{{- end }}
 
 		return &{{ $short }}, nil
 	}
@@ -116,6 +115,16 @@ func ({{ $short }} *{{ .Name }}) Insert(ctx context.Context) *spanner.Mutation {
 	})
 }
 
+// Insert{{ .Name }}All returns slice of Mutation to insert rows into a table. If the row already
+// exists, the write or transaction fails.
+func Insert{{ .Name }}All(ctx context.Context, rows []*{{ .Name }}) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Insert(ctx))
+	}
+	return muts
+}
+
 {{ if ne (fieldnames .Fields $short .PrimaryKeyFields) "" }}
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
@@ -123,6 +132,16 @@ func ({{ $short }} *{{ .Name }}) Update(ctx context.Context) *spanner.Mutation {
 	return spanner.Update("{{ $table }}", {{ .Name }}Columns(), []interface{}{
 		{{ fieldnames .Fields $short }},
 	})
+}
+
+// Update{{ .Name }}All returns slice of Mutation to update rows in a table. If the row does not
+// already exist, the write or transaction fails.
+func Update{{ .Name }}All(ctx context.Context, rows []*{{ .Name }}) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Update(ctx))
+	}
+	return muts
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
@@ -133,6 +152,18 @@ func ({{ $short }} *{{ .Name }}) InsertOrUpdate(ctx context.Context) *spanner.Mu
 		{{ fieldnames .Fields $short }},
 	})
 }
+
+// InsertOrUpdate{{ .Name }}All returns slice of Mutation to insert rows into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func InsertOrUpdate{{ .Name }}All(ctx context.Context, rows []*{{ .Name }}) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.InsertOrUpdate(ctx))
+	}
+	return muts
+}
+
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
 func ({{ $short }} *{{ .Name }}) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
@@ -147,6 +178,24 @@ func ({{ $short }} *{{ .Name }}) UpdateColumns(ctx context.Context, cols ...stri
 	return spanner.Update("{{ $table }}", colsWithPKeys, values), nil
 }
 
+// Update{{ .Name }}ColumnsAll returns slice of Mutation to update specified columns of rows in a table.
+func Update{{ .Name }}ColumnsAll(ctx context.Context, rows []*{{ .Name }}, cols ...string) ([]*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, {{ .Name }}PrimaryKeys()...)
+
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		values, err := r.columnsToValues(colsWithPKeys)
+		if err != nil {
+			return nil, newErrorWithCode(codes.InvalidArgument, "{{ .Name }}.UpdateColumns", "{{ $table }}", err)
+		}
+
+		muts = append(muts, spanner.Update("{{ $table }}", colsWithPKeys, values))
+	}
+
+	return muts, nil
+}
+
 // Find{{ .Name }} gets a {{ .Name }} by primary key
 func Find{{ .Name }}(ctx context.Context, db YORODB{{ gocustomparamlist .PrimaryKeyFields true true }}) (*{{ .Name }}, error) {
 	key := spanner.Key{ {{ gocustomparamlist .PrimaryKeyFields false false }} }
@@ -155,11 +204,11 @@ func Find{{ .Name }}(ctx context.Context, db YORODB{{ gocustomparamlist .Primary
 		return nil, newError("Find{{ .Name }}", "{{ $table }}", err)
 	}
 
-    decoder := new{{ .Name }}_Decoder({{ .Name}}Columns())
+	decoder := new{{ .Name }}_Decoder({{ .Name}}Columns())
 	{{ $short }}, err := decoder(row)
-    if err != nil {
+	if err != nil {
 		return nil, newErrorWithCode(codes.Internal, "Find{{ .Name }}", "{{ $table }}", err)
-    }
+	}
 
 	return {{ $short }}, nil
 }
@@ -169,4 +218,13 @@ func Find{{ .Name }}(ctx context.Context, db YORODB{{ gocustomparamlist .Primary
 func ({{ $short }} *{{ .Name }}) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := {{ $short }}.columnsToValues({{ .Name }}PrimaryKeys())
 	return spanner.Delete("{{ $table }}", spanner.Key(values))
+}
+
+// Delete{{ .Name }}All deletes the {{ .Name }} rows from the database.
+func Delete{{ .Name }}All(ctx context.Context, rows []*{{ .Name }}) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Delete(ctx))
+	}
+	return muts
 }
