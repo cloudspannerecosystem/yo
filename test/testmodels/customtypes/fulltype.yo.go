@@ -266,12 +266,32 @@ func (ft *FullType) Insert(ctx context.Context) *spanner.Mutation {
 	})
 }
 
+// InsertFullTypeAll returns slice of Mutation to insert rows into a table. If the row already
+// exists, the write or transaction fails.
+func InsertFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Insert(ctx))
+	}
+	return muts
+}
+
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ft *FullType) Update(ctx context.Context) *spanner.Mutation {
 	return spanner.Update("FullTypes", FullTypeColumns(), []interface{}{
 		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, int64(ft.FTInt), ft.FTIntNull, float64(ft.FTFloat), ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
 	})
+}
+
+// UpdateFullTypeAll returns slice of Mutation to update rows in a table. If the row does not
+// already exist, the write or transaction fails.
+func UpdateFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Update(ctx))
+	}
+	return muts
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
@@ -281,6 +301,17 @@ func (ft *FullType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
 	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), []interface{}{
 		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, int64(ft.FTInt), ft.FTIntNull, float64(ft.FTFloat), ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
 	})
+}
+
+// InsertOrUpdateFullTypeAll returns slice of Mutation to insert rows into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func InsertOrUpdateFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.InsertOrUpdate(ctx))
+	}
+	return muts
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -294,6 +325,24 @@ func (ft *FullType) UpdateColumns(ctx context.Context, cols ...string) (*spanner
 	}
 
 	return spanner.Update("FullTypes", colsWithPKeys, values), nil
+}
+
+// UpdateFullTypeColumnsAll returns slice of Mutation to update specified columns of rows in a table.
+func UpdateFullTypeColumnsAll(ctx context.Context, rows []*FullType, cols ...string) ([]*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, FullTypePrimaryKeys()...)
+
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		values, err := r.columnsToValues(colsWithPKeys)
+		if err != nil {
+			return nil, newErrorWithCode(codes.InvalidArgument, "FullType.UpdateColumns", "FullTypes", err)
+		}
+
+		muts = append(muts, spanner.Update("FullTypes", colsWithPKeys, values))
+	}
+
+	return muts, nil
 }
 
 // FindFullType gets a FullType by primary key
@@ -317,6 +366,15 @@ func FindFullType(ctx context.Context, db YORODB, pKey string) (*FullType, error
 func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ft.columnsToValues(FullTypePrimaryKeys())
 	return spanner.Delete("FullTypes", spanner.Key(values))
+}
+
+// DeleteFullTypeAll deletes the FullType rows from the database.
+func DeleteFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Delete(ctx))
+	}
+	return muts
 }
 
 // FindFullTypeByFTString retrieves a row from 'FullTypes' as a FullType.

@@ -129,12 +129,32 @@ func (cpk *CompositePrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
 	})
 }
 
+// InsertCompositePrimaryKeyAll returns slice of Mutation to insert rows into a table. If the row already
+// exists, the write or transaction fails.
+func InsertCompositePrimaryKeyAll(ctx context.Context, rows []*CompositePrimaryKey) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Insert(ctx))
+	}
+	return muts
+}
+
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Update(ctx context.Context) *spanner.Mutation {
 	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
 		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
 	})
+}
+
+// UpdateCompositePrimaryKeyAll returns slice of Mutation to update rows in a table. If the row does not
+// already exist, the write or transaction fails.
+func UpdateCompositePrimaryKeyAll(ctx context.Context, rows []*CompositePrimaryKey) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Update(ctx))
+	}
+	return muts
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
@@ -144,6 +164,17 @@ func (cpk *CompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mut
 	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
 		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
 	})
+}
+
+// InsertOrUpdateCompositePrimaryKeyAll returns slice of Mutation to insert rows into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func InsertOrUpdateCompositePrimaryKeyAll(ctx context.Context, rows []*CompositePrimaryKey) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.InsertOrUpdate(ctx))
+	}
+	return muts
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -157,6 +188,24 @@ func (cpk *CompositePrimaryKey) UpdateColumns(ctx context.Context, cols ...strin
 	}
 
 	return spanner.Update("CompositePrimaryKeys", colsWithPKeys, values), nil
+}
+
+// UpdateCompositePrimaryKeyColumnsAll returns slice of Mutation to update specified columns of rows in a table.
+func UpdateCompositePrimaryKeyColumnsAll(ctx context.Context, rows []*CompositePrimaryKey, cols ...string) ([]*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, CompositePrimaryKeyPrimaryKeys()...)
+
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		values, err := r.columnsToValues(colsWithPKeys)
+		if err != nil {
+			return nil, newErrorWithCode(codes.InvalidArgument, "CompositePrimaryKey.UpdateColumns", "CompositePrimaryKeys", err)
+		}
+
+		muts = append(muts, spanner.Update("CompositePrimaryKeys", colsWithPKeys, values))
+	}
+
+	return muts, nil
 }
 
 // FindCompositePrimaryKey gets a CompositePrimaryKey by primary key
@@ -180,6 +229,15 @@ func FindCompositePrimaryKey(ctx context.Context, db YORODB, pKey1 string, pKey2
 func (cpk *CompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := cpk.columnsToValues(CompositePrimaryKeyPrimaryKeys())
 	return spanner.Delete("CompositePrimaryKeys", spanner.Key(values))
+}
+
+// DeleteCompositePrimaryKeyAll deletes the CompositePrimaryKey rows from the database.
+func DeleteCompositePrimaryKeyAll(ctx context.Context, rows []*CompositePrimaryKey) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Delete(ctx))
+	}
+	return muts
 }
 
 // FullType represents a row from 'FullTypes'.
@@ -427,12 +485,32 @@ func (ft *FullType) Insert(ctx context.Context) *spanner.Mutation {
 	})
 }
 
+// InsertFullTypeAll returns slice of Mutation to insert rows into a table. If the row already
+// exists, the write or transaction fails.
+func InsertFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Insert(ctx))
+	}
+	return muts
+}
+
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ft *FullType) Update(ctx context.Context) *spanner.Mutation {
 	return spanner.Update("FullTypes", FullTypeColumns(), []interface{}{
 		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
 	})
+}
+
+// UpdateFullTypeAll returns slice of Mutation to update rows in a table. If the row does not
+// already exist, the write or transaction fails.
+func UpdateFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Update(ctx))
+	}
+	return muts
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
@@ -442,6 +520,17 @@ func (ft *FullType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
 	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), []interface{}{
 		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
 	})
+}
+
+// InsertOrUpdateFullTypeAll returns slice of Mutation to insert rows into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func InsertOrUpdateFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.InsertOrUpdate(ctx))
+	}
+	return muts
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -455,6 +544,24 @@ func (ft *FullType) UpdateColumns(ctx context.Context, cols ...string) (*spanner
 	}
 
 	return spanner.Update("FullTypes", colsWithPKeys, values), nil
+}
+
+// UpdateFullTypeColumnsAll returns slice of Mutation to update specified columns of rows in a table.
+func UpdateFullTypeColumnsAll(ctx context.Context, rows []*FullType, cols ...string) ([]*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, FullTypePrimaryKeys()...)
+
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		values, err := r.columnsToValues(colsWithPKeys)
+		if err != nil {
+			return nil, newErrorWithCode(codes.InvalidArgument, "FullType.UpdateColumns", "FullTypes", err)
+		}
+
+		muts = append(muts, spanner.Update("FullTypes", colsWithPKeys, values))
+	}
+
+	return muts, nil
 }
 
 // FindFullType gets a FullType by primary key
@@ -478,6 +585,15 @@ func FindFullType(ctx context.Context, db YORODB, pKey string) (*FullType, error
 func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ft.columnsToValues(FullTypePrimaryKeys())
 	return spanner.Delete("FullTypes", spanner.Key(values))
+}
+
+// DeleteFullTypeAll deletes the FullType rows from the database.
+func DeleteFullTypeAll(ctx context.Context, rows []*FullType) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Delete(ctx))
+	}
+	return muts
 }
 
 // MaxLength represents a row from 'MaxLengths'.
@@ -563,12 +679,32 @@ func (ml *MaxLength) Insert(ctx context.Context) *spanner.Mutation {
 	})
 }
 
+// InsertMaxLengthAll returns slice of Mutation to insert rows into a table. If the row already
+// exists, the write or transaction fails.
+func InsertMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Insert(ctx))
+	}
+	return muts
+}
+
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ml *MaxLength) Update(ctx context.Context) *spanner.Mutation {
 	return spanner.Update("MaxLengths", MaxLengthColumns(), []interface{}{
 		ml.MaxString, ml.MaxBytes,
 	})
+}
+
+// UpdateMaxLengthAll returns slice of Mutation to update rows in a table. If the row does not
+// already exist, the write or transaction fails.
+func UpdateMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Update(ctx))
+	}
+	return muts
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
@@ -578,6 +714,17 @@ func (ml *MaxLength) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
 	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), []interface{}{
 		ml.MaxString, ml.MaxBytes,
 	})
+}
+
+// InsertOrUpdateMaxLengthAll returns slice of Mutation to insert rows into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func InsertOrUpdateMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.InsertOrUpdate(ctx))
+	}
+	return muts
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -591,6 +738,24 @@ func (ml *MaxLength) UpdateColumns(ctx context.Context, cols ...string) (*spanne
 	}
 
 	return spanner.Update("MaxLengths", colsWithPKeys, values), nil
+}
+
+// UpdateMaxLengthColumnsAll returns slice of Mutation to update specified columns of rows in a table.
+func UpdateMaxLengthColumnsAll(ctx context.Context, rows []*MaxLength, cols ...string) ([]*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, MaxLengthPrimaryKeys()...)
+
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		values, err := r.columnsToValues(colsWithPKeys)
+		if err != nil {
+			return nil, newErrorWithCode(codes.InvalidArgument, "MaxLength.UpdateColumns", "MaxLengths", err)
+		}
+
+		muts = append(muts, spanner.Update("MaxLengths", colsWithPKeys, values))
+	}
+
+	return muts, nil
 }
 
 // FindMaxLength gets a MaxLength by primary key
@@ -614,6 +779,15 @@ func FindMaxLength(ctx context.Context, db YORODB, maxString string) (*MaxLength
 func (ml *MaxLength) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ml.columnsToValues(MaxLengthPrimaryKeys())
 	return spanner.Delete("MaxLengths", spanner.Key(values))
+}
+
+// DeleteMaxLengthAll deletes the MaxLength rows from the database.
+func DeleteMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Delete(ctx))
+	}
+	return muts
 }
 
 // FindCompositePrimaryKeysByError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.

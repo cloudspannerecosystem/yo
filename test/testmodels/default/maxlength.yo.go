@@ -94,12 +94,32 @@ func (ml *MaxLength) Insert(ctx context.Context) *spanner.Mutation {
 	})
 }
 
+// InsertMaxLengthAll returns slice of Mutation to insert rows into a table. If the row already
+// exists, the write or transaction fails.
+func InsertMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Insert(ctx))
+	}
+	return muts
+}
+
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ml *MaxLength) Update(ctx context.Context) *spanner.Mutation {
 	return spanner.Update("MaxLengths", MaxLengthColumns(), []interface{}{
 		ml.MaxString, ml.MaxBytes,
 	})
+}
+
+// UpdateMaxLengthAll returns slice of Mutation to update rows in a table. If the row does not
+// already exist, the write or transaction fails.
+func UpdateMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Update(ctx))
+	}
+	return muts
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
@@ -109,6 +129,17 @@ func (ml *MaxLength) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
 	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), []interface{}{
 		ml.MaxString, ml.MaxBytes,
 	})
+}
+
+// InsertOrUpdateMaxLengthAll returns slice of Mutation to insert rows into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func InsertOrUpdateMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.InsertOrUpdate(ctx))
+	}
+	return muts
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -122,6 +153,24 @@ func (ml *MaxLength) UpdateColumns(ctx context.Context, cols ...string) (*spanne
 	}
 
 	return spanner.Update("MaxLengths", colsWithPKeys, values), nil
+}
+
+// UpdateMaxLengthColumnsAll returns slice of Mutation to update specified columns of rows in a table.
+func UpdateMaxLengthColumnsAll(ctx context.Context, rows []*MaxLength, cols ...string) ([]*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, MaxLengthPrimaryKeys()...)
+
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		values, err := r.columnsToValues(colsWithPKeys)
+		if err != nil {
+			return nil, newErrorWithCode(codes.InvalidArgument, "MaxLength.UpdateColumns", "MaxLengths", err)
+		}
+
+		muts = append(muts, spanner.Update("MaxLengths", colsWithPKeys, values))
+	}
+
+	return muts, nil
 }
 
 // FindMaxLength gets a MaxLength by primary key
@@ -145,4 +194,13 @@ func FindMaxLength(ctx context.Context, db YORODB, maxString string) (*MaxLength
 func (ml *MaxLength) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ml.columnsToValues(MaxLengthPrimaryKeys())
 	return spanner.Delete("MaxLengths", spanner.Key(values))
+}
+
+// DeleteMaxLengthAll deletes the MaxLength rows from the database.
+func DeleteMaxLengthAll(ctx context.Context, rows []*MaxLength) []*spanner.Mutation {
+	muts := make([]*spanner.Mutation, 0, len(rows))
+	for _, r := range rows {
+		muts = append(muts, r.Delete(ctx))
+	}
+	return muts
 }
