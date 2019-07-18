@@ -14,10 +14,10 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 // Generated from unique index '{{ .Index.IndexName }}'.
 func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fields true true }}) (*{{ .Type.Name }}, error) {
 {{- end }}
-	const sqlstr = `SELECT ` +
-		`{{ colnames .Type.Fields }} ` +
-		`FROM {{ $table }}@{FORCE_INDEX={{ .Index.IndexName }}} ` +
-		`WHERE {{ colnamesquery .Fields " AND " }}`
+	const sqlstr = "SELECT " +
+		"{{ escapedcolnames .Type.Fields }} " +
+		"FROM {{ $table }}@{FORCE_INDEX={{ .Index.IndexName }}} " +
+		"WHERE {{ colnamesquery .Fields " AND " }}"
 
 	stmt := spanner.NewStatement(sqlstr)
 	{{- range $i, $f := .Fields }}

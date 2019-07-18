@@ -15,6 +15,7 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		"colcount":          a.colcount,
 		"colnames":          a.colnames,
+		"escapedcolnames":   a.escapedcolnames,
 		"colnamesquery":     a.colnamesquery,
 		"colprefixnames":    a.colprefixnames,
 		"colvals":           a.colvals,
@@ -189,7 +190,32 @@ func (a *Generator) colnames(fields []*internal.Field, ignoreNames ...interface{
 		str = str + a.colname(f.Col)
 		i++
 	}
+	return str
+}
 
+// escapedcolnames creates a list of the column names found in the field, excluding any
+// internal.Field with Name contained in ignoreNames.
+// If use reserved word as a column name, it is escaped by surrounding it with backquotes.
+//
+// Used to present a comma separated list of espcaped column names, that can be used in
+// a SELECT, or UPDATE, or other SQL clause requiring an list of identifiers
+// (ie, "field_1, field_2, field_3, ...").
+func (a *Generator) escapedcolnames(fields []*internal.Field, ignoreNames ...interface{}) string {
+	ignore := ignoreFromMultiTypes(ignoreNames)
+
+	str := ""
+	i := 0
+	for _, f := range fields {
+		if ignore[f.Name] {
+			continue
+		}
+
+		if i != 0 {
+			str = str + ", "
+		}
+		str = str + internal.EscapeColumnName(a.colname(f.Col))
+		i++
+	}
 	return str
 }
 
@@ -212,7 +238,7 @@ func (a *Generator) colnamesquery(fields []*internal.Field, sep string, ignoreNa
 		if i != 0 {
 			str = str + sep
 		}
-		str = str + a.colname(f.Col) + " = " + a.loader.NthParam(i)
+		str = str + internal.EscapeColumnName(a.colname(f.Col)) + " = " + a.loader.NthParam(i)
 		i++
 	}
 

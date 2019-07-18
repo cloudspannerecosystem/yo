@@ -1,6 +1,9 @@
 package internal
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/gedex/inflector"
 	"github.com/knq/snaker"
 )
@@ -31,5 +34,17 @@ func SingularizeIdentifier(s string) string {
 	}
 
 	// return snaker.SnakeToCamelIdentifier(s)
+	return snaker.ForceCamelIdentifier(s)
+}
+
+// EscapeColumnName will escape a column name if using reserved keyword as column name, returning it in
+// surrounded backquotes.
+func EscapeColumnName(s string) string {
+	upperedColumnName := strings.ToUpper(snaker.ForceCamelIdentifier(s))
+	if _, ok := reservedKeywords[upperedColumnName]; ok {
+		// return surrounded snaker.SnakeToCamelIdentifier(s) with backquotes if reserved keyword
+		return fmt.Sprintf("`%s`", snaker.ForceCamelIdentifier(s))
+	}
+	// return snaker.SnakeToCamelIdentifier(s) if not reserved keyword
 	return snaker.ForceCamelIdentifier(s)
 }
