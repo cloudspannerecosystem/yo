@@ -615,14 +615,156 @@ func (ml *MaxLength) Delete(ctx context.Context) *spanner.Mutation {
 	return spanner.Delete("MaxLengths", spanner.Key(values))
 }
 
+// SnakeCase represents a row from 'snake_cases'.
+type SnakeCase struct {
+	ID        int64  `spanner:"id" json:"id"`                   // id
+	StringID  string `spanner:"string_id" json:"string_id"`     // string_id
+	FooBarBaz int64  `spanner:"foo_bar_baz" json:"foo_bar_baz"` // foo_bar_baz
+}
+
+func SnakeCasePrimaryKeys() []string {
+	return []string{
+		"id",
+	}
+}
+
+func SnakeCaseColumns() []string {
+	return []string{
+		"id",
+		"string_id",
+		"foo_bar_baz",
+	}
+}
+
+func (sc *SnakeCase) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "id":
+			ret = append(ret, &sc.ID)
+		case "string_id":
+			ret = append(ret, &sc.StringID)
+		case "foo_bar_baz":
+			ret = append(ret, &sc.FooBarBaz)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (sc *SnakeCase) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "id":
+			ret = append(ret, sc.ID)
+		case "string_id":
+			ret = append(ret, sc.StringID)
+		case "foo_bar_baz":
+			ret = append(ret, sc.FooBarBaz)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newSnakeCase_Decoder returns a decoder which reads a row from *spanner.Row
+// into SnakeCase. The decoder is not goroutine-safe. Don't use it concurrently.
+func newSnakeCase_Decoder(cols []string) func(*spanner.Row) (*SnakeCase, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*SnakeCase, error) {
+		var sc SnakeCase
+		ptrs, err := sc.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &sc, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (sc *SnakeCase) Insert(ctx context.Context) *spanner.Mutation {
+	return spanner.Insert("snake_cases", SnakeCaseColumns(), []interface{}{
+		sc.ID, sc.StringID, sc.FooBarBaz,
+	})
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (sc *SnakeCase) Update(ctx context.Context) *spanner.Mutation {
+	return spanner.Update("snake_cases", SnakeCaseColumns(), []interface{}{
+		sc.ID, sc.StringID, sc.FooBarBaz,
+	})
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (sc *SnakeCase) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	return spanner.InsertOrUpdate("snake_cases", SnakeCaseColumns(), []interface{}{
+		sc.ID, sc.StringID, sc.FooBarBaz,
+	})
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (sc *SnakeCase) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, SnakeCasePrimaryKeys()...)
+
+	values, err := sc.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "SnakeCase.UpdateColumns", "snake_cases", err)
+	}
+
+	return spanner.Update("snake_cases", colsWithPKeys, values), nil
+}
+
+// FindSnakeCase gets a SnakeCase by primary key
+func FindSnakeCase(ctx context.Context, db YORODB, id int64) (*SnakeCase, error) {
+	key := spanner.Key{id}
+	row, err := db.ReadRow(ctx, "snake_cases", key, SnakeCaseColumns())
+	if err != nil {
+		return nil, newError("FindSnakeCase", "snake_cases", err)
+	}
+
+	decoder := newSnakeCase_Decoder(SnakeCaseColumns())
+	sc, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindSnakeCase", "snake_cases", err)
+	}
+
+	return sc, nil
+}
+
+// Delete deletes the SnakeCase from the database.
+func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := sc.columnsToValues(SnakeCasePrimaryKeys())
+	return spanner.Delete("snake_cases", spanner.Key(values))
+}
+
 // FindCompositePrimaryKeysByError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError'.
 func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
-	const sqlstr = `SELECT ` +
-		`Id, PKey1, PKey2, Error, X, Y, Z ` +
-		`FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError} ` +
-		`WHERE Error = @param0`
+	const sqlstr = "SELECT " +
+		"ID, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError} " +
+		"WHERE Error = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = e
@@ -660,10 +802,10 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 //
 // Generated from index 'CompositePrimaryKeysByXY'.
 func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CompositePrimaryKey, error) {
-	const sqlstr = `SELECT ` +
-		`Id, PKey1, PKey2, Error, X, Y, Z ` +
-		`FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} ` +
-		`WHERE X = @param0 AND Y = @param1`
+	const sqlstr = "SELECT " +
+		"ID, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} " +
+		"WHERE X = @param0 AND Y = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = x
@@ -705,10 +847,10 @@ func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y st
 //
 // Generated from unique index 'FullTypesByFTString'.
 func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByFTString} ` +
-		`WHERE FTString = @param0`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByFTString} " +
+		"WHERE FTString = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = fTString
@@ -743,10 +885,10 @@ func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*F
 //
 // Generated from unique index 'FullTypesByIntDate'.
 func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTDate civil.Date) (*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} ` +
-		`WHERE FTInt = @param0 AND FTDate = @param1`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} " +
+		"WHERE FTInt = @param0 AND FTDate = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = fTInt
@@ -779,10 +921,10 @@ func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTDa
 //
 // Generated from index 'FullTypesByIntTimestamp'.
 func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int64, fTTimestamp time.Time) ([]*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByIntTimestamp} ` +
-		`WHERE FTInt = @param0 AND FTTimestamp = @param1`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntTimestamp} " +
+		"WHERE FTInt = @param0 AND FTTimestamp = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = fTInt
@@ -821,10 +963,10 @@ func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int64
 //
 // Generated from index 'FullTypesByTimestamp'.
 func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time.Time) ([]*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByTimestamp} ` +
-		`WHERE FTTimestamp = @param0`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByTimestamp} " +
+		"WHERE FTTimestamp = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = fTTimestamp
@@ -853,6 +995,48 @@ func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time
 		}
 
 		res = append(res, ft)
+	}
+
+	return res, nil
+}
+
+// FindSnakeCasesByStringIDFooBarBaz retrieves multiple rows from 'snake_cases' as a slice of SnakeCase.
+//
+// Generated from index 'snake_cases_by_string_id'.
+func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
+	const sqlstr = "SELECT " +
+		"ID, StringID, FooBarBaz " +
+		"FROM snake_cases@{FORCE_INDEX=snake_cases_by_string_id} " +
+		"WHERE StringID = @param0 AND FooBarBaz = @param1"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = stringID
+	stmt.Params["param1"] = fooBarBaz
+
+	decoder := newSnakeCase_Decoder(SnakeCaseColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, stringID, fooBarBaz)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*SnakeCase{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
+		}
+
+		sc, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
+		}
+
+		res = append(res, sc)
 	}
 
 	return res, nil

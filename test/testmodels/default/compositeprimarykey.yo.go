@@ -182,10 +182,10 @@ func (cpk *CompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
 //
 // Generated from index 'CompositePrimaryKeysByError'.
 func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
-	const sqlstr = `SELECT ` +
-		`Id, PKey1, PKey2, Error, X, Y, Z ` +
-		`FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError} ` +
-		`WHERE Error = @param0`
+	const sqlstr = "SELECT " +
+		"ID, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError} " +
+		"WHERE Error = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = e
@@ -223,10 +223,10 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 //
 // Generated from index 'CompositePrimaryKeysByXY'.
 func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CompositePrimaryKey, error) {
-	const sqlstr = `SELECT ` +
-		`Id, PKey1, PKey2, Error, X, Y, Z ` +
-		`FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} ` +
-		`WHERE X = @param0 AND Y = @param1`
+	const sqlstr = "SELECT " +
+		"ID, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} " +
+		"WHERE X = @param0 AND Y = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = x

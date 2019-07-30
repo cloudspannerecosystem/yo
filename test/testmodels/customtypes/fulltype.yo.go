@@ -325,10 +325,10 @@ func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 //
 // Generated from unique index 'FullTypesByFTString'.
 func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByFTString} ` +
-		`WHERE FTString = @param0`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByFTString} " +
+		"WHERE FTString = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = fTString
@@ -363,10 +363,10 @@ func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*F
 //
 // Generated from unique index 'FullTypesByIntDate'.
 func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int32, fTDate civil.Date) (*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} ` +
-		`WHERE FTInt = @param0 AND FTDate = @param1`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} " +
+		"WHERE FTInt = @param0 AND FTDate = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = int64(fTInt)
@@ -399,10 +399,10 @@ func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int32, fTDa
 //
 // Generated from index 'FullTypesByIntTimestamp'.
 func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int32, fTTimestamp time.Time) ([]*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByIntTimestamp} ` +
-		`WHERE FTInt = @param0 AND FTTimestamp = @param1`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntTimestamp} " +
+		"WHERE FTInt = @param0 AND FTTimestamp = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = int64(fTInt)
@@ -441,10 +441,10 @@ func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int32
 //
 // Generated from index 'FullTypesByTimestamp'.
 func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time.Time) ([]*FullType, error) {
-	const sqlstr = `SELECT ` +
-		`PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate ` +
-		`FROM FullTypes@{FORCE_INDEX=FullTypesByTimestamp} ` +
-		`WHERE FTTimestamp = @param0`
+	const sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByTimestamp} " +
+		"WHERE FTTimestamp = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = fTTimestamp

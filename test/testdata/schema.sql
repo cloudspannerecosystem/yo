@@ -55,3 +55,11 @@ CREATE TABLE MaxLengths (
   MaxString STRING(MAX) NOT NULL,
   MaxBytes BYTES(MAX) NOT NULL,
 ) PRIMARY KEY(MaxString);
+
+CREATE TABLE snake_cases (
+  id INT64 NOT NULL,
+  string_id STRING(32) NOT NULL,
+  foo_bar_baz INT64 NOT NULL,
+) PRIMARY KEY(id);
+
+CREATE INDEX snake_cases_by_string_id ON snake_cases(string_id, foo_bar_baz);
