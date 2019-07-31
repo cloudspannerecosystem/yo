@@ -40,11 +40,10 @@ func SingularizeIdentifier(s string) string {
 // EscapeColumnName will escape a column name if using reserved keyword as column name, returning it in
 // surrounded backquotes.
 func EscapeColumnName(s string) string {
-	upperedColumnName := strings.ToUpper(snaker.ForceCamelIdentifier(s))
-	if _, ok := reservedKeywords[upperedColumnName]; ok {
-		// return surrounded snaker.SnakeToCamelIdentifier(s) with backquotes if reserved keyword
-		return fmt.Sprintf("`%s`", snaker.ForceCamelIdentifier(s))
+	if _, ok := reservedKeywords[strings.ToUpper(s)]; ok {
+		// return surrounded s with backquotes if reserved keyword
+		return fmt.Sprintf("`%s`", s)
 	}
-	// return snaker.SnakeToCamelIdentifier(s) if not reserved keyword
-	return snaker.ForceCamelIdentifier(s)
+	// return s if not reserved keyword
+	return s
 }
