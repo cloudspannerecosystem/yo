@@ -762,7 +762,7 @@ func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
 // Generated from index 'CompositePrimaryKeysByError'.
 func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
-		"ID, PKey1, PKey2, Error, X, Y, Z " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError} " +
 		"WHERE Error = @param0"
 
@@ -803,7 +803,7 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 // Generated from index 'CompositePrimaryKeysByXY'.
 func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
-		"ID, PKey1, PKey2, Error, X, Y, Z " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} " +
 		"WHERE X = @param0 AND Y = @param1"
 
@@ -1005,9 +1005,9 @@ func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time
 // Generated from index 'snake_cases_by_string_id'.
 func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
 	const sqlstr = "SELECT " +
-		"ID, StringID, FooBarBaz " +
+		"id, string_id, foo_bar_baz " +
 		"FROM snake_cases@{FORCE_INDEX=snake_cases_by_string_id} " +
-		"WHERE StringID = @param0 AND FooBarBaz = @param1"
+		"WHERE string_id = @param0 AND foo_bar_baz = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = stringID

@@ -158,9 +158,9 @@ func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
 // Generated from index 'snake_cases_by_string_id'.
 func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
 	const sqlstr = "SELECT " +
-		"ID, StringID, FooBarBaz " +
+		"id, string_id, foo_bar_baz " +
 		"FROM snake_cases@{FORCE_INDEX=snake_cases_by_string_id} " +
-		"WHERE StringID = @param0 AND FooBarBaz = @param1"
+		"WHERE string_id = @param0 AND foo_bar_baz = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["param0"] = stringID
