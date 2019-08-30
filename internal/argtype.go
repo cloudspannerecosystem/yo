@@ -26,13 +26,21 @@ var (
 		Use:   "yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME",
 		Short: "yo is a command-line tool to generate Go code for Google Cloud Spanner.",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 3 {
+			if cmd.Flag("create-templates").Changed {
+				if len(args) > 0 {
+					return fmt.Errorf("required no arguments")
+				}
+			} else if len(args) != 3 {
 				return fmt.Errorf("must specify 3 arguments")
 			}
 			return nil
 		},
 		Example: strings.Trim(exampleUsage, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flag("create-templates").Changed {
+				return nil
+			}
+
 			if err := processArgs(&rootOpts, args); err != nil {
 				return err
 			}
@@ -55,6 +63,7 @@ func init() {
 	rootCmd.Flags().StringArrayVar(&rootOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	rootCmd.Flags().StringVar(&rootOpts.TemplatePath, "template-path", "", "user supplied template path")
 	rootCmd.Flags().StringVar(&rootOpts.Tags, "tags", "", "build tags to add to package header")
+	rootCmd.Flags().BoolVar(&rootOpts.CreateTemplates, "create-templates", false, "create default template files to template-path")
 
 	helpFn := rootCmd.HelpFunc()
 	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
@@ -109,6 +118,10 @@ type ArgType struct {
 
 	// Tags is the list of build tags to add to generated Go files.
 	Tags string
+
+	// CreateTemplates changes command behavior.
+	// If true, default template files are created to TemplatePath.
+	CreateTemplates bool
 
 	Path     string
 	Filename string

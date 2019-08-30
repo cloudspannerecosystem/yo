@@ -44,6 +44,12 @@ jobs:
             git diff --quiet test/
 
       - run:
+          name: regenerate template files and check diff
+          command: |
+            make recreate-templates YOBIN=./yo
+            git diff --quiet templates/
+
+      - run:
           name: run integration test
           command: |
             make test

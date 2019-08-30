@@ -18,6 +18,10 @@ func main() {
 			return err
 		}
 
+		if args.CreateTemplates {
+			return generator.CopyDefaultTemplates(args.TemplatePath)
+		}
+
 		spannerClient, err := connectSpanner(args)
 		if err != nil {
 			return fmt.Errorf("error: %v", err)

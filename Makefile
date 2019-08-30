@@ -44,3 +44,7 @@ testdata/single:
 testdata/customtypes:
 	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
 	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
+
+recreate-templates::
+	rm -rf templates && mkdir templates
+	$(YOBIN) --create-templates --template-path templates
