@@ -47,4 +47,4 @@ testdata/customtypes:
 
 recreate-templates::
 	rm -rf templates && mkdir templates
-	$(YOBIN) --create-templates --template-path templates
+	$(YOBIN) create-template --template-path templates
