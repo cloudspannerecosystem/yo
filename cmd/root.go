@@ -98,7 +98,6 @@ func init() {
 	rootCmd.Flags().StringArrayVar(&rootOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	rootCmd.Flags().StringVar(&rootOpts.TemplatePath, "template-path", "", "user supplied template path")
 	rootCmd.Flags().StringVar(&rootOpts.Tags, "tags", "", "build tags to add to package header")
-	rootCmd.Flags().BoolVar(&rootOpts.CreateTemplates, "create-templates", false, "create default template files to template-path")
 
 	helpFn := rootCmd.HelpFunc()
 	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {

@@ -47,10 +47,6 @@ type ArgType struct {
 	// Tags is the list of build tags to add to generated Go files.
 	Tags string
 
-	// CreateTemplates changes command behavior.
-	// If true, default template files are created to TemplatePath.
-	CreateTemplates bool
-
 	Path     string
 	Filename string
 }
