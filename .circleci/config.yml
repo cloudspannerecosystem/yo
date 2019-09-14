@@ -3,23 +3,10 @@ version: 2
 jobs:
   test:
     docker:
-      - image: golang:1.11.1-stretch
-        environment:
-          # those environment variables are came from Circle CI settings
-          # SPANNER_PROJECT_NAME: foobar-project
-          # SPANNER_INSTANCE_NAME: foobar-instance
-          # SPANNER_DATABASE_NAME: yo-test
-          GOOGLE_APPLICATION_CREDENTIALS: /credential
-
+      - image: golang:1.13-stretch
     working_directory: /go/src/go.mercari.io/yo
-    resource_class: xlarge
     steps:
       - checkout
-      - run:
-          name: setup service account
-          command: |
-            echo ${GOOGLE_SERVICE_ACCOUNT_DATA} | base64 -d > ${GOOGLE_APPLICATION_CREDENTIALS}
-
       - run:
           name: install deps
           command: |
@@ -38,24 +25,58 @@ jobs:
             git diff --quiet tplbin/
 
       - run:
-          name: regenerate testdata and check diff
-          command: |
-            make testdata YOBIN=./yo
-            git diff --quiet test/
-
-      - run:
           name: regenerate template files and check diff
           command: |
             make recreate-templates YOBIN=./yo
             git diff --quiet templates/
 
       - run:
-          name: run integration test
+          name: run integration test with fake spanner server
           command: |
             make test
+
+  e2etest:
+    docker:
+      - image: golang:1.13-stretch
+        environment:
+          # those environment variables are came from Circle CI settings
+          # SPANNER_PROJECT_NAME: foobar-project
+          # SPANNER_INSTANCE_NAME: foobar-instance
+          # SPANNER_DATABASE_NAME: yo-test
+          GOOGLE_APPLICATION_CREDENTIALS: /credential
+
+    working_directory: /go/src/go.mercari.io/yo
+    steps:
+      - checkout
+      - run:
+          name: setup service account
+          command: |
+            echo ${GOOGLE_SERVICE_ACCOUNT_DATA} | base64 -d > ${GOOGLE_APPLICATION_CREDENTIALS}
+
+      - run:
+          name: install deps
+          command: |
+            make deps
+            dep ensure -vendor-only
+
+      - run:
+          name: regenerate testdata and check diff
+          command: |
+            make testdata YOBIN=./yo
+            git diff --quiet test/
+
+      - run:
+          name: run integration test
+          command: |
+            make e2etest
 
 workflows:
   version: 2
   build-workflow:
     jobs:
       - test
+      - e2etest:
+          filters:
+            branches:
+              only:
+                - master
