@@ -25,6 +25,11 @@ tplbin/templates.go: $(wildcard templates/*.tpl)
 
 .PHONY: test
 test:
+	@echo run tests with fake spanner server
+	go test -race -v -short ./test
+
+e2etest:
+	@echo run tests with real spanner server
 	go test -race -v ./test
 
 testsetup:
