@@ -60,6 +60,11 @@ jobs:
             dep ensure -vendor-only
 
       - run:
+          name: build
+          command: |
+            make build
+
+      - run:
           name: regenerate testdata and check diff
           command: |
             make testdata YOBIN=./yo
