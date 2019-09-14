@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"testing"
@@ -9,9 +10,11 @@ import (
 
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
+	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/test/testmodels/customtypes"
 	models "go.mercari.io/yo/test/testmodels/default"
+	"go.mercari.io/yo/test/testutil"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,7 +26,8 @@ var (
 )
 
 var (
-	client *spanner.Client
+	client      *spanner.Client
+	adminClient *dbadmin.DatabaseAdminClient
 )
 
 func testNotFound(t *testing.T, err error, b bool) {
@@ -69,46 +73,61 @@ func testTableName(t *testing.T, err error, name string) {
 	}
 }
 
-func DeleteAllData(ctx context.Context, client *spanner.Client) error {
-	tables := []string{"CompositePrimaryKeys", "FullTypes", "MaxLengths", "snake_cases"}
-	var muts []*spanner.Mutation
-	for _, table := range tables {
-		muts = append(muts, spanner.Delete(table, spanner.AllKeys()))
-	}
-
-	_, err := client.Apply(ctx, muts, spanner.ApplyAtLeastOnce())
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func TestMain(m *testing.M) {
+	// explicitly call flag.Parse() to use testing.Short() in TestMain
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
 	os.Exit(func() int {
 		ctx := context.Background()
-		databaseName := fmt.Sprintf("projects/%s/instances/%s/databases/%s",
-			spannerProjectName, spannerInstanceName, spannerDatabaseName)
-		spannerClient, err := spanner.NewClient(ctx, databaseName)
-		if err != nil {
-			panic(fmt.Sprintf("failed to create spanner client: %v", err))
+		var databaseName string
+
+		// If test.short is enabled, use fake spanner server for testing.
+		// Otherwise use a real spanner server.
+		if testing.Short() {
+			databaseName = "projects/yo/instances/yo/databases/integration-test"
+			cli, adminCli, stop, err := testutil.SetupFakeSpanner(ctx, databaseName)
+			if err != nil {
+				panic(err)
+			}
+			defer stop()
+
+			client = cli
+			adminClient = adminCli
+		} else {
+			databaseName = fmt.Sprintf("projects/%s/instances/%s/databases/%s",
+				spannerProjectName, spannerInstanceName, spannerDatabaseName)
+
+			spannerClient, err := spanner.NewClient(ctx, databaseName)
+			if err != nil {
+				panic(fmt.Sprintf("failed to create spanner client: %v", err))
+			}
+			defer spannerClient.Close()
+
+			client = spannerClient
 		}
-		defer spannerClient.Close()
 
 		// preflight query to check database ready
 		spanCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 
-		iter := spannerClient.Single().Query(spanCtx, spanner.NewStatement("SELECT 1"))
-		if _, err = iter.Next(); err != nil {
+		iter := client.Single().Query(spanCtx, spanner.NewStatement("SELECT 1"))
+		if _, err := iter.Next(); err != nil {
 			panic(err)
 		}
 		iter.Stop()
 
-		client = spannerClient
-
-		if err := DeleteAllData(ctx, client); err != nil {
-			panic(err)
+		if testing.Short() {
+			// Apply test scheme to create tables
+			if err := testutil.ApplyTestSchema(ctx, adminClient, databaseName); err != nil {
+				panic(err)
+			}
+		} else {
+			// Delete exsitng data to make sure all tables are clean
+			if err := testutil.DeleteAllData(ctx, client); err != nil {
+				panic(err)
+			}
 		}
 
 		return m.Run()
@@ -167,6 +186,11 @@ func TestDefaultCompositePrimaryKey_NotFound(t *testing.T) {
 }
 
 func TestDefaultFullType(t *testing.T) {
+	if testing.Short() {
+		t.Logf("test skipped: fake spanner does not support yet")
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
