@@ -33,6 +33,7 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 		"customfieldcount":  a.customfieldcount,
 		"goparamname":       a.goparamname,
 		"customtypeparam":   a.customtypeparam,
+		"tolower":           a.tolower,
 	}
 }
 
@@ -572,4 +573,9 @@ func (a *Generator) goparamname(name string) string {
 	}
 
 	return name
+}
+
+// tolower converts s to lower case.
+func (a *Generator) tolower(s string) string {
+	return strings.ToLower(s)
 }
