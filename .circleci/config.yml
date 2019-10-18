@@ -25,6 +25,12 @@ jobs:
             git diff --quiet tplbin/
 
       - run:
+          name: regenerate testdata-from-ddl and check diff
+          command: |
+            make testdata-from-ddl YOBIN=./yo
+            git diff --quiet test/
+
+      - run:
           name: regenerate template files and check diff
           command: |
             make recreate-templates YOBIN=./yo
