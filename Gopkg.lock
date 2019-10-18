@@ -34,6 +34,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:0276f0bc42bdc5eadf005c8f0c843f859eeb8fef5e4e864fe96fa78447404841"
+  name = "github.com/MakeNowJust/memefish"
+  packages = ["pkg/parser"]
+  pruneopts = "UT"
+  revision = "8cb375afb10dbf705bc053188dd960e692397d66"
+
+[[projects]]
+  branch = "master"
   digest = "1:738fb270ddc762898f14fec8e4c6ba51720cdf00f0d1fb44d29a550282f24c78"
   name = "github.com/gedex/inflector"
   packages = ["."]
@@ -443,6 +451,7 @@
     "cloud.google.com/go/spanner",
     "cloud.google.com/go/spanner/admin/database/apiv1",
     "cloud.google.com/go/spanner/spannertest",
+    "github.com/MakeNowJust/memefish/pkg/parser",
     "github.com/gedex/inflector",
     "github.com/google/go-cmp/cmp",
     "github.com/jessevdk/go-assets",
@@ -450,6 +459,7 @@
     "github.com/spf13/cobra",
     "google.golang.org/api/iterator",
     "google.golang.org/api/option",
+    "google.golang.org/genproto/googleapis/spanner/admin/database/v1",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/status",
