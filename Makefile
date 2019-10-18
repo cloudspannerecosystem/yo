@@ -50,6 +50,21 @@ testdata/customtypes:
 	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
 	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
 
+testdata-from-ddl:
+	$(MAKE) -j4 testdata-from-ddl/default testdata-from-ddl/customtypes testdata-from-ddl/single
+
+testdata-from-ddl/default:
+	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
+	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --package models --out test/testmodels/default/
+
+testdata-from-ddl/single:
+	rm -rf test/testmodels/single && mkdir -p test/testmodels/single
+	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --out test/testmodels/single/single_file.go --single-file
+
+testdata-from-ddl/customtypes:
+	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
+	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
+
 recreate-templates::
 	rm -rf templates && mkdir templates
 	$(YOBIN) create-template --template-path templates
