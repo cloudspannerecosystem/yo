@@ -186,11 +186,6 @@ func TestDefaultCompositePrimaryKey_NotFound(t *testing.T) {
 }
 
 func TestDefaultFullType(t *testing.T) {
-	if testing.Short() {
-		t.Logf("test skipped: fake spanner does not support yet")
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

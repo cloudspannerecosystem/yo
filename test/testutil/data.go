@@ -7,14 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/spanner"
+	admindatabasev1 "cloud.google.com/go/spanner/admin/database/apiv1"
 	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
-	"cloud.google.com/go/spanner/spannertest"
+	"github.com/gcpug/handy-spanner/fake"
 	"google.golang.org/api/option"
 	dbadminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
-	"google.golang.org/grpc"
 )
 
 func DeleteAllData(ctx context.Context, client *spanner.Client) error {
@@ -39,39 +38,34 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 // SetupFakeSpanner runs fake spanner server and create clients for the server.
 // Please make sure to call stop func to stop the server and the clients.
 func SetupFakeSpanner(ctx context.Context, dbname string) (*spanner.Client, *dbadmin.DatabaseAdminClient, func(), error) {
-	srv, err := spannertest.NewServer("localhost:0")
+	// Run fake server
+	srv, conn, err := fake.Run()
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to start fake spanner server: %v", err)
+		return nil, nil, nil, err
 	}
 
-	dialCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
-	defer cancel()
-
-	conn, err := grpc.DialContext(dialCtx, srv.Addr, grpc.WithInsecure())
-	if err != nil {
-		srv.Close()
-		return nil, nil, nil, fmt.Errorf("dialing to fake spanner server failed: %v", err)
-	}
-
+	// Prepare spanner client
 	client, err := spanner.NewClient(ctx, dbname, option.WithGRPCConn(conn))
 	if err != nil {
-		srv.Close()
+		srv.Stop()
 		conn.Close()
-		return nil, nil, nil, fmt.Errorf("creating spanner client: %v", err)
+		return nil, nil, nil, fmt.Errorf("failed to connect fake spanner server: %v", err)
 	}
-	adminClient, err := dbadmin.NewDatabaseAdminClient(ctx, option.WithGRPCConn(conn))
+
+	// Prepare spanner client
+	adminclient, err := admindatabasev1.NewDatabaseAdminClient(ctx, option.WithGRPCConn(conn))
 	if err != nil {
-		srv.Close()
+		srv.Stop()
 		conn.Close()
 		return nil, nil, nil, fmt.Errorf("creating spanner admin client: %v", err)
-	}
 
+	}
 	stop := func() {
-		srv.Close()
+		srv.Stop()
 		conn.Close()
 	}
 
-	return client, adminClient, stop, nil
+	return client, adminclient, stop, nil
 }
 
 // ApplyDDL applies DDL statements and waits until finished.
