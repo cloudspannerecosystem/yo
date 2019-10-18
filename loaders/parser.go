@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/MakeNowJust/memefish/pkg/parser"
+	"github.com/MakeNowJust/memefish/pkg/token"
 	"go.mercari.io/yo/models"
 )
 
@@ -24,7 +26,7 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 		}
 		ddl, err := (&parser.Parser{
 			Lexer: &parser.Lexer{
-				File: &parser.File{FilePath: fpath, Buffer: stmt},
+				File: &token.File{FilePath: fpath, Buffer: stmt},
 			},
 		}).ParseDDL()
 		if err != nil {
@@ -32,11 +34,11 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 		}
 
 		switch val := ddl.(type) {
-		case *parser.CreateTable:
+		case *ast.CreateTable:
 			v := tables[val.Name.Name]
 			v.createTable = val
 			tables[val.Name.Name] = v
-		case *parser.CreateIndex:
+		case *ast.CreateIndex:
 			v := tables[val.TableName.Name]
 			v.createIndexes = append(v.createIndexes, val)
 			tables[val.TableName.Name] = v
@@ -49,8 +51,8 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 }
 
 type table struct {
-	createTable   *parser.CreateTable
-	createIndexes []*parser.CreateIndex
+	createTable   *ast.CreateTable
+	createIndexes []*ast.CreateIndex
 }
 
 type SpannerLoaderFromDDL struct {

@@ -4,6 +4,8 @@ export SPANNER_DATABASE_NAME ?= yo-test
 
 YOBIN ?= yo
 
+export GO111MODULE=on
+
 all: build
 
 build: regen
@@ -12,7 +14,6 @@ build: regen
 regen: tplbin/templates.go
 
 deps:
-	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/jessevdk/go-assets-builder
 	go get -u golang.org/x/tools/cmd/goimports
 
