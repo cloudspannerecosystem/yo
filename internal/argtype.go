@@ -49,4 +49,10 @@ type ArgType struct {
 
 	Path     string
 	Filename string
+
+	// DDLFilepath is the filepath of the ddl file.
+	DDLFilepath string
+
+	// FromDDL indicates generating from ddl flie or not.
+	FromDDL bool
 }
