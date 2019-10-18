@@ -88,36 +88,28 @@ func Execute() error {
 }
 
 func init() {
-	setRootOpts(rootCmd, &rootOpts)
-}
+	rootCmd.Flags().StringVar(&rootOpts.CustomTypesFile, "custom-types-file", "", "custom table field type definition file")
+	rootCmd.Flags().StringVarP(&rootOpts.Out, "out", "o", "", "output path or file name")
+	rootCmd.Flags().StringVar(&rootOpts.Suffix, "suffix", defaultSuffix, "output file suffix")
+	rootCmd.Flags().BoolVar(&rootOpts.SingleFile, "single-file", false, "toggle single file output")
+	rootCmd.Flags().StringVarP(&rootOpts.Package, "package", "p", "", "package name used in generated Go code")
+	rootCmd.Flags().StringVar(&rootOpts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
+	rootCmd.Flags().StringArrayVar(&rootOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
+	rootCmd.Flags().StringArrayVar(&rootOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
+	rootCmd.Flags().StringVar(&rootOpts.TemplatePath, "template-path", "", "user supplied template path")
+	rootCmd.Flags().StringVar(&rootOpts.Tags, "tags", "", "build tags to add to package header")
 
-func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
-	cmd.Flags().StringVar(&opts.CustomTypesFile, "custom-types-file", "", "custom table field type definition file")
-	cmd.Flags().StringVarP(&opts.Out, "out", "o", "", "output path or file name")
-	cmd.Flags().StringVar(&opts.Suffix, "suffix", defaultSuffix, "output file suffix")
-	cmd.Flags().BoolVar(&opts.SingleFile, "single-file", false, "toggle single file output")
-	cmd.Flags().StringVarP(&opts.Package, "package", "p", "", "package name used in generated Go code")
-	cmd.Flags().StringVar(&opts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
-	cmd.Flags().StringArrayVar(&opts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
-	cmd.Flags().StringArrayVar(&opts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
-	cmd.Flags().StringVar(&opts.TemplatePath, "template-path", "", "user supplied template path")
-	cmd.Flags().StringVar(&opts.Tags, "tags", "", "build tags to add to package header")
-
-	helpFn := cmd.HelpFunc()
-	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+	helpFn := rootCmd.HelpFunc()
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		helpFn(cmd, args)
 		os.Exit(1)
 	})
 }
 
 func processArgs(args *internal.ArgType, argv []string) error {
-	if len(argv) == 3 {
-		rootOpts.Project = argv[0]
-		rootOpts.Instance = argv[1]
-		rootOpts.Database = argv[2]
-	} else {
-		rootOpts.DDLFilepath = argv[0]
-	}
+	rootOpts.Project = argv[0]
+	rootOpts.Instance = argv[1]
+	rootOpts.Database = argv[2]
 
 	path := ""
 	filename := ""
