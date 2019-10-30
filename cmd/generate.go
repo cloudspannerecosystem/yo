@@ -27,10 +27,10 @@ var (
   yo generate schema.sql --from-ddl -o models --custom-types-file custom_column_types.yml
 
   # Generate models under models directory
-  yo generate $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models
+  yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 
   # Generate models under models directory with custom types
-  yo generate $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models --custom-types-file custom_column_types.yml
+  yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := processArgs(&generateOpts, args); err != nil {
