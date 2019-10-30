@@ -6,12 +6,17 @@ YOBIN ?= yo
 
 export GO111MODULE=on
 
+
+.PHONY: help
+help: ## show this help message.
+	@grep -hE '^\S+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
 all: build
 
-build: regen
+build: regen ## build yo command and regenerate template bin
 	go build
 
-regen: tplbin/templates.go
+regen: tplbin/templates.go ## regenerate template bin
 
 deps:
 	go get -u github.com/jessevdk/go-assets-builder
@@ -25,18 +30,18 @@ tplbin/templates.go: $(wildcard templates/*.tpl)
 		templates/*.tpl
 
 .PHONY: test
-test:
+test: ## run test
 	@echo run tests with fake spanner server
 	go test -race -v -short ./test
 
-e2etest:
+e2etest: ## run e2e test
 	@echo run tests with real spanner server
 	go test -race -v ./test
 
-testsetup:
+testsetup: ## setup test database
 	@gcloud --project $(SPANNER_PROJECT_NAME) spanner databases create $(SPANNER_DATABASE_NAME) --instance $(SPANNER_INSTANCE_NAME) --ddl "$(shell cat ./test/testdata/schema.sql)"
 
-testdata:
+testdata: ## generate test models
 	$(MAKE) -j4 testdata/default testdata/customtypes testdata/single
 
 testdata/default:
@@ -66,6 +71,6 @@ testdata-from-ddl/customtypes:
 	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
 	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
 
-recreate-templates::
+recreate-templates:: ## recreate templates
 	rm -rf templates && mkdir templates
 	$(YOBIN) create-template --template-path templates
