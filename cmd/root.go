@@ -18,10 +18,10 @@ const (
 	defaultSuffix = ".yo.go"
 	exampleUsage  = `
   # Generate models under models directory
-  yo $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models
+  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 
   # Generate models under models directory with custom types
-  yo $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models --custom-types-file custom_column_types.yml
+  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `
 )
 

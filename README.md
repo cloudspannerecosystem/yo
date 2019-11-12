@@ -23,7 +23,7 @@ $ cd $GOPATH/src/path/to/project
 $ mkdir -p models
 
 # generate code for a schema
-$ yo $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models
+$ yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 ```
 
 ## Command Line Options
@@ -39,10 +39,10 @@ Usage:
 
 Examples:
   # Generate models under models directory
-  yo $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models
+  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 
   # Generate models under models directory with custom types
-  yo $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models --custom-types-file custom_column_types.yml
+  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 
 Flags:
       --custom-type-package string   Go package name to use for custom or unknown types
@@ -162,7 +162,7 @@ $ rm templates/*.go
 $ vi templates/*.tpl.go
 
 # use with yo
-$ yo $PROJECT_NAME $INSTANCE_NAME $DATABASE_NAME -o models --template-path templates
+$ yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --template-path templates
 ```
 
 See the Custom Template example below for more information on adapting the base
