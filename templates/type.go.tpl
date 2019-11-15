@@ -6,7 +6,7 @@ type {{ .Name }} struct {
 {{- if eq (.Col.DataType) (.Col.ColumnName) }}
 	{{ .Name }} string `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }} enum
 {{- else if .CustomType }}
-	{{ .Name }} {{ .CustomType }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
+	{{ .Name }} {{ retype .CustomType }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
 {{- else }}
 	{{ .Name }} {{ .Type }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
 {{- end }}
@@ -99,7 +99,7 @@ func new{{ .Name }}_Decoder(cols []string) func(*spanner.Row) (*{{ .Name }}, err
         }
         {{- range .Fields }}
             {{- if .CustomType }}
-                {{ $short }}.{{ .Name }} = {{ .CustomType }}({{ customtypeparam .Name }})
+                {{ $short }}.{{ .Name }} = {{ retype .CustomType }}({{ customtypeparam .Name }})
             {{- end }}
         {{- end }}
 
