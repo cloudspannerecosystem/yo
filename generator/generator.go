@@ -109,7 +109,8 @@ func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[strin
 	}
 
 	ds := &basicDataSet{
-		Package: g.packageName,
+		Package:  g.packageName,
+		TableMap: tableMap,
 	}
 
 	if err := g.ExecuteTemplate(YOTemplate, "yo_db", "", ds); err != nil {

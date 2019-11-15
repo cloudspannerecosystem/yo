@@ -3,6 +3,8 @@ package generator
 import (
 	"io"
 	"text/template"
+
+	"go.mercari.io/yo/internal"
 )
 
 // TemplateType represents a template type.
@@ -90,7 +92,8 @@ var (
 
 // basicDataSet is used for template data for yo_db and yo_package.
 type basicDataSet struct {
-	Package string
+	Package  string
+	TableMap map[string]*internal.Type
 }
 
 // templateSet is a set of templates.
