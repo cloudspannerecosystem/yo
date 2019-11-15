@@ -62,7 +62,6 @@ jobs:
           name: install deps
           command: |
             make deps
-            dep ensure -vendor-only
 
       - run:
           name: build
