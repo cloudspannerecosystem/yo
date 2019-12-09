@@ -129,6 +129,17 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 			continue
 		}
 
+		// add storing columns first
+		if ix.Storing != nil {
+			for _, c := range ix.Storing.Columns {
+				cols = append(cols, &models.IndexColumn{
+					SeqNo:      0,
+					Storing:    true,
+					ColumnName: c.Name,
+				})
+			}
+		}
+
 		for i, c := range ix.Keys {
 			cols = append(cols, &models.IndexColumn{
 				SeqNo:      i + 1,

@@ -28,9 +28,9 @@ type Index struct {
 
 // IndexColumn represents index column info.
 type IndexColumn struct {
-	SeqNo      int    // seq_no
-	Cid        int    // cid
+	SeqNo      int    // seq_no. If is'a Storing Column, this value is 0.
 	ColumnName string // column_name
+	Storing    bool   // storing column or not
 }
 
 // CustomTypes represents custom type definitions

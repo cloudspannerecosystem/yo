@@ -260,6 +260,9 @@ func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
 
 	// add param names
 	paramNames := make([]string, 0, len(ixTpl.Fields))
+	for _, f := range ixTpl.StoringFields {
+		paramNames = append(paramNames, f.Name)
+	}
 	for _, f := range ixTpl.Fields {
 		paramNames = append(paramNames, f.Name)
 	}
@@ -294,7 +297,12 @@ func (tl *TypeLoader) LoadIndexColumns(args *ArgType, ixTpl *Index) error {
 			continue
 		}
 
-		ixTpl.Fields = append(ixTpl.Fields, field)
+		if ic.Storing {
+			// Storing column is added to StoringFields
+			ixTpl.StoringFields = append(ixTpl.Fields, field)
+		} else {
+			ixTpl.Fields = append(ixTpl.Fields, field)
+		}
 	}
 
 	return nil
