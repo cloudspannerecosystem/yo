@@ -299,7 +299,7 @@ func (tl *TypeLoader) LoadIndexColumns(args *ArgType, ixTpl *Index) error {
 
 		if ic.Storing {
 			// Storing column is added to StoringFields
-			ixTpl.StoringFields = append(ixTpl.Fields, field)
+			ixTpl.StoringFields = append(ixTpl.StoringFields, field)
 		} else {
 			ixTpl.Fields = append(ixTpl.Fields, field)
 		}
