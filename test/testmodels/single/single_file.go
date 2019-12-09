@@ -175,6 +175,29 @@ func FindCompositePrimaryKey(ctx context.Context, db YORODB, pKey1 string, pKey2
 	return cpk, nil
 }
 
+// ReadCompositePrimaryKey retrieves multiples rows from CompositePrimaryKey by KeySet as a slice.
+func ReadCompositePrimaryKey(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+	var res []*CompositePrimaryKey
+
+	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
+
+	rows := db.Read(ctx, "CompositePrimaryKeys", keys, CompositePrimaryKeyColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		cpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKey", "CompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
 // Delete deletes the CompositePrimaryKey from the database.
 func (cpk *CompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := cpk.columnsToValues(CompositePrimaryKeyPrimaryKeys())
@@ -473,6 +496,29 @@ func FindFullType(ctx context.Context, db YORODB, pKey string) (*FullType, error
 	return ft, nil
 }
 
+// ReadFullType retrieves multiples rows from FullType by KeySet as a slice.
+func ReadFullType(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+	var res []*FullType
+
+	decoder := newFullType_Decoder(FullTypeColumns())
+
+	rows := db.Read(ctx, "FullTypes", keys, FullTypeColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		ft, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ft)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullType", "FullTypes", err)
+	}
+
+	return res, nil
+}
+
 // Delete deletes the FullType from the database.
 func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ft.columnsToValues(FullTypePrimaryKeys())
@@ -607,6 +653,29 @@ func FindMaxLength(ctx context.Context, db YORODB, maxString string) (*MaxLength
 	}
 
 	return ml, nil
+}
+
+// ReadMaxLength retrieves multiples rows from MaxLength by KeySet as a slice.
+func ReadMaxLength(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*MaxLength, error) {
+	var res []*MaxLength
+
+	decoder := newMaxLength_Decoder(MaxLengthColumns())
+
+	rows := db.Read(ctx, "MaxLengths", keys, MaxLengthColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		ml, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ml)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadMaxLength", "MaxLengths", err)
+	}
+
+	return res, nil
 }
 
 // Delete deletes the MaxLength from the database.
@@ -751,6 +820,29 @@ func FindSnakeCase(ctx context.Context, db YORODB, id int64) (*SnakeCase, error)
 	return sc, nil
 }
 
+// ReadSnakeCase retrieves multiples rows from SnakeCase by KeySet as a slice.
+func ReadSnakeCase(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+	var res []*SnakeCase
+
+	decoder := newSnakeCase_Decoder(SnakeCaseColumns())
+
+	rows := db.Read(ctx, "snake_cases", keys, SnakeCaseColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		sc, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, sc)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadSnakeCase", "snake_cases", err)
+	}
+
+	return res, nil
+}
+
 // Delete deletes the SnakeCase from the database.
 func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := sc.columnsToValues(SnakeCasePrimaryKeys())
@@ -798,6 +890,40 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 	return res, nil
 }
 
+// ReadCompositePrimaryKeysByError retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CompositePrimaryKeysByError'.
+func ReadCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+	var res []*CompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"Error",
+	}
+
+	decoder := newCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CompositePrimaryKeys", "CompositePrimaryKeysByError", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		cpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByError", "CompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
 // FindCompositePrimaryKeysByZError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError2'.
@@ -839,10 +965,45 @@ func FindCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) (
 	return res, nil
 }
 
-// FindCompositePrimaryKeysByYError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
+// ReadCompositePrimaryKeysByZError retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CompositePrimaryKeysByError2'.
+func ReadCompositePrimaryKeysByZError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+	var res []*CompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"Error",
+		"Z",
+	}
+
+	decoder := newCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CompositePrimaryKeys", "CompositePrimaryKeysByError2", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		cpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByZError", "CompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
+// FindCompositePrimaryKeysByZYError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError3'.
-func FindCompositePrimaryKeysByYError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
+func FindCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
 		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError3} " +
@@ -866,15 +1027,51 @@ func FindCompositePrimaryKeysByYError(ctx context.Context, db YORODB, e int64) (
 			if err == iterator.Done {
 				break
 			}
-			return nil, newError("FindCompositePrimaryKeysByYError", "CompositePrimaryKeys", err)
+			return nil, newError("FindCompositePrimaryKeysByZYError", "CompositePrimaryKeys", err)
 		}
 
 		cpk, err := decoder(row)
 		if err != nil {
-			return nil, newErrorWithCode(codes.Internal, "FindCompositePrimaryKeysByYError", "CompositePrimaryKeys", err)
+			return nil, newErrorWithCode(codes.Internal, "FindCompositePrimaryKeysByZYError", "CompositePrimaryKeys", err)
 		}
 
 		res = append(res, cpk)
+	}
+
+	return res, nil
+}
+
+// ReadCompositePrimaryKeysByZYError retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CompositePrimaryKeysByError3'.
+func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+	var res []*CompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"Error",
+		"Z",
+		"Y",
+	}
+
+	decoder := newCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CompositePrimaryKeys", "CompositePrimaryKeysByError3", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		cpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByZYError", "CompositePrimaryKeys", err)
 	}
 
 	return res, nil
@@ -922,6 +1119,41 @@ func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y st
 	return res, nil
 }
 
+// ReadCompositePrimaryKeysByXY retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CompositePrimaryKeysByXY'.
+func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+	var res []*CompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"X",
+		"Y",
+	}
+
+	decoder := newCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CompositePrimaryKeys", "CompositePrimaryKeysByXY", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		cpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
 // FindFullTypeByFTString retrieves a row from 'FullTypes' as a FullType.
 //
 // If no row is present with the given key, then ReadRow returns an error where
@@ -958,6 +1190,39 @@ func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*F
 	}
 
 	return ft, nil
+}
+
+// ReadFullTypeByFTString retrieves multiples rows from 'FullTypes' by KeySet as a slice.
+//
+// This does not retrives all columns of 'FullTypes' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'FullTypesByFTString'.
+func ReadFullTypeByFTString(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+	var res []*FullType
+	columns := []string{
+		"PKey",
+		"FTString",
+	}
+
+	decoder := newFullType_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "FullTypes", "FullTypesByFTString", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ft, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ft)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTypeByFTString", "FullTypes", err)
+	}
+
+	return res, nil
 }
 
 // FindFullTypeByFTIntFTDate retrieves a row from 'FullTypes' as a FullType.
@@ -999,6 +1264,40 @@ func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTDa
 	return ft, nil
 }
 
+// ReadFullTypeByFTIntFTDate retrieves multiples rows from 'FullTypes' by KeySet as a slice.
+//
+// This does not retrives all columns of 'FullTypes' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'FullTypesByIntDate'.
+func ReadFullTypeByFTIntFTDate(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+	var res []*FullType
+	columns := []string{
+		"PKey",
+		"FTInt",
+		"FTDate",
+	}
+
+	decoder := newFullType_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "FullTypes", "FullTypesByIntDate", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ft, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ft)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTypeByFTIntFTDate", "FullTypes", err)
+	}
+
+	return res, nil
+}
+
 // FindFullTypesByFTIntFTTimestamp retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByIntTimestamp'.
@@ -1036,6 +1335,40 @@ func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int64
 		}
 
 		res = append(res, ft)
+	}
+
+	return res, nil
+}
+
+// ReadFullTypesByFTIntFTTimestamp retrieves multiples rows from 'FullTypes' by KeySet as a slice.
+//
+// This does not retrives all columns of 'FullTypes' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'FullTypesByIntTimestamp'.
+func ReadFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+	var res []*FullType
+	columns := []string{
+		"PKey",
+		"FTInt",
+		"FTTimestamp",
+	}
+
+	decoder := newFullType_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "FullTypes", "FullTypesByIntTimestamp", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ft, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ft)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTypesByFTIntFTTimestamp", "FullTypes", err)
 	}
 
 	return res, nil
@@ -1082,6 +1415,39 @@ func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time
 	return res, nil
 }
 
+// ReadFullTypesByFTTimestamp retrieves multiples rows from 'FullTypes' by KeySet as a slice.
+//
+// This does not retrives all columns of 'FullTypes' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'FullTypesByTimestamp'.
+func ReadFullTypesByFTTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+	var res []*FullType
+	columns := []string{
+		"PKey",
+		"FTTimestamp",
+	}
+
+	decoder := newFullType_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "FullTypes", "FullTypesByTimestamp", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ft, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ft)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTypesByFTTimestamp", "FullTypes", err)
+	}
+
+	return res, nil
+}
+
 // FindSnakeCasesByStringIDFooBarBaz retrieves multiple rows from 'snake_cases' as a slice of SnakeCase.
 //
 // Generated from index 'snake_cases_by_string_id'.
@@ -1119,6 +1485,40 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 		}
 
 		res = append(res, sc)
+	}
+
+	return res, nil
+}
+
+// ReadSnakeCasesByStringIDFooBarBaz retrieves multiples rows from 'snake_cases' by KeySet as a slice.
+//
+// This does not retrives all columns of 'snake_cases' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'snake_cases_by_string_id'.
+func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+	var res []*SnakeCase
+	columns := []string{
+		"id",
+		"string_id",
+		"foo_bar_baz",
+	}
+
+	decoder := newSnakeCase_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "snake_cases", "snake_cases_by_string_id", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		sc, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, sc)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
 	}
 
 	return res, nil

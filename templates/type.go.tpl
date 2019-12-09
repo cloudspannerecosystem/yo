@@ -155,13 +155,36 @@ func Find{{ .Name }}(ctx context.Context, db YORODB{{ gocustomparamlist .Primary
 		return nil, newError("Find{{ .Name }}", "{{ $table }}", err)
 	}
 
-    decoder := new{{ .Name }}_Decoder({{ .Name}}Columns())
+	decoder := new{{ .Name }}_Decoder({{ .Name}}Columns())
 	{{ $short }}, err := decoder(row)
-    if err != nil {
+	if err != nil {
 		return nil, newErrorWithCode(codes.Internal, "Find{{ .Name }}", "{{ $table }}", err)
-    }
+	}
 
 	return {{ $short }}, nil
+}
+
+// Read{{ .Name }} retrieves multiples rows from {{ .Name }} by KeySet as a slice.
+func Read{{ .Name }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*{{ .Name }}, error) {
+	var res []*{{ .Name }}
+
+	decoder := new{{ .Name }}_Decoder({{ .Name}}Columns())
+
+	rows := db.Read(ctx, "{{ $table }}", keys, {{ .Name }}Columns())
+	err := rows.Do(func(row *spanner.Row) error {
+		{{ $short }}, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, {{ $short }})
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "Read{{ .Name }}", "{{ $table }}", err)
+	}
+
+	return res, nil
 }
 {{ end }}
 

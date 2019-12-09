@@ -147,6 +147,29 @@ func FindSnakeCase(ctx context.Context, db YORODB, id int64) (*SnakeCase, error)
 	return sc, nil
 }
 
+// ReadSnakeCase retrieves multiples rows from SnakeCase by KeySet as a slice.
+func ReadSnakeCase(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+	var res []*SnakeCase
+
+	decoder := newSnakeCase_Decoder(SnakeCaseColumns())
+
+	rows := db.Read(ctx, "snake_cases", keys, SnakeCaseColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		sc, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, sc)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadSnakeCase", "snake_cases", err)
+	}
+
+	return res, nil
+}
+
 // Delete deletes the SnakeCase from the database.
 func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := sc.columnsToValues(SnakeCasePrimaryKeys())
@@ -190,6 +213,40 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 		}
 
 		res = append(res, sc)
+	}
+
+	return res, nil
+}
+
+// ReadSnakeCasesByStringIDFooBarBaz retrieves multiples rows from 'snake_cases' by KeySet as a slice.
+//
+// This does not retrives all columns of 'snake_cases' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'snake_cases_by_string_id'.
+func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+	var res []*SnakeCase
+	columns := []string{
+		"id",
+		"string_id",
+		"foo_bar_baz",
+	}
+
+	decoder := newSnakeCase_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "snake_cases", "snake_cases_by_string_id", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		sc, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, sc)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
 	}
 
 	return res, nil

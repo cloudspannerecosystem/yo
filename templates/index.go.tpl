@@ -78,3 +78,44 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 {{- end }}
 }
 
+
+// Read{{ .FuncName }} retrieves multiples rows from '{{ $table }}' by KeySet as a slice.
+//
+// This does not retrives all columns of '{{ $table }}' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index '{{ .Index.IndexName }}'.
+func Read{{ .FuncName }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
+	var res []*{{ .Type.Name }}
+    columns := []string{
+{{- range .Type.PrimaryKeyFields }}
+		"{{ colname .Col }}",
+{{- end }}
+{{- range .Fields }}
+		"{{ colname .Col }}",
+{{- end }}
+{{- range .StoringFields }}
+		"{{ colname .Col }}",
+{{- end }}
+}
+
+	decoder := new{{ .Type.Name }}_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "{{ $table }}", "{{ .Index.IndexName }}", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		{{ $short }}, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, {{ $short }})
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "Read{{ .FuncName }}", "{{ $table }}", err)
+	}
+
+    return res, nil
+}
+
