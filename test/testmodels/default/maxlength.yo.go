@@ -140,6 +140,29 @@ func FindMaxLength(ctx context.Context, db YORODB, maxString string) (*MaxLength
 	return ml, nil
 }
 
+// ReadMaxLength retrieves multiples rows from MaxLength by KeySet as a slice.
+func ReadMaxLength(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*MaxLength, error) {
+	var res []*MaxLength
+
+	decoder := newMaxLength_Decoder(MaxLengthColumns())
+
+	rows := db.Read(ctx, "MaxLengths", keys, MaxLengthColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		ml, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ml)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadMaxLength", "MaxLengths", err)
+	}
+
+	return res, nil
+}
+
 // Delete deletes the MaxLength from the database.
 func (ml *MaxLength) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ml.columnsToValues(MaxLengthPrimaryKeys())
