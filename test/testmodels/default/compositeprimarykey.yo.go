@@ -219,6 +219,88 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 	return res, nil
 }
 
+// FindCompositePrimaryKeysByZError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
+//
+// Generated from index 'CompositePrimaryKeysByError2'.
+func FindCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError2} " +
+		"WHERE Error = @param0"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = e
+
+	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, e)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCompositePrimaryKeysByZError", "CompositePrimaryKeys", err)
+		}
+
+		cpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCompositePrimaryKeysByZError", "CompositePrimaryKeys", err)
+		}
+
+		res = append(res, cpk)
+	}
+
+	return res, nil
+}
+
+// FindCompositePrimaryKeysByYError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
+//
+// Generated from index 'CompositePrimaryKeysByError3'.
+func FindCompositePrimaryKeysByYError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError3} " +
+		"WHERE Error = @param0"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = e
+
+	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, e)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCompositePrimaryKeysByYError", "CompositePrimaryKeys", err)
+		}
+
+		cpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCompositePrimaryKeysByYError", "CompositePrimaryKeys", err)
+		}
+
+		res = append(res, cpk)
+	}
+
+	return res, nil
+}
+
 // FindCompositePrimaryKeysByXY retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByXY'.

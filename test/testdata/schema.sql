@@ -8,8 +8,10 @@ CREATE TABLE CompositePrimaryKeys (
   Z STRING(32) NOT NULL,
 ) PRIMARY KEY(PKey1, PKey2);
 
-CREATE INDEX CompositePrimaryKeysByXY ON CompositePrimaryKeys(X, Y);
+CREATE INDEX CompositePrimaryKeysByXY     ON CompositePrimaryKeys(X, Y);
 CREATE INDEX CompositePrimaryKeysByError  ON CompositePrimaryKeys(Error);
+CREATE INDEX CompositePrimaryKeysByError2 ON CompositePrimaryKeys(Error) STORING(Z);
+CREATE INDEX CompositePrimaryKeysByError3 ON CompositePrimaryKeys(Error) STORING(Z, Y);
 
 CREATE TABLE FullTypes (
   PKey STRING(32) NOT NULL,

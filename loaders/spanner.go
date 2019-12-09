@@ -343,6 +343,9 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 			return nil, err
 		}
 		i.SeqNo = int(ord.Int64)
+		if !ord.Valid {
+			i.Storing = true
+		}
 		if err := row.ColumnByName("COLUMN_NAME", &i.ColumnName); err != nil {
 			return nil, err
 		}
