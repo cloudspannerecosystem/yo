@@ -149,7 +149,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	}
 
 	if _, err := client.Apply(ctx, []*spanner.Mutation{cpk.Insert(ctx)}); err != nil {
-		t.Fatalf("ReadWriteTransaction failed: %v", err)
+		t.Fatalf("Apply failed: %v", err)
 	}
 
 	t.Run("FindByPrimaryKey", func(t *testing.T) {
@@ -401,17 +401,8 @@ func TestDefaultFullType(t *testing.T) {
 
 	for name, tt := range table {
 		t.Run(name, func(t *testing.T) {
-			if _, err := client.ReadWriteTransaction(ctx, func(ctx context.Context, tx *spanner.ReadWriteTransaction) error {
-				var muts []*spanner.Mutation
-				muts = append(muts, tt.ft.Insert(ctx))
-
-				if err := tx.BufferWrite(muts); err != nil {
-					return err
-				}
-
-				return nil
-			}); err != nil {
-				t.Fatalf("ReadWriteTransaction failed: %v", err)
+			if _, err := client.Apply(ctx, []*spanner.Mutation{tt.ft.Insert(ctx)}); err != nil {
+				t.Fatalf("Apply failed: %v", err)
 			}
 
 			got, err := models.FindFullType(ctx, client.Single(), tt.ft.PKey)
@@ -440,39 +431,79 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 		Z:     "z300",
 	}
 
-	if _, err := client.ReadWriteTransaction(ctx, func(ctx context.Context, tx *spanner.ReadWriteTransaction) error {
-		var muts []*spanner.Mutation
-		muts = append(muts, cpk.Insert(ctx))
+	if _, err := client.Apply(ctx, []*spanner.Mutation{cpk.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
 
-		if err := tx.BufferWrite(muts); err != nil {
-			return err
+	t.Run("FindByPrimaryKey", func(t *testing.T) {
+		got, err := customtypes.FindCompositePrimaryKey(ctx, client.Single(), "x300", 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
 		}
 
-		return nil
-	}); err != nil {
-		t.Fatalf("ReadWriteTransaction failed: %v", err)
-	}
+		if diff := cmp.Diff(cpk, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
 
-	got, err := customtypes.FindCompositePrimaryKey(ctx, client.Single(), "x300", 300)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	t.Run("ReadByPrimaryKey", func(t *testing.T) {
+		got, err := customtypes.ReadCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x300", 300})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
-	if diff := cmp.Diff(cpk, got); diff != "" {
-		t.Errorf("(-got, +want)\n%s", diff)
-	}
-}
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
 
-func TestCustomCompositePrimaryKey_NotFound(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+		if diff := cmp.Diff(cpk, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
 
-	_, err := customtypes.FindCompositePrimaryKey(ctx, client.Single(), "custom", 100)
-	if err == nil {
-		t.Fatal("unexpected success")
-	}
+	t.Run("NotFound", func(t *testing.T) {
+		_, err := customtypes.FindCompositePrimaryKey(ctx, client.Single(), "custom", 100)
+		if err == nil {
+			t.Fatal("unexpected success")
+		}
 
-	testGRPCStatus(t, err, codes.NotFound)
-	testNotFound(t, err, true)
-	testTableName(t, err, "CompositePrimaryKeys")
+		testGRPCStatus(t, err, codes.NotFound)
+		testNotFound(t, err, true)
+		testTableName(t, err, "CompositePrimaryKeys")
+	})
+
+	t.Run("FindByError", func(t *testing.T) {
+		got, err := customtypes.FindCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		if diff := cmp.Diff(cpk, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ReadByError", func(t *testing.T) {
+		got, err := customtypes.ReadCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		expected := &customtypes.CompositePrimaryKey{
+			PKey1: cpk.PKey1,
+			PKey2: cpk.PKey2,
+			Error: cpk.Error,
+		}
+		if diff := cmp.Diff(expected, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
 }
