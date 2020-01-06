@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gedex/inflector"
 	"github.com/knq/snaker"
 	"go.mercari.io/yo/models"
 	"gopkg.in/yaml.v2"
@@ -22,8 +21,8 @@ type loaderImpl interface {
 	IndexColumnList(string, string) ([]*models.IndexColumn, error)
 }
 
-func NewTypeLoader(l loaderImpl) *TypeLoader {
-	return &TypeLoader{loader: l}
+func NewTypeLoader(l loaderImpl, i Inflector) *TypeLoader {
+	return &TypeLoader{loader: l, inflector: i}
 }
 
 // TypeLoader provides a common Loader implementation used by the built in
@@ -31,6 +30,7 @@ func NewTypeLoader(l loaderImpl) *TypeLoader {
 type TypeLoader struct {
 	CustomTypes *models.CustomTypes
 	loader      loaderImpl
+	inflector   Inflector
 }
 
 // NthParam satisifies Loader's NthParam.
@@ -96,7 +96,7 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 
 		// create template
 		typeTpl := &Type{
-			Name:   SingularizeIdentifier(ti.TableName),
+			Name:   SingularizeIdentifier(tl.inflector, ti.TableName),
 			Schema: "",
 			Fields: []*Field{},
 			Table:  ti,
@@ -254,7 +254,7 @@ func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
 	// build func name
 	funcName := ixTpl.Type.Name
 	if !ixTpl.Index.IsUnique {
-		funcName = inflector.Pluralize(ixTpl.Type.Name)
+		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
 	}
 	funcName = funcName + "By"
 

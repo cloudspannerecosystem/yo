@@ -47,7 +47,11 @@ var (
 				return fmt.Errorf("error: %v", err)
 			}
 			spannerLoader := loaders.NewSpannerLoader(spannerClient)
-			loader := internal.NewTypeLoader(spannerLoader)
+			inflector, err := internal.NewInflector(rootOpts.InflectionRuleFile)
+			if err != nil {
+				return fmt.Errorf("load inflection rule failed: %v", err)
+			}
+			loader := internal.NewTypeLoader(spannerLoader, inflector)
 
 			// load custom type definitions
 			if rootOpts.CustomTypesFile != "" {
@@ -102,6 +106,7 @@ func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
 	cmd.Flags().StringArrayVar(&opts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	cmd.Flags().StringVar(&opts.TemplatePath, "template-path", "", "user supplied template path")
 	cmd.Flags().StringVar(&opts.Tags, "tags", "", "build tags to add to package header")
+	cmd.Flags().StringVar(&opts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
 
 	helpFn := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {

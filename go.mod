@@ -13,6 +13,7 @@ require (
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/google/go-cmp v0.3.1
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
+	github.com/jinzhu/inflection v1.0.0
 	github.com/knq/snaker v0.0.0-20181215144011-2bc8a4db4687
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible // indirect
