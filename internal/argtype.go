@@ -55,4 +55,7 @@ type ArgType struct {
 
 	// FromDDL indicates generating from ddl flie or not.
 	FromDDL bool
+
+	// InflectionRuleFile is custom inflection rule file.
+	InflectionRuleFile string
 }

@@ -37,20 +37,24 @@ var (
 				return err
 			}
 
+			inflector, err := internal.NewInflector(generateOpts.InflectionRuleFile)
+			if err != nil {
+				return fmt.Errorf("load inflection rule failed: %v", err)
+			}
 			var loader *internal.TypeLoader
 			if generateOpts.FromDDL {
 				spannerLoader, err := loaders.NewSpannerLoaderFromDDL(args[0])
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
 				}
-				loader = internal.NewTypeLoader(spannerLoader)
+				loader = internal.NewTypeLoader(spannerLoader, inflector)
 			} else {
 				spannerClient, err := connectSpanner(&rootOpts)
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
 				}
 				spannerLoader := loaders.NewSpannerLoader(spannerClient)
-				loader = internal.NewTypeLoader(spannerLoader)
+				loader = internal.NewTypeLoader(spannerLoader, inflector)
 			}
 
 			// load custom type definitions

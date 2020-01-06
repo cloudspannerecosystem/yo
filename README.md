@@ -50,6 +50,7 @@ Flags:
   -h, --help                         help for yo
       --ignore-fields stringArray    fields to exclude from the generated Go code types
       --ignore-tables stringArray    tables to exclude from the generated Go code types
+      --inflection-rule-file string  custom inflection rule file
   -o, --out string                   output path or file name
   -p, --package string               package name used in generated Go code
       --single-file                  toggle single file output
@@ -182,6 +183,20 @@ templates in the `yo` source tree for use within your own project.
 **This is not a stable feature**
 
 `yo` provides some helper functions which can be used in templates. Those are defined in [`generator/funcs.go`](generator/funcs.go). Those are not well documented and are likely to change.
+
+### Custom Inflection Rule file
+
+`yo` use inflection to convert singular or plural name each other.
+If you want to add own rule, add `--inflection-rule-file` option with rule yaml file.
+rule yaml file sample is
+```
+- singular: person
+  plural: people
+- singular: live
+  plural: lives
+```
+
+See https://github.com/jinzhu/inflection#register-rules for Detail.
 
 ## Contribution
 
