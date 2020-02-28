@@ -4,7 +4,7 @@ jobs:
   test:
     docker:
       - image: golang:1.13-stretch
-    working_directory: /go/src/go.mercari.io/yo
+    working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
       - run:
@@ -50,7 +50,7 @@ jobs:
           # SPANNER_DATABASE_NAME: yo-test
           GOOGLE_APPLICATION_CREDENTIALS: /credential
 
-    working_directory: /go/src/go.mercari.io/yo
+    working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
       - run:

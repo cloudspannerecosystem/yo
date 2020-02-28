@@ -1,14 +1,17 @@
 # yo
 
-`yo` is a command-line tool to generate Go code for [Google Cloud Spanner](https://cloud.google.com/spanner/).
-forked from [xo](https://github.com/xo/xo) :rose:
+`yo` is a command-line tool to generate Go code for [Google Cloud Spanner](https://cloud.google.com/spanner/),
+forked from [xo](https://github.com/xo/xo) :rose:.
 
 `yo` uses database schema to generate code by using [Information Schema](https://cloud.google.com/spanner/docs/information-schema). `yo` runs SQL queries against tables in `INFORMATION_SCHEMA` to fetch metadata for a database, and applies the metadata to Go templates to generate code/models to acccess Cloud Spanner.
+
+Please feel free to report issues and send pull requests, but note that this
+application is not officially supported as part of the Cloud Spanner product.
 
 ## Installation
 
 ```sh
-$ go get -u go.mercari.io/yo
+$ go get -u github.com/cloudspannerecosystem/yo
 ```
 
 ## Quickstart
@@ -26,7 +29,7 @@ $ mkdir -p models
 $ yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 ```
 
-## Command Line Options
+## Command line options
 
 The following are `yo`'s command-line arguments and options:
 
@@ -59,7 +62,7 @@ Flags:
       --template-path string         user supplied template path
 ```
 
-## Genearated code
+## Generated code
 
 `yo` generates a file per a table by default. Each files has struct, metadata, methods for a table.
 
@@ -154,7 +157,7 @@ $ cd $GOPATH/src/path/to/my/project
 $ mkdir -p templates
 
 # copy yo templates
-$ cp "$GOPATH/src/go.mercari.io/yo/templates/*" templates/
+$ cp "$GOPATH/src/github.com/cloudspannerecosystem/yo/templates/*" templates/
 
 # remove yo binary data
 $ rm templates/*.go
@@ -178,13 +181,13 @@ templates in the `yo` source tree for use within your own project.
 | `templates/yo_db.go.tpl`       | Package level template generated once per package     |
 | `templates/yo_package.go.tpl`  | File header template generated once per file          |
 
-### Helpers functions
+### Helper functions
 
 **This is not a stable feature**
 
 `yo` provides some helper functions which can be used in templates. Those are defined in [`generator/funcs.go`](generator/funcs.go). Those are not well documented and are likely to change.
 
-### Custom Inflection Rule file
+### Custom inflection rule file
 
 `yo` use inflection to convert singular or plural name each other.
 If you want to add own rule, add `--inflection-rule-file` option with rule yaml file.
@@ -196,13 +199,12 @@ rule yaml file sample is
   plural: lives
 ```
 
-See https://github.com/jinzhu/inflection#register-rules for Detail.
+See https://github.com/jinzhu/inflection#register-rules for details.
 
-## Contribution
+## Contributions
 
-Please read the CLA below carefully before submitting your contribution.
-
-https://www.mercari.com/cla/
+Please read the [contribution guidelines](CONTRIBUTING.MD) before submitting
+pull requests.
 
 ## License
 
