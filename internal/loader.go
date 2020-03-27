@@ -79,6 +79,8 @@ func (tl *TypeLoader) LoadSchema(args *ArgType) (map[string]*Type, map[string]*I
 		return nil, nil, err
 	}
 
+	setIndexesToTables(tableMap, ixMap)
+
 	return tableMap, ixMap, nil
 }
 
@@ -342,4 +344,15 @@ func (tl *TypeLoader) LoadCustomTypes(path string) error {
 	tl.CustomTypes = &ctypes
 
 	return nil
+}
+
+func setIndexesToTables(tableMap map[string]*Type, ixMap map[string]*Index) {
+	for tbl, t := range tableMap {
+		ixPrefix := fmt.Sprintf("%s_", tbl)
+		for ixName, ix := range ixMap {
+			if strings.HasPrefix(ixName, ixPrefix) {
+				t.Indexes = append(t.Indexes, ix)
+			}
+		}
+	}
 }
