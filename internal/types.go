@@ -39,6 +39,7 @@ type Type struct {
 	PrimaryKeyFields []*Field
 	Fields           []*Field
 	Table            *models.Table
+	Indexes          []*Index
 }
 
 // Index is a template item for a index into a table.
