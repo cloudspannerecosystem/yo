@@ -25,8 +25,8 @@ import (
 	"text/template"
 
 	"github.com/knq/snaker"
-	"go.mercari.io/yo/internal"
-	"go.mercari.io/yo/models"
+	"github.com/cloudspannerecosystem/yo/internal"
+	"github.com/cloudspannerecosystem/yo/models"
 )
 
 // newTemplateFuncs returns a set of template funcs bound to the supplied args.

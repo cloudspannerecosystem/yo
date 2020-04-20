@@ -21,7 +21,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"go.mercari.io/yo/generator"
+	"github.com/cloudspannerecosystem/yo/generator"
 )
 
 var createTemplatePath string

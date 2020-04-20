@@ -24,7 +24,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.mercari.io/yo/tplbin"
+	"github.com/cloudspannerecosystem/yo/tplbin"
 )
 
 // CopyDefaultTemplates copies default templete files to dir.

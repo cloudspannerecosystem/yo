@@ -28,7 +28,7 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"github.com/knq/snaker"
-	"go.mercari.io/yo/models"
+	"github.com/cloudspannerecosystem/yo/models"
 	"google.golang.org/api/iterator"
 )
 

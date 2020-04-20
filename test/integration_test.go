@@ -31,9 +31,9 @@ import (
 	"cloud.google.com/go/spanner"
 	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
 	"github.com/google/go-cmp/cmp"
-	"go.mercari.io/yo/test/testmodels/customtypes"
-	models "go.mercari.io/yo/test/testmodels/default"
-	"go.mercari.io/yo/test/testutil"
+	"github.com/cloudspannerecosystem/yo/test/testmodels/customtypes"
+	models "github.com/cloudspannerecosystem/yo/test/testmodels/default"
+	"github.com/cloudspannerecosystem/yo/test/testutil"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

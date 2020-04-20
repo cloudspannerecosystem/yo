@@ -31,8 +31,8 @@ import (
 	"strings"
 	"text/template"
 
-	"go.mercari.io/yo/internal"
-	templates "go.mercari.io/yo/tplbin"
+	"github.com/cloudspannerecosystem/yo/internal"
+	templates "github.com/cloudspannerecosystem/yo/tplbin"
 )
 
 // Loader is the common interface for database drivers that can generate code
