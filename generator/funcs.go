@@ -25,6 +25,7 @@ import (
 	"text/template"
 
 	"github.com/knq/snaker"
+
 	"github.com/cloudspannerecosystem/yo/internal"
 	"github.com/cloudspannerecosystem/yo/models"
 )

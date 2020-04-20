@@ -25,8 +25,9 @@ import (
 	"strings"
 
 	"github.com/knq/snaker"
-	"github.com/cloudspannerecosystem/yo/models"
 	"gopkg.in/yaml.v2"
+
+	"github.com/cloudspannerecosystem/yo/models"
 )
 
 type loaderImpl interface {

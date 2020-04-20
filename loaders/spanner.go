@@ -28,8 +28,9 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"github.com/knq/snaker"
-	"github.com/cloudspannerecosystem/yo/models"
 	"google.golang.org/api/iterator"
+
+	"github.com/cloudspannerecosystem/yo/models"
 )
 
 func NewSpannerLoader(client *spanner.Client) *SpannerLoader {
