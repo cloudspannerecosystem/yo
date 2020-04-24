@@ -22,6 +22,7 @@ package internal
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/knq/snaker"
@@ -347,10 +348,16 @@ func (tl *TypeLoader) LoadCustomTypes(path string) error {
 }
 
 func setIndexesToTables(tableMap map[string]*Type, ixMap map[string]*Index) {
+	indexes := make([]*Index, 0, len(ixMap))
+	for _, ix := range ixMap {
+		indexes = append(indexes, ix)
+	}
+	sort.Slice(indexes, func(i, j int) bool {
+		return indexes[i].FuncName < indexes[j].FuncName
+	})
 	for tbl, t := range tableMap {
-		ixPrefix := fmt.Sprintf("%s_", tbl)
-		for ixName, ix := range ixMap {
-			if strings.HasPrefix(ixName, ixPrefix) {
+		for _, ix := range indexes {
+			if ix.Type.Table.TableName == tbl {
 				t.Indexes = append(t.Indexes, ix)
 			}
 		}
