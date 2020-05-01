@@ -39,6 +39,10 @@ func (e yoError) Error() string {
 	return fmt.Sprintf("yo error in %s(%s): %v", e.method, e.table, e.err)
 }
 
+func (e yoError) Unwrap() error {
+	return e.err
+}
+
 func (e yoError) DBTableName() string {
 	return e.table
 }
