@@ -21,8 +21,10 @@ package test
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"testing"
 	"time"
@@ -30,10 +32,15 @@ import (
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
 	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
+	"github.com/gcpug/handy-spanner/fake"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/test/testmodels/customtypes"
 	models "go.mercari.io/yo/test/testmodels/default"
 	"go.mercari.io/yo/test/testutil"
+	"google.golang.org/api/option"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -90,6 +97,25 @@ func testTableName(t *testing.T, err error, name string) {
 	if want, got := name, tn.DBTableName(); want != got {
 		t.Fatalf("expect DBTableName() to %q, but got %q", want, got)
 	}
+}
+
+const sessionResourceType = "type.googleapis.com/google.spanner.v1.Session"
+
+func newSessionNotFoundError(name string) error {
+	s := status.Newf(codes.NotFound, "Session not found: Session with id %s not found", name)
+	s, _ = s.WithDetails(&errdetails.ResourceInfo{ResourceType: sessionResourceType, ResourceName: name})
+	return s.Err()
+}
+
+func newAbortedWithRetryInfo() error {
+	s := status.New(codes.Aborted, "")
+	s, err := s.WithDetails(&errdetails.RetryInfo{
+		RetryDelay: ptypes.DurationProto(100 * time.Millisecond),
+	})
+	if err != nil {
+		panic(fmt.Sprintf("with details failed: %v", err))
+	}
+	return s.Err()
 }
 
 func TestMain(m *testing.M) {
@@ -525,4 +551,158 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})
+}
+
+func TestSessionNotFound(t *testing.T) {
+	dbName := "projects/yo/instances/yo/databases/integration-test"
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		if l, err = net.Listen("tcp6", "[::1]:0"); err != nil {
+			t.Fatalf("failed to run spanner emulator: %v", err)
+		}
+	}
+
+	srv, err := fake.New(l)
+	if err != nil {
+		t.Fatalf("failed to run spanner emulator: %v", err)
+	}
+	go func() { _ = srv.Start() }()
+	defer srv.Stop()
+
+	conn, err := grpc.DialContext(ctx, srv.Addr(), grpc.WithInsecure(), grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(
+			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				return invoker(ctx, method, req, reply, cc, opts...)
+			},
+		),
+		grpc.WithStreamInterceptor(
+			func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+				if method == "/google.spanner.v1.Spanner/StreamingRead" {
+					return nil, newSessionNotFoundError("xxx")
+				}
+				return streamer(ctx, desc, cc, method, opts...)
+			},
+		),
+	)
+	if err != nil {
+		t.Fatalf("dial failed: %v", err)
+	}
+
+	// Prepare spanner client
+	client, err := spanner.NewClient(ctx, dbName, option.WithGRPCConn(conn))
+	if err != nil {
+		t.Fatalf("failed to connect fake spanner server: %v", err)
+	}
+
+	t.Run("ConvertToSpannerError", func(t *testing.T) {
+		_, err = models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
+		var se *spanner.Error
+		if !errors.As(err, &se) {
+			t.Fatalf("the error returned by yo can be spanner.Error: %T", err)
+		}
+
+		st := status.Convert(se.Unwrap())
+		ri := extractResourceInfo(st)
+
+		expectedResourceInfo := &errdetails.ResourceInfo{
+			ResourceType: "type.googleapis.com/google.spanner.v1.Session",
+			ResourceName: "xxx",
+		}
+
+		if diff := cmp.Diff(expectedResourceInfo, ri); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ConvertToStatus", func(t *testing.T) {
+		_, err = models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
+		st := status.Convert(err)
+		ri := extractResourceInfo(st)
+
+		expectedResourceInfo := &errdetails.ResourceInfo{
+			ResourceType: "type.googleapis.com/google.spanner.v1.Session",
+			ResourceName: "xxx",
+		}
+
+		if diff := cmp.Diff(expectedResourceInfo, ri); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
+func TestAborted(t *testing.T) {
+	dbName := "projects/yo/instances/yo/databases/integration-test"
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		if l, err = net.Listen("tcp6", "[::1]:0"); err != nil {
+			t.Fatalf("failed to run spanner emulator: %v", err)
+		}
+	}
+
+	srv, err := fake.New(l)
+	if err != nil {
+		t.Fatalf("failed to run spanner emulator: %v", err)
+	}
+	go func() { _ = srv.Start() }()
+	defer srv.Stop()
+
+	var retried bool
+
+	conn, err := grpc.DialContext(ctx, srv.Addr(), grpc.WithInsecure(), grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(
+			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				if method == "/google.spanner.v1.Spanner/Commit" {
+					if !retried {
+						retried = true
+						return newAbortedWithRetryInfo()
+					}
+				}
+				return invoker(ctx, method, req, reply, cc, opts...)
+			},
+		),
+		grpc.WithStreamInterceptor(
+			func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+				return streamer(ctx, desc, cc, method, opts...)
+			},
+		),
+	)
+	if err != nil {
+		t.Fatalf("dial failed: %v", err)
+	}
+
+	// Prepare spanner client
+	client, err := spanner.NewClient(ctx, dbName, option.WithGRPCConn(conn))
+	if err != nil {
+		t.Fatalf("failed to connect fake spanner server: %v", err)
+	}
+
+	t.Run("OnCommit", func(t *testing.T) {
+		_, err := client.ReadWriteTransaction(ctx, func(ctx context.Context, tx *spanner.ReadWriteTransaction) error {
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("transaction failed: %v", err)
+		}
+
+		if !retried {
+			t.Fatalf("aborted on Commit should be retried")
+		}
+	})
+}
+
+func extractResourceInfo(st *status.Status) *errdetails.ResourceInfo {
+	for _, detail := range st.Details() {
+		if ri, ok := detail.(*errdetails.ResourceInfo); ok {
+			return ri
+		}
+	}
+	return nil
 }

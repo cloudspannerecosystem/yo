@@ -4,6 +4,7 @@ package {{ .Package }}
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
