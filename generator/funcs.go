@@ -20,6 +20,7 @@
 package generator
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"text/template"
@@ -33,6 +34,7 @@ import (
 func (a *Generator) newTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		"colcount":          a.colcount,
+		"columncount":       a.columncount,
 		"colnames":          a.colnames,
 		"escapedcolnames":   a.escapedcolnames,
 		"colnamesquery":     a.colnamesquery,
@@ -46,6 +48,7 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 		"shortname":         a.shortname,
 		"goconvert":         a.goconvert,
 		"colname":           a.colname,
+		"escapedcolname":    a.escapedcolname,
 		"hascolumn":         a.hascolumn,
 		"hasfield":          a.hasfield,
 		"getstartcount":     a.getstartcount,
@@ -53,6 +56,7 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 		"goparamname":       a.goparamname,
 		"customtypeparam":   a.customtypeparam,
 		"tolower":           a.tolower,
+		"nullcheck":         a.nullcheck,
 	}
 }
 
@@ -364,6 +368,21 @@ func (a *Generator) colcount(fields []*internal.Field, ignoreNames ...interface{
 	return i
 }
 
+// columncount returns the number of fields
+func (a *Generator) columncount(fields []*internal.Field, ignoreNames ...interface{}) int {
+	ignore := ignoreFromMultiTypes(ignoreNames)
+
+	i := 0
+	for _, f := range fields {
+		if ignore[f.Name] {
+			continue
+		}
+
+		i++
+	}
+	return i
+}
+
 // goReservedNames is a map of of go reserved names to "safe" names.
 var goReservedNames = map[string]string{
 	"break":       "brk",
@@ -535,6 +554,11 @@ func (a *Generator) colname(col *models.Column) string {
 	return col.ColumnName
 }
 
+// escapedcolname returns the ColumnName of col. It is escaped for query.
+func (a *Generator) escapedcolname(col *models.Column) string {
+	return internal.EscapeColumnName(col.ColumnName)
+}
+
 // hascolumn takes a list of fields and determines if field with the specified
 // column name is in the list.
 func (a *Generator) hascolumn(fields []*internal.Field, name string) bool {
@@ -597,4 +621,21 @@ func (a *Generator) goparamname(name string) string {
 // tolower converts s to lower case.
 func (a *Generator) tolower(s string) string {
 	return strings.ToLower(s)
+}
+
+// nullcheck generates a code to check the field value is null.
+func (a *Generator) nullcheck(field *internal.Field) string {
+	paramName := a.goparamname(field.Name)
+
+	switch field.Type {
+	case "spanner.NullInt64",
+		"spanner.NullString",
+		"spanner.NullFloat64",
+		"spanner.NullBool",
+		"spanner.NullTime",
+		"spanner.NullDate":
+		return fmt.Sprintf("%s.IsNull()", paramName)
+	}
+
+	return fmt.Sprintf("yo, ok := %s.(yoIsNull); ok && yo.IsNull()", paramName)
 }

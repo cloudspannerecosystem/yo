@@ -14,10 +14,30 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 // Generated from unique index '{{ .Index.IndexName }}'.
 func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fields true true }}) (*{{ .Type.Name }}, error) {
 {{- end }}
+	{{- if not .NullableFields }}
 	const sqlstr = "SELECT " +
 		"{{ escapedcolnames .Type.Fields }} " +
 		"FROM {{ $table }}@{FORCE_INDEX={{ .Index.IndexName }}} " +
 		"WHERE {{ colnamesquery .Fields " AND " }}"
+	{{- else }}
+	var sqlstr = "SELECT " +
+		"{{ escapedcolnames .Type.Fields }} " +
+		"FROM {{ $table }}@{FORCE_INDEX={{ .Index.IndexName }}} "
+
+	conds := make([]string, {{ columncount .Fields }})
+	{{- range $i, $f := .Fields }}
+	{{- if $f.Col.NotNull }}
+		conds[{{ $i }}] = "{{ escapedcolname $f.Col }} = @param{{ $i }}"
+	{{- else }}
+	if {{ nullcheck $f }} {
+		conds[{{ $i }}] = "{{ escapedcolname $f.Col }} IS NULL"
+	} else {
+		conds[{{ $i }}] = "{{ escapedcolname $f.Col }} = @param{{ $i }}"
+	}
+	{{- end }}
+	{{- end }}
+	sqlstr += "WHERE " + strings.Join(conds, " AND ")
+	{{- end }}
 
 	stmt := spanner.NewStatement(sqlstr)
 	{{- range $i, $f := .Fields }}

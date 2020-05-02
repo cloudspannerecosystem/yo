@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/civil"
@@ -1226,13 +1227,94 @@ func ReadFullTypeByFTString(ctx context.Context, db YORODB, keys spanner.KeySet)
 	return res, nil
 }
 
-// FindFullTypeByFTIntFTDate retrieves a row from 'FullTypes' as a FullType.
+// FindFullTypesByFTIntFTTimestampNull retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
-// If no row is present with the given key, then ReadRow returns an error where
-// spanner.ErrCode(err) is codes.NotFound.
+// Generated from index 'FullTypesByInTimestampNull'.
+func FindFullTypesByFTIntFTTimestampNull(ctx context.Context, db YORODB, fTInt int64, fTTimestampNull spanner.NullTime) ([]*FullType, error) {
+	var sqlstr = "SELECT " +
+		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
+		"FROM FullTypes@{FORCE_INDEX=FullTypesByInTimestampNull} "
+
+	conds := make([]string, 2)
+	conds[0] = "FTInt = @param0"
+	if fTTimestampNull.IsNull() {
+		conds[1] = "FTTimestampNull IS NULL"
+	} else {
+		conds[1] = "FTTimestampNull = @param1"
+	}
+	sqlstr += "WHERE " + strings.Join(conds, " AND ")
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = fTInt
+	stmt.Params["param1"] = fTTimestampNull
+
+	decoder := newFullType_Decoder(FullTypeColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, fTInt, fTTimestampNull)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*FullType{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindFullTypesByFTIntFTTimestampNull", "FullTypes", err)
+		}
+
+		ft, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindFullTypesByFTIntFTTimestampNull", "FullTypes", err)
+		}
+
+		res = append(res, ft)
+	}
+
+	return res, nil
+}
+
+// ReadFullTypesByFTIntFTTimestampNull retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
-// Generated from unique index 'FullTypesByIntDate'.
-func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTDate civil.Date) (*FullType, error) {
+// This does not retrives all columns of 'FullTypes' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'FullTypesByInTimestampNull'.
+func ReadFullTypesByFTIntFTTimestampNull(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+	var res []*FullType
+	columns := []string{
+		"PKey",
+		"FTInt",
+		"FTTimestampNull",
+	}
+
+	decoder := newFullType_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "FullTypes", "FullTypesByInTimestampNull", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ft, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ft)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTypesByFTIntFTTimestampNull", "FullTypes", err)
+	}
+
+	return res, nil
+}
+
+// FindFullTypesByFTIntFTDate retrieves multiple rows from 'FullTypes' as a slice of FullType.
+//
+// Generated from index 'FullTypesByIntDate'.
+func FindFullTypesByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTDate civil.Date) ([]*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} " +
@@ -1249,30 +1331,36 @@ func FindFullTypeByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTDa
 	iter := db.Query(ctx, stmt)
 	defer iter.Stop()
 
-	row, err := iter.Next()
-	if err != nil {
-		if err == iterator.Done {
-			return nil, newErrorWithCode(codes.NotFound, "FindFullTypeByFTIntFTDate", "FullTypes", err)
+	// load results
+	res := []*FullType{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindFullTypesByFTIntFTDate", "FullTypes", err)
 		}
-		return nil, newError("FindFullTypeByFTIntFTDate", "FullTypes", err)
+
+		ft, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindFullTypesByFTIntFTDate", "FullTypes", err)
+		}
+
+		res = append(res, ft)
 	}
 
-	ft, err := decoder(row)
-	if err != nil {
-		return nil, newErrorWithCode(codes.Internal, "FindFullTypeByFTIntFTDate", "FullTypes", err)
-	}
-
-	return ft, nil
+	return res, nil
 }
 
-// ReadFullTypeByFTIntFTDate retrieves multiples rows from 'FullTypes' by KeySet as a slice.
+// ReadFullTypesByFTIntFTDate retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
 // This does not retrives all columns of 'FullTypes' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'FullTypesByIntDate'.
-func ReadFullTypeByFTIntFTDate(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullTypesByFTIntFTDate(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
 		"PKey",
@@ -1293,7 +1381,7 @@ func ReadFullTypeByFTIntFTDate(ctx context.Context, db YORODB, keys spanner.KeyS
 		return nil
 	})
 	if err != nil {
-		return nil, newErrorWithCode(codes.Internal, "ReadFullTypeByFTIntFTDate", "FullTypes", err)
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTypesByFTIntFTDate", "FullTypes", err)
 	}
 
 	return res, nil

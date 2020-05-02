@@ -325,6 +325,9 @@ func (tl *TypeLoader) LoadIndexColumns(args *ArgType, ixTpl *Index) error {
 		} else {
 			ixTpl.Fields = append(ixTpl.Fields, field)
 		}
+		if !field.Col.NotNull {
+			ixTpl.NullableFields = append(ixTpl.NullableFields, field)
+		}
 	}
 
 	return nil
