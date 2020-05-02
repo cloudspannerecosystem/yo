@@ -66,9 +66,11 @@ CREATE TABLE FullTypes (
 
 CREATE UNIQUE INDEX FullTypesByFTString ON FullTypes(FTString);
 
-CREATE UNIQUE INDEX FullTypesByIntDate ON FullTypes(FTInt, FTDate);
+CREATE INDEX FullTypesByIntDate ON FullTypes(FTInt, FTDate);
 
 CREATE INDEX FullTypesByIntTimestamp ON FullTypes(FTInt, FTTimestamp);
+
+CREATE INDEX FullTypesByInTimestampNull ON FullTypes(FTInt, FTTimestampNull);
 
 CREATE INDEX FullTypesByTimestamp ON FullTypes(FTTimestamp);
 

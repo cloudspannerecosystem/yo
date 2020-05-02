@@ -44,10 +44,11 @@ type Type struct {
 
 // Index is a template item for a index into a table.
 type Index struct {
-	FuncName      string
-	Schema        string
-	Type          *Type
-	Fields        []*Field
-	StoringFields []*Field
-	Index         *models.Index
+	FuncName       string
+	Schema         string
+	Type           *Type
+	Fields         []*Field
+	StoringFields  []*Field
+	NullableFields []*Field
+	Index          *models.Index
 }

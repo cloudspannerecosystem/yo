@@ -387,7 +387,7 @@ func TestDefaultFullType(t *testing.T) {
 				FTBytesNull:          nil,
 				FTTimestamp:          now,
 				FTTimestampNull:      spanner.NullTime{},
-				FTInt:                102,
+				FTInt:                101,
 				FTIntNull:            spanner.NullInt64{},
 				FTFloat:              0.123,
 				FTFloatNull:          spanner.NullFloat64{},
@@ -420,7 +420,7 @@ func TestDefaultFullType(t *testing.T) {
 				FTBytesNull:          nil,
 				FTTimestamp:          now,
 				FTTimestampNull:      spanner.NullTime{},
-				FTInt:                103,
+				FTInt:                101,
 				FTIntNull:            spanner.NullInt64{},
 				FTFloat:              0.123,
 				FTFloatNull:          spanner.NullFloat64{},
@@ -460,6 +460,46 @@ func TestDefaultFullType(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("FindWithNonNull", func(t *testing.T) {
+		fts, err := models.FindFullTypesByFTIntFTTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+			Time:  now,
+			Valid: true,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var pkeys []string
+		for i := range fts {
+			pkeys = append(pkeys, fts[i].PKey)
+		}
+
+		expected := []string{"pkey1"}
+		if diff := cmp.Diff(expected, pkeys); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("FindWithNull", func(t *testing.T) {
+		fts, err := models.FindFullTypesByFTIntFTTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+			Valid: false,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var pkeys []string
+		for i := range fts {
+			pkeys = append(pkeys, fts[i].PKey)
+		}
+
+		expected := []string{"pkey2", "pkey3"}
+		if diff := cmp.Diff(expected, pkeys); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
 }
 
 func TestCustomCompositePrimaryKey(t *testing.T) {
