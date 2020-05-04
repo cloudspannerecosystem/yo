@@ -228,7 +228,7 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`c.COLUMN_NAME, c.ORDINAL_POSITION, c.COLUMN_DEFAULT, c.IS_NULLABLE, c.SPANNER_TYPE, ` +
+		`c.COLUMN_NAME, c.ORDINAL_POSITION, c.IS_NULLABLE, c.SPANNER_TYPE, ` +
 		`EXISTS (` +
 		`  SELECT 1 FROM INFORMATION_SCHEMA.INDEX_COLUMNS ic ` +
 		`  WHERE ic.TABLE_SCHEMA = "" and ic.TABLE_NAME = c.TABLE_NAME ` +
