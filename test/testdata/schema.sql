@@ -86,3 +86,15 @@ CREATE TABLE snake_cases (
 ) PRIMARY KEY(id);
 
 CREATE INDEX snake_cases_by_string_id ON snake_cases(string_id, foo_bar_baz);
+
+CREATE TABLE Items (
+  ID INT64 NOT NULL,
+  Price INT64 NOT NULL,
+) PRIMARY KEY (ID);
+
+CREATE TABLE FereignItems (
+  ID INT64 NOT NULL,
+  ItemID INT64 NOT NULL,
+  Category INT64 NOT NULL,
+  CONSTRAINT FK_ItemID_ForeignItems FOREIGN KEY (ItemID) REFERENCES Items (ID)
+) PRIMARY KEY (ID);
