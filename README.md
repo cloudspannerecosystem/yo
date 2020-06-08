@@ -203,7 +203,7 @@ See https://github.com/jinzhu/inflection#register-rules for details.
 
 ## Contributions
 
-Please read the [contribution guidelines](CONTRIBUTING.MD) before submitting
+Please read the [contribution guidelines](CONTRIBUTING.md) before submitting
 pull requests.
 
 ## License
