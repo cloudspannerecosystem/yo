@@ -206,6 +206,171 @@ func (cpk *CompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
 	return spanner.Delete("CompositePrimaryKeys", spanner.Key(values))
 }
 
+// FereignItem represents a row from 'FereignItems'.
+type FereignItem struct {
+	ID       int64 `spanner:"ID" json:"ID"`             // ID
+	ItemID   int64 `spanner:"ItemID" json:"ItemID"`     // ItemID
+	Category int64 `spanner:"Category" json:"Category"` // Category
+}
+
+func FereignItemPrimaryKeys() []string {
+	return []string{
+		"ID",
+	}
+}
+
+func FereignItemColumns() []string {
+	return []string{
+		"ID",
+		"ItemID",
+		"Category",
+	}
+}
+
+func (fi *FereignItem) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "ID":
+			ret = append(ret, &fi.ID)
+		case "ItemID":
+			ret = append(ret, &fi.ItemID)
+		case "Category":
+			ret = append(ret, &fi.Category)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (fi *FereignItem) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "ID":
+			ret = append(ret, fi.ID)
+		case "ItemID":
+			ret = append(ret, fi.ItemID)
+		case "Category":
+			ret = append(ret, fi.Category)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newFereignItem_Decoder returns a decoder which reads a row from *spanner.Row
+// into FereignItem. The decoder is not goroutine-safe. Don't use it concurrently.
+func newFereignItem_Decoder(cols []string) func(*spanner.Row) (*FereignItem, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*FereignItem, error) {
+		var fi FereignItem
+		ptrs, err := fi.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &fi, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (fi *FereignItem) Insert(ctx context.Context) *spanner.Mutation {
+	return spanner.Insert("FereignItems", FereignItemColumns(), []interface{}{
+		fi.ID, fi.ItemID, fi.Category,
+	})
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (fi *FereignItem) Update(ctx context.Context) *spanner.Mutation {
+	return spanner.Update("FereignItems", FereignItemColumns(), []interface{}{
+		fi.ID, fi.ItemID, fi.Category,
+	})
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (fi *FereignItem) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	return spanner.InsertOrUpdate("FereignItems", FereignItemColumns(), []interface{}{
+		fi.ID, fi.ItemID, fi.Category,
+	})
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (fi *FereignItem) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, FereignItemPrimaryKeys()...)
+
+	values, err := fi.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "FereignItem.UpdateColumns", "FereignItems", err)
+	}
+
+	return spanner.Update("FereignItems", colsWithPKeys, values), nil
+}
+
+// FindFereignItem gets a FereignItem by primary key
+func FindFereignItem(ctx context.Context, db YORODB, id int64) (*FereignItem, error) {
+	key := spanner.Key{id}
+	row, err := db.ReadRow(ctx, "FereignItems", key, FereignItemColumns())
+	if err != nil {
+		return nil, newError("FindFereignItem", "FereignItems", err)
+	}
+
+	decoder := newFereignItem_Decoder(FereignItemColumns())
+	fi, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindFereignItem", "FereignItems", err)
+	}
+
+	return fi, nil
+}
+
+// ReadFereignItem retrieves multiples rows from FereignItem by KeySet as a slice.
+func ReadFereignItem(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FereignItem, error) {
+	var res []*FereignItem
+
+	decoder := newFereignItem_Decoder(FereignItemColumns())
+
+	rows := db.Read(ctx, "FereignItems", keys, FereignItemColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		fi, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, fi)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFereignItem", "FereignItems", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the FereignItem from the database.
+func (fi *FereignItem) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := fi.columnsToValues(FereignItemPrimaryKeys())
+	return spanner.Delete("FereignItems", spanner.Key(values))
+}
+
 // FullType represents a row from 'FullTypes'.
 type FullType struct {
 	PKey                 string              `spanner:"PKey" json:"PKey"`                                 // PKey
@@ -525,6 +690,165 @@ func ReadFullType(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullT
 func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := ft.columnsToValues(FullTypePrimaryKeys())
 	return spanner.Delete("FullTypes", spanner.Key(values))
+}
+
+// Item represents a row from 'Items'.
+type Item struct {
+	ID    int64 `spanner:"ID" json:"ID"`       // ID
+	Price int64 `spanner:"Price" json:"Price"` // Price
+}
+
+func ItemPrimaryKeys() []string {
+	return []string{
+		"ID",
+	}
+}
+
+func ItemColumns() []string {
+	return []string{
+		"ID",
+		"Price",
+	}
+}
+
+func (i *Item) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "ID":
+			ret = append(ret, &i.ID)
+		case "Price":
+			ret = append(ret, &i.Price)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (i *Item) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "ID":
+			ret = append(ret, i.ID)
+		case "Price":
+			ret = append(ret, i.Price)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newItem_Decoder returns a decoder which reads a row from *spanner.Row
+// into Item. The decoder is not goroutine-safe. Don't use it concurrently.
+func newItem_Decoder(cols []string) func(*spanner.Row) (*Item, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*Item, error) {
+		var i Item
+		ptrs, err := i.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &i, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (i *Item) Insert(ctx context.Context) *spanner.Mutation {
+	return spanner.Insert("Items", ItemColumns(), []interface{}{
+		i.ID, i.Price,
+	})
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (i *Item) Update(ctx context.Context) *spanner.Mutation {
+	return spanner.Update("Items", ItemColumns(), []interface{}{
+		i.ID, i.Price,
+	})
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (i *Item) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	return spanner.InsertOrUpdate("Items", ItemColumns(), []interface{}{
+		i.ID, i.Price,
+	})
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (i *Item) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, ItemPrimaryKeys()...)
+
+	values, err := i.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "Item.UpdateColumns", "Items", err)
+	}
+
+	return spanner.Update("Items", colsWithPKeys, values), nil
+}
+
+// FindItem gets a Item by primary key
+func FindItem(ctx context.Context, db YORODB, id int64) (*Item, error) {
+	key := spanner.Key{id}
+	row, err := db.ReadRow(ctx, "Items", key, ItemColumns())
+	if err != nil {
+		return nil, newError("FindItem", "Items", err)
+	}
+
+	decoder := newItem_Decoder(ItemColumns())
+	i, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindItem", "Items", err)
+	}
+
+	return i, nil
+}
+
+// ReadItem retrieves multiples rows from Item by KeySet as a slice.
+func ReadItem(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*Item, error) {
+	var res []*Item
+
+	decoder := newItem_Decoder(ItemColumns())
+
+	rows := db.Read(ctx, "Items", keys, ItemColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		i, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, i)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadItem", "Items", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the Item from the database.
+func (i *Item) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := i.columnsToValues(ItemPrimaryKeys())
+	return spanner.Delete("Items", spanner.Key(values))
 }
 
 // MaxLength represents a row from 'MaxLengths'.
