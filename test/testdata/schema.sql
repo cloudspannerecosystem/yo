@@ -32,6 +32,12 @@ CREATE INDEX CompositePrimaryKeysByError  ON CompositePrimaryKeys(Error);
 CREATE INDEX CompositePrimaryKeysByError2 ON CompositePrimaryKeys(Error) STORING(Z);
 CREATE INDEX CompositePrimaryKeysByError3 ON CompositePrimaryKeys(Error) STORING(Z, Y);
 
+CREATE TABLE OutOfOrderPrimaryKeys (
+  PKey1 STRING(32) NOT NULL,
+  PKey2 STRING(32) NOT NULL,
+  PKey3 STRING(32) NOT NULL,
+) PRIMARY KEY(PKey2, PKey1, PKey3);
+
 CREATE TABLE FullTypes (
   PKey STRING(32) NOT NULL,
   FTString STRING(32) NOT NULL,
