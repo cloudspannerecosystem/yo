@@ -142,6 +142,10 @@ func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
 }
 
 func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.IndexColumn, error) {
+	if index == "PRIMARY_KEY" {
+		return s.primaryKeyColumnList(table)
+	}
+
 	var cols []*models.IndexColumn
 	for _, ix := range s.tables[table].createIndexes {
 		if ix.Name.Name != index {
@@ -166,6 +170,23 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 			})
 		}
 		break
+	}
+
+	return cols, nil
+}
+
+func (s *SpannerLoaderFromDDL) primaryKeyColumnList(table string) ([]*models.IndexColumn, error) {
+	tbl, ok := s.tables[table]
+	if !ok {
+		return nil, nil
+	}
+
+	var cols []*models.IndexColumn
+	for i, key := range tbl.createTable.PrimaryKeys {
+		cols = append(cols, &models.IndexColumn{
+			SeqNo:      i + 1,
+			ColumnName: key.Name.Name,
+		})
 	}
 
 	return cols, nil

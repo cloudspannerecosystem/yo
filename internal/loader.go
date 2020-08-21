@@ -130,10 +130,45 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 			return nil, err
 		}
 
+		if err := tl.loadPrimaryKeys(typeTpl); err != nil {
+			return nil, err
+		}
+
 		tableMap[ti.TableName] = typeTpl
 	}
 
 	return tableMap, nil
+}
+
+// loadPrimaryKeys loads primary key fields
+func (tl *TypeLoader) loadPrimaryKeys(typeTpl *Type) error {
+	// reorder primary keys
+	indexCols, err := tl.loader.IndexColumnList(typeTpl.Table.TableName, "PRIMARY_KEY")
+	if err != nil {
+		panic(err)
+	}
+
+	var fields []*Field
+	for _, idx := range indexCols {
+		var field *Field
+		for _, f := range typeTpl.Fields {
+			if f.Col.ColumnName == idx.ColumnName {
+				field = f
+				break
+			}
+		}
+
+		if field == nil {
+			return fmt.Errorf("primary key column is not found in column list: table=%v column=%v",
+				typeTpl.Name, idx.ColumnName,
+			)
+		}
+		fields = append(fields, field)
+	}
+
+	typeTpl.PrimaryKey = fields[0] // backward compatibility
+	typeTpl.PrimaryKeyFields = fields
+	return nil
 }
 
 // tableCustomTypes find custom type definitions of the table
@@ -198,13 +233,6 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 			}
 		}
 
-		// set primary key
-		if c.IsPrimaryKey {
-			typeTpl.PrimaryKeyFields = append(typeTpl.PrimaryKeyFields, f)
-			// This is retained for backward compatibility in the templates.
-			typeTpl.PrimaryKey = f
-		}
-
 		// append col to template fields
 		typeTpl.Fields = append(typeTpl.Fields, f)
 	}
@@ -262,11 +290,6 @@ func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[s
 		ixTpl.FuncName = tl.buildIndexFuncName(ixTpl)
 
 		ixMap[typeTpl.Table.TableName+"_"+ix.IndexName] = ixTpl
-	}
-
-	// search for primary key if it was skipped being set in the type
-	if typeTpl.PrimaryKey == nil {
-		return fmt.Errorf("no primary key found for %v", typeTpl.Name)
 	}
 
 	return nil
