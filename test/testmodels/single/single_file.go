@@ -2034,11 +2034,6 @@ func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys span
 	return res, nil
 }
 
-// YODB is the common interface for database operations.
-type YODB interface {
-	YORODB
-}
-
 // YORODB is the common interface for database operations.
 type YORODB interface {
 	ReadRow(ctx context.Context, table string, key spanner.Key, columns []string) (*spanner.Row, error)
