@@ -85,7 +85,7 @@ var (
 				return fmt.Errorf("error: %v", err)
 			}
 
-			g := generator.NewGenerator(loader, generator.GeneratorOption{
+			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
 				PackageName:       rootOpts.Package,
 				Tags:              rootOpts.Tags,
 				TemplatePath:      rootOpts.TemplatePath,
