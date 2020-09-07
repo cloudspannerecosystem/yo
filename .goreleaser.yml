@@ -1,0 +1,46 @@
+before:
+  hooks:
+    - go mod download
+builds:
+  - main: .
+    binary: yo
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - 386
+    ignore:
+      - goos: darwin
+        goarch: 386
+
+archives:
+  - format: tar.gz
+    wrap_in_directory: true
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "SNAPSHOT-{{ .Tag }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^test:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
