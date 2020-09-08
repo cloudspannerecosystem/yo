@@ -26,6 +26,7 @@ import (
 	"text/template"
 
 	"github.com/knq/snaker"
+
 	"go.mercari.io/yo/internal"
 	"go.mercari.io/yo/models"
 )
@@ -57,6 +58,7 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 		"customtypeparam":   a.customtypeparam,
 		"tolower":           a.tolower,
 		"nullcheck":         a.nullcheck,
+		"pluralize":         a.pluralize,
 	}
 }
 
@@ -638,4 +640,9 @@ func (a *Generator) nullcheck(field *internal.Field) string {
 	}
 
 	return fmt.Sprintf("yo, ok := %s.(yoIsNull); ok && yo.IsNull()", paramName)
+}
+
+// pluralize converts s to plural.
+func (a *Generator) pluralize(s string) string {
+	return a.inflector.Pluralize(s)
 }

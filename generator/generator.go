@@ -53,9 +53,10 @@ type GeneratorOption struct {
 	Path              string
 }
 
-func NewGenerator(loader Loader, opt GeneratorOption) *Generator {
+func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOption) *Generator {
 	return &Generator{
 		loader:             loader,
+		inflector:          inflector,
 		templatePath:       opt.TemplatePath,
 		nameConflictSuffix: "z",
 		packageName:        opt.PackageName,
@@ -71,6 +72,7 @@ func NewGenerator(loader Loader, opt GeneratorOption) *Generator {
 
 type Generator struct {
 	loader       Loader
+	inflector    internal.Inflector
 	templatePath string
 
 	// files is a map of filenames to open file handles.
