@@ -25,7 +25,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/knq/snaker"
+	"github.com/kenshaw/snaker"
 
 	"go.mercari.io/yo/internal"
 	"go.mercari.io/yo/models"
