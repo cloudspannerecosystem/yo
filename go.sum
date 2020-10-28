@@ -182,14 +182,14 @@ github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q
 github.com/k0kubun/pp v1.3.1-0.20200204103551-99835366d1cc/go.mod h1:qK2ivXw91omfE1uXcpR5kWbAMZRdDOnGbqWlZ7reRFk=
 github.com/k0kubun/pp v3.0.2-0.20190719145753-b20d3da80efa+incompatible h1:46zqq9SllBiviBmvTmkM73qrMs0S9dEzJAr1XFnSid4=
 github.com/k0kubun/pp v3.0.2-0.20190719145753-b20d3da80efa+incompatible/go.mod h1:GWse8YhT0p8pT4ir3ZgBbfZild3tgzSScAn6HmfYukg=
+github.com/kenshaw/snaker v0.1.0 h1:h6dvdkBw6Qe1ya/LE9kMa9Y8M3RSAhbELfirZHIFobU=
+github.com/kenshaw/snaker v0.1.0/go.mod h1:0xAAdPB2IwUAxxUZj5ZvPclku2HJBSB7TRcJxvhVwM8=
 github.com/kisielk/gotool v0.0.0-20161130080628-0de1eaf82fa3/go.mod h1:jxZFDH7ILpTPQTk+E2s+z4CUas9lVNjIuKR4c5/zKgM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.4.0/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/compress v1.4.1/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/cpuid v0.0.0-20180405133222-e7e905edc00e/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
-github.com/knq/snaker v0.0.0-20181215144011-2bc8a4db4687 h1:ZrOZbqW7T2EgLd4soRATeSZrP3ijy2CgNFXG44cUuS8=
-github.com/knq/snaker v0.0.0-20181215144011-2bc8a4db4687/go.mod h1:f0Dmq8fkddh8nOsVabYmtOHHdxlq2q4X+LQ1xWQEdUU=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
