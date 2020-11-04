@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/knq/snaker"
+	"github.com/kenshaw/snaker"
 )
 
 // reverseIndexRune finds the last rune r in s, returning -1 if not present.

@@ -25,7 +25,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/knq/snaker"
+	"github.com/kenshaw/snaker"
 	"go.mercari.io/yo/models"
 	"gopkg.in/yaml.v2"
 )
