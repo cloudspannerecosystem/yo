@@ -209,14 +209,13 @@ func (g *Generator) writeTypes(ds *basicDataSet) error {
 
 	// loop, writing in order
 	for _, t := range out {
-		var f *os.File
-
 		// check if generated template is only whitespace/empty
 		bufStr := strings.TrimSpace(t.Buf.String())
 		if len(bufStr) == 0 {
 			continue
 		}
 
+		var f *os.File
 		// get file and filename
 		f, err = g.getFile(ds, &t)
 		if err != nil {
