@@ -20,7 +20,6 @@ regen: tplbin/templates.go ## regenerate template bin
 
 deps:
 	go get -u github.com/jessevdk/go-assets-builder
-	go get -u golang.org/x/tools/cmd/goimports
 
 tplbin/templates.go: $(wildcard templates/*.tpl)
 	go-assets-builder \

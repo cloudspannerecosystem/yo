@@ -25,11 +25,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 
 	"go.mercari.io/yo/internal"
 	templates "go.mercari.io/yo/tplbin"
@@ -198,6 +200,13 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	return f, nil
 }
 
+// importsOptions is the same as x/tools/cmd/goimports options except Fragment.
+var importsOptions = &imports.Options{
+	TabWidth:  8,
+	TabIndent: true,
+	Comments:  true,
+}
+
 // writeTypes writes the generated definitions.
 func (g *Generator) writeTypes(ds *basicDataSet) error {
 	var err error
@@ -209,14 +218,13 @@ func (g *Generator) writeTypes(ds *basicDataSet) error {
 
 	// loop, writing in order
 	for _, t := range out {
-		var f *os.File
-
 		// check if generated template is only whitespace/empty
 		bufStr := strings.TrimSpace(t.Buf.String())
 		if len(bufStr) == 0 {
 			continue
 		}
 
+		var f *os.File
 		// get file and filename
 		f, err = g.getFile(ds, &t)
 		if err != nil {
@@ -234,20 +242,32 @@ func (g *Generator) writeTypes(ds *basicDataSet) error {
 		}
 	}
 
-	// build goimports parameters, closing files
-	params := []string{"-w"}
+	// format by imports, closing files
 	for k, f := range g.files {
-		params = append(params, k)
-
 		// close
 		err = f.Close()
 		if err != nil {
 			return err
 		}
+
+		// imports.Process needs absolute filepath for accurate fix
+		abs, err := filepath.Abs(k)
+		if err != nil {
+			return err
+		}
+		// format
+		formatted, err := imports.Process(abs, nil, importsOptions)
+		if err != nil {
+			return err
+		}
+
+		// since abs file exists, set perm to 0
+		if err := ioutil.WriteFile(abs, formatted, 0); err != nil {
+			return err
+		}
 	}
 
-	// process written files with goimports
-	return exec.Command("goimports", params...).Run()
+	return nil
 }
 
 // ExecuteTemplate loads and parses the supplied template with name and

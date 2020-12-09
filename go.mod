@@ -13,9 +13,8 @@ require (
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/jinzhu/inflection v1.0.0
 	github.com/kenshaw/snaker v0.1.0
-	github.com/mattn/go-sqlite3 v2.0.1+incompatible // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.5 // indirect
+	golang.org/x/tools v0.0.0-20201204222352-654352759326
 	google.golang.org/api v0.21.0
 	google.golang.org/genproto v0.0.0-20200416231807-8751e049a2a0
 	google.golang.org/grpc v1.28.1
