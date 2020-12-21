@@ -26,14 +26,38 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/spanner"
-	admindatabasev1 "cloud.google.com/go/spanner/admin/database/apiv1"
 	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
-	"github.com/gcpug/handy-spanner/fake"
-	"google.golang.org/api/option"
 	dbadminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
 )
+
+func DatabaseName(projectName, instanceName, dbName string) string {
+	return fmt.Sprintf("projects/%s/instances/%s/databases/%s",
+		projectName, instanceName, dbName)
+}
+
+func TestClient(ctx context.Context, projectName, instanceName, dbName string) (*spanner.Client, error) {
+	fullDBName := DatabaseName(projectName, instanceName, dbName)
+
+	client, err := spanner.NewClient(ctx, fullDBName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create spanner client: %v", err)
+	}
+
+	// preflight query to check database ready
+	spanCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	iter := client.Single().Query(spanCtx, spanner.NewStatement("SELECT 1"))
+	defer iter.Stop()
+	if _, err := iter.Next(); err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
 
 func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 	tables := []string{
@@ -41,6 +65,7 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 		"FullTypes",
 		"MaxLengths",
 		"snake_cases",
+		"Tests",
 	}
 	var muts []*spanner.Mutation
 	for _, table := range tables {
@@ -54,37 +79,20 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 	return nil
 }
 
-// SetupFakeSpanner runs fake spanner server and create clients for the server.
-// Please make sure to call stop func to stop the server and the clients.
-func SetupFakeSpanner(ctx context.Context, dbname string) (*spanner.Client, *dbadmin.DatabaseAdminClient, func(), error) {
-	// Run fake server
-	srv, conn, err := fake.Run()
+func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string) error {
+	fullDBName := DatabaseName(projectName, instanceName, dbName)
+
+	dbAdminCli, err := dbadmin.NewDatabaseAdminClient(ctx)
 	if err != nil {
-		return nil, nil, nil, err
+		return fmt.Errorf("failed to create database admin client: %v")
+	}
+	defer dbAdminCli.Close()
+
+	if err := ApplyTestSchema(ctx, dbAdminCli, fullDBName); err != nil {
+		return err
 	}
 
-	// Prepare spanner client
-	client, err := spanner.NewClient(ctx, dbname, option.WithGRPCConn(conn))
-	if err != nil {
-		srv.Stop()
-		conn.Close()
-		return nil, nil, nil, fmt.Errorf("failed to connect fake spanner server: %v", err)
-	}
-
-	// Prepare spanner client
-	adminclient, err := admindatabasev1.NewDatabaseAdminClient(ctx, option.WithGRPCConn(conn))
-	if err != nil {
-		srv.Stop()
-		conn.Close()
-		return nil, nil, nil, fmt.Errorf("creating spanner admin client: %v", err)
-
-	}
-	stop := func() {
-		srv.Stop()
-		conn.Close()
-	}
-
-	return client, adminclient, stop, nil
+	return nil
 }
 
 // ApplyDDL applies DDL statements and waits until finished.
@@ -132,10 +140,16 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 		return fmt.Errorf("read error: %v", err)
 	}
 
+	// find the first DDL to skip comments.
+	contents := string(b)
+	if pos := strings.Index(contents, "CREATE "); pos >= 0 {
+		contents = contents[pos:]
+	}
+
 	// Split scheme definition to DDL statements.
 	// This assuemes there is no comments and each statement is separated by semi-colon
 	var statements []string
-	for _, s := range strings.Split(string(b), ";") {
+	for _, s := range strings.Split(contents, ";") {
 		s = strings.TrimSpace(s)
 		if len(s) == 0 {
 			continue

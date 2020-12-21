@@ -1,11 +1,12 @@
-export SPANNER_PROJECT_NAME  ?= mercari-example-project
-export SPANNER_INSTANCE_NAME ?= mercari-example-instance
+export SPANNER_EMULATOR_HOST ?= localhost:9010
+export SPANNER_EMULATOR_HOST_REST ?= localhost:9020
+export SPANNER_PROJECT_NAME ?= yo-test
+export SPANNER_INSTANCE_NAME ?= yo-test
 export SPANNER_DATABASE_NAME ?= yo-test
 
 YOBIN ?= yo
 
 export GO111MODULE=on
-
 
 .PHONY: help
 help: ## show this help message.
@@ -37,8 +38,9 @@ e2etest: ## run e2e test
 	@echo run tests with real spanner server
 	go test -race -v ./test
 
-testsetup: ## setup test database
-	@gcloud --project $(SPANNER_PROJECT_NAME) spanner databases create $(SPANNER_DATABASE_NAME) --instance $(SPANNER_INSTANCE_NAME) --ddl "$(shell cat ./test/testdata/schema.sql)"
+testsetup: ## setup test database with emulator
+	curl -s "${SPANNER_EMULATOR_HOST_REST}/v1/projects/${SPANNER_PROJECT_NAME}/instances" --data '{"instanceId": "${SPANNER_INSTANCE_NAME}"}'
+	curl -s "${SPANNER_EMULATOR_HOST_REST}/v1/projects/${SPANNER_PROJECT_NAME}/instances/${SPANNER_INSTANCE_NAME}/databases" --data '{"createStatement": "CREATE DATABASE `${SPANNER_DATABASE_NAME}`"}'
 
 testdata: ## generate test models
 	$(MAKE) -j4 testdata/default testdata/customtypes testdata/single
