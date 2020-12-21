@@ -35,29 +35,20 @@ jobs:
             make recreate-templates YOBIN=./yo
             git diff --quiet templates/
 
-      - run:
-          name: run integration test with fake spanner server
-          command: |
-            make test
-
   e2etest:
     docker:
       - image: golang:1.13-stretch
         environment:
-          # those environment variables are came from Circle CI settings
-          # SPANNER_PROJECT_NAME: foobar-project
-          # SPANNER_INSTANCE_NAME: foobar-instance
-          # SPANNER_DATABASE_NAME: yo-test
-          GOOGLE_APPLICATION_CREDENTIALS: /credential
+          SPANNER_EMULATOR_HOST: localhost:9010
+          SPANNER_EMULATOR_HOST_REST: localhost:9020
+          PROJECT: yo-test
+          INSTANCE: yo-test
+          DATABASE: yo-test
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.0.0
 
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
-      - run:
-          name: setup service account
-          command: |
-            echo ${GOOGLE_SERVICE_ACCOUNT_DATA} | base64 -d > ${GOOGLE_APPLICATION_CREDENTIALS}
-
       - run:
           name: install deps
           command: |
@@ -69,23 +60,20 @@ jobs:
             make build
 
       - run:
+          name: run integration test
+          command: |
+            make testsetup
+            make e2etest
+
+      - run:
           name: regenerate testdata and check diff
           command: |
             make testdata YOBIN=./yo
             git diff --quiet test/
-
-      - run:
-          name: run integration test
-          command: |
-            make e2etest
 
 workflows:
   version: 2
   build-workflow:
     jobs:
       - test
-      - e2etest:
-          filters:
-            branches:
-              only:
-                - master
+      - e2etest

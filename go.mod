@@ -6,12 +6,12 @@ require (
 	cloud.google.com/go v0.56.0
 	cloud.google.com/go/spanner v1.5.1
 	github.com/MakeNowJust/memefish v0.0.0-20200430105843-c8e9c6d29dd6
-	github.com/gcpug/handy-spanner v0.6.2
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/golang/protobuf v1.4.0
 	github.com/google/go-cmp v0.4.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/jinzhu/inflection v1.0.0
+	github.com/k0kubun/pp v3.0.2-0.20190719145753-b20d3da80efa+incompatible // indirect
 	github.com/kenshaw/snaker v0.1.0
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/tools v0.0.0-20201204222352-654352759326

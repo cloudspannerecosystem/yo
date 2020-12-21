@@ -24,15 +24,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"net"
 	"os"
 	"testing"
 	"time"
 
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
-	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
-	"github.com/gcpug/handy-spanner/fake"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/test/testmodels/customtypes"
@@ -49,11 +46,11 @@ var (
 	spannerProjectName  = os.Getenv("SPANNER_PROJECT_NAME")
 	spannerInstanceName = os.Getenv("SPANNER_INSTANCE_NAME")
 	spannerDatabaseName = os.Getenv("SPANNER_DATABASE_NAME")
+	spannerEmulatorHost = os.Getenv("SPANNER_EMULATOR_HOST")
 )
 
 var (
-	client      *spanner.Client
-	adminClient *dbadmin.DatabaseAdminClient
+	client *spanner.Client
 )
 
 func testNotFound(t *testing.T, err error, b bool) {
@@ -126,50 +123,21 @@ func TestMain(m *testing.M) {
 
 	os.Exit(func() int {
 		ctx := context.Background()
-		var databaseName string
 
-		// If test.short is enabled, use fake spanner server for testing.
-		// Otherwise use a real spanner server.
-		if testing.Short() {
-			databaseName = "projects/yo/instances/yo/databases/integration-test"
-			cli, adminCli, stop, err := testutil.SetupFakeSpanner(ctx, databaseName)
-			if err != nil {
+		if !testing.Short() {
+			if err := testutil.SetupDatabase(ctx, spannerProjectName, spannerInstanceName, spannerDatabaseName); err != nil {
 				panic(err)
 			}
-			defer stop()
-
-			client = cli
-			adminClient = adminCli
-		} else {
-			databaseName = fmt.Sprintf("projects/%s/instances/%s/databases/%s",
-				spannerProjectName, spannerInstanceName, spannerDatabaseName)
-
-			spannerClient, err := spanner.NewClient(ctx, databaseName)
-			if err != nil {
-				panic(fmt.Sprintf("failed to create spanner client: %v", err))
-			}
-			defer spannerClient.Close()
-
-			client = spannerClient
 		}
 
-		// preflight query to check database ready
-		spanCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
-
-		iter := client.Single().Query(spanCtx, spanner.NewStatement("SELECT 1"))
-		if _, err := iter.Next(); err != nil {
+		spanCli, err := testutil.TestClient(ctx, spannerProjectName, spannerInstanceName, spannerDatabaseName)
+		if err != nil {
 			panic(err)
 		}
-		iter.Stop()
+
+		client = spanCli
 
 		if testing.Short() {
-			// Apply test scheme to create tables
-			if err := testutil.ApplyTestSchema(ctx, adminClient, databaseName); err != nil {
-				panic(err)
-			}
-		} else {
-			// Delete exsitng data to make sure all tables are clean
 			if err := testutil.DeleteAllData(ctx, client); err != nil {
 				panic(err)
 			}
@@ -494,12 +462,11 @@ func TestDefaultFullType(t *testing.T) {
 			pkeys = append(pkeys, fts[i].PKey)
 		}
 
-		expected := []string{"pkey2", "pkey3"}
+		expected := []string{"pkey3", "pkey2"}
 		if diff := cmp.Diff(expected, pkeys); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})
-
 }
 
 func TestCustomCompositePrimaryKey(t *testing.T) {
@@ -594,26 +561,12 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 }
 
 func TestSessionNotFound(t *testing.T) {
-	dbName := "projects/yo/instances/yo/databases/integration-test"
+	dbName := testutil.DatabaseName(spannerProjectName, spannerInstanceName, spannerDatabaseName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		if l, err = net.Listen("tcp6", "[::1]:0"); err != nil {
-			t.Fatalf("failed to run spanner emulator: %v", err)
-		}
-	}
-
-	srv, err := fake.New(l)
-	if err != nil {
-		t.Fatalf("failed to run spanner emulator: %v", err)
-	}
-	go func() { _ = srv.Start() }()
-	defer srv.Stop()
-
-	conn, err := grpc.DialContext(ctx, srv.Addr(), grpc.WithInsecure(), grpc.WithBlock(),
+	conn, err := grpc.DialContext(ctx, spannerEmulatorHost, grpc.WithInsecure(), grpc.WithBlock(),
 		grpc.WithUnaryInterceptor(
 			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 				return invoker(ctx, method, req, reply, cc, opts...)
@@ -675,28 +628,14 @@ func TestSessionNotFound(t *testing.T) {
 }
 
 func TestAborted(t *testing.T) {
-	dbName := "projects/yo/instances/yo/databases/integration-test"
+	dbName := testutil.DatabaseName(spannerProjectName, spannerInstanceName, spannerDatabaseName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		if l, err = net.Listen("tcp6", "[::1]:0"); err != nil {
-			t.Fatalf("failed to run spanner emulator: %v", err)
-		}
-	}
-
-	srv, err := fake.New(l)
-	if err != nil {
-		t.Fatalf("failed to run spanner emulator: %v", err)
-	}
-	go func() { _ = srv.Start() }()
-	defer srv.Stop()
-
 	var retried bool
 
-	conn, err := grpc.DialContext(ctx, srv.Addr(), grpc.WithInsecure(), grpc.WithBlock(),
+	conn, err := grpc.DialContext(ctx, spannerEmulatorHost, grpc.WithInsecure(), grpc.WithBlock(),
 		grpc.WithUnaryInterceptor(
 			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 				if method == "/google.spanner.v1.Spanner/Commit" {
