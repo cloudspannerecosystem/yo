@@ -53,8 +53,62 @@ jobs:
             make testdata YOBIN=./yo
             git diff --quiet test/
 
+  v2test:
+    docker:
+      - image: golang:1.15-buster
+        environment:
+          SPANNER_EMULATOR_HOST: localhost:9010
+          SPANNER_EMULATOR_HOST_REST: localhost:9020
+          PROJECT: yo-test
+          INSTANCE: yo-test
+          DATABASE: yo-test
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.0.0
+    working_directory: /go/src/github.com/cloudspannerecosystem/yo
+    steps:
+      - checkout
+      - run:
+          name: install deps
+          command: |
+            make -C v2 deps
+
+      - run:
+          name: build
+          command: |
+            make -C v2 build
+
+      - run:
+          name: regenerate templates and check diff
+          command: |
+            make -C v2 regen
+            git diff --quiet v2/tplbin/
+
+      - run:
+          name: regenerate testdata-from-ddl and check diff
+          command: |
+            make -C v2 testdata-from-ddl YOBIN=./yo
+            git diff --quiet test/
+
+      - run:
+          name: regenerate template files and check diff
+          command: |
+            make -C v2 recreate-templates YOBIN=./yo
+            git diff --quiet v2/templates/
+
+      - run:
+          name: run integration test
+          command: |
+            make -C v2 test
+
+      - run:
+          name: regenerate testdata and check diff
+          command: |
+            make -C v2 testdata YOBIN=./yo
+            git diff --quiet v2/test/
+
+
 workflows:
   version: 2
   build-workflow:
     jobs:
       - test
+      - v2test
