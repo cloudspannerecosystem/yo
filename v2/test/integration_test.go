@@ -30,7 +30,6 @@ import (
 
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/v2/test/testmodels/customtypes"
 	models "go.mercari.io/yo/v2/test/testmodels/default"
@@ -40,6 +39,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 var (
@@ -107,7 +107,7 @@ func newSessionNotFoundError(name string) error {
 func newAbortedWithRetryInfo() error {
 	s := status.New(codes.Aborted, "")
 	s, err := s.WithDetails(&errdetails.RetryInfo{
-		RetryDelay: ptypes.DurationProto(100 * time.Millisecond),
+		RetryDelay: durationpb.New(100 * time.Millisecond),
 	})
 	if err != nil {
 		panic(fmt.Sprintf("with details failed: %v", err))
