@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.mercari.io/yo/v2/generator"
 	"go.mercari.io/yo/v2/internal"
-	"go.mercari.io/yo/v2/loaders"
+	"go.mercari.io/yo/v2/loader"
 )
 
 // GenerateOption is the type that specifies the command line arguments.
@@ -74,40 +74,40 @@ var (
 			if err != nil {
 				return fmt.Errorf("load inflection rule failed: %v", err)
 			}
-			var loader *loaders.TypeLoader
-			loadOpt := loaders.Option{
+			var typeLoader *loader.TypeLoader
+			loadOpt := loader.Option{
 				IgnoreTables: generateOpts.IgnoreTables,
 				IgnoreFields: generateOpts.IgnoreFields,
 			}
 			if generateOpts.FromDDL {
-				spannerLoader, err := loaders.NewSpannerLoaderFromDDL(args[0])
+				spannerLoader, err := loader.NewSpannerLoaderFromDDL(args[0])
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
 				}
-				loader = loaders.NewTypeLoader(spannerLoader, inflector, loadOpt)
+				typeLoader = loader.NewTypeLoader(spannerLoader, inflector, loadOpt)
 			} else {
 				spannerClient, err := connectSpanner(&rootOpts)
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
 				}
-				spannerLoader := loaders.NewSpannerLoader(spannerClient)
-				loader = loaders.NewTypeLoader(spannerLoader, inflector, loadOpt)
+				spannerLoader := loader.NewSpannerLoader(spannerClient)
+				typeLoader = loader.NewTypeLoader(spannerLoader, inflector, loadOpt)
 			}
 
 			// load custom type definitions
 			if generateOpts.CustomTypesFile != "" {
-				if err := loader.LoadCustomTypes(generateOpts.CustomTypesFile); err != nil {
+				if err := typeLoader.LoadCustomTypes(generateOpts.CustomTypesFile); err != nil {
 					return fmt.Errorf("load custom types file failed: %v", err)
 				}
 			}
 
 			// load defs into type map
-			tableMap, ixMap, err := loader.LoadSchema()
+			tableMap, ixMap, err := typeLoader.LoadSchema()
 			if err != nil {
 				return fmt.Errorf("error: %v", err)
 			}
 
-			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
+			g := generator.NewGenerator(typeLoader, inflector, generator.GeneratorOption{
 				PackageName:       generateOpts.Package,
 				Tags:              generateOpts.Tags,
 				TemplatePath:      generateOpts.TemplatePath,
