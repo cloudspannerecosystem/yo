@@ -17,7 +17,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package internal
+package loaders
 
 import (
 	"fmt"
@@ -26,9 +26,15 @@ import (
 	"strings"
 
 	"github.com/kenshaw/snaker"
+	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/models"
 	"gopkg.in/yaml.v2"
 )
+
+type Option struct {
+	IgnoreFields []string
+	IgnoreTables []string
+}
 
 type loaderImpl interface {
 	ParamN(int) string
@@ -41,8 +47,13 @@ type loaderImpl interface {
 	IndexColumnList(string, string) ([]*models.IndexColumn, error)
 }
 
-func NewTypeLoader(l loaderImpl, i Inflector) *TypeLoader {
-	return &TypeLoader{loader: l, inflector: i}
+func NewTypeLoader(l loaderImpl, inflector internal.Inflector, opt Option) *TypeLoader {
+	return &TypeLoader{
+		loader:       l,
+		inflector:    inflector,
+		ignoreFields: opt.IgnoreFields,
+		ignoreTables: opt.IgnoreTables,
+	}
 }
 
 // TypeLoader provides a common Loader implementation used by the built in
@@ -50,7 +61,10 @@ func NewTypeLoader(l loaderImpl, i Inflector) *TypeLoader {
 type TypeLoader struct {
 	CustomTypes *models.CustomTypes
 	loader      loaderImpl
-	inflector   Inflector
+	inflector   internal.Inflector
+
+	ignoreFields []string
+	ignoreTables []string
 }
 
 // NthParam satisifies Loader's NthParam.
@@ -65,17 +79,17 @@ func (tl *TypeLoader) Mask() string {
 }
 
 // LoadSchema loads schema definitions.
-func (tl *TypeLoader) LoadSchema(args *ArgType) (map[string]*Type, map[string]*Index, error) {
+func (tl *TypeLoader) LoadSchema() (map[string]*internal.Type, map[string]*internal.Index, error) {
 	var err error
 
 	// load tables
-	tableMap, err := tl.LoadTable(args)
+	tableMap, err := tl.LoadTable()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// load indexes
-	ixMap, err := tl.LoadIndexes(args, tableMap)
+	ixMap, err := tl.LoadIndexes(tableMap)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -86,7 +100,7 @@ func (tl *TypeLoader) LoadSchema(args *ArgType) (map[string]*Type, map[string]*I
 }
 
 // LoadTable loads a schema table/view definition.
-func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
+func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 	var err error
 
 	// load tables
@@ -96,11 +110,11 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 	}
 
 	// tables
-	tableMap := make(map[string]*Type)
+	tableMap := make(map[string]*internal.Type)
 	for _, ti := range tableList {
 		ignore := false
 
-		for _, ignoreTable := range args.IgnoreTables {
+		for _, ignoreTable := range tl.ignoreTables {
 			if ignoreTable == ti.TableName {
 				// Skip adding this table if user has specified they are not
 				// interested.
@@ -117,15 +131,15 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 		}
 
 		// create template
-		typeTpl := &Type{
-			Name:   SingularizeIdentifier(tl.inflector, ti.TableName),
+		typeTpl := &internal.Type{
+			Name:   internal.SingularizeIdentifier(tl.inflector, ti.TableName),
 			Schema: "",
-			Fields: []*Field{},
+			Fields: []*internal.Field{},
 			Table:  ti,
 		}
 
 		// process columns
-		err = tl.LoadColumns(args, typeTpl)
+		err = tl.LoadColumns(typeTpl)
 		if err != nil {
 			return nil, err
 		}
@@ -141,16 +155,16 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 }
 
 // loadPrimaryKeys loads primary key fields
-func (tl *TypeLoader) loadPrimaryKeys(typeTpl *Type) error {
+func (tl *TypeLoader) loadPrimaryKeys(typeTpl *internal.Type) error {
 	// reorder primary keys
 	indexCols, err := tl.loader.IndexColumnList(typeTpl.Table.TableName, "PRIMARY_KEY")
 	if err != nil {
 		panic(err)
 	}
 
-	var fields []*Field
+	var fields []*internal.Field
 	for _, idx := range indexCols {
-		var field *Field
+		var field *internal.Field
 		for _, f := range typeTpl.Fields {
 			if f.Col.ColumnName == idx.ColumnName {
 				field = f
@@ -187,7 +201,7 @@ func (tl *TypeLoader) tableCustomTypes(table string) map[string]string {
 }
 
 // LoadColumns loads schema table/view columns.
-func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
+func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 	var err error
 
 	// load columns
@@ -201,7 +215,7 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 	for _, c := range columnList {
 		ignore := false
 
-		for _, ignoreField := range args.IgnoreFields {
+		for _, ignoreField := range tl.ignoreFields {
 			if ignoreField == c.ColumnName {
 				// Skip adding this field if user has specified they are not
 				// interested.
@@ -218,7 +232,7 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 		}
 
 		// set col info
-		f := &Field{
+		f := &internal.Field{
 			Name: snaker.ForceCamelIdentifier(c.ColumnName),
 			// Name: c.ColumnName,
 			Col: c,
@@ -241,13 +255,13 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 }
 
 // LoadIndexes loads schema index definitions.
-func (tl *TypeLoader) LoadIndexes(args *ArgType, tableMap map[string]*Type) (map[string]*Index, error) {
+func (tl *TypeLoader) LoadIndexes(tableMap map[string]*internal.Type) (map[string]*internal.Index, error) {
 	var err error
 
-	ixMap := map[string]*Index{}
+	ixMap := map[string]*internal.Index{}
 	for _, t := range tableMap {
 		// load table indexes
-		err = tl.LoadTableIndexes(args, t, ixMap)
+		err = tl.LoadTableIndexes(t, ixMap)
 		if err != nil {
 			return nil, err
 		}
@@ -257,7 +271,7 @@ func (tl *TypeLoader) LoadIndexes(args *ArgType, tableMap map[string]*Type) (map
 }
 
 // LoadTableIndexes loads schema index definitions per table.
-func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[string]*Index) error {
+func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]*internal.Index) error {
 	var err error
 	var priIxLoaded bool
 
@@ -273,15 +287,15 @@ func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[s
 		priIxLoaded = priIxLoaded || ix.IsPrimary || (ix.Origin == "pk")
 
 		// create index template
-		ixTpl := &Index{
+		ixTpl := &internal.Index{
 			Schema: "",
 			Type:   typeTpl,
-			Fields: []*Field{},
+			Fields: []*internal.Field{},
 			Index:  ix,
 		}
 
 		// load index columns
-		err = tl.LoadIndexColumns(args, ixTpl)
+		err = tl.LoadIndexColumns(ixTpl)
 		if err != nil {
 			return err
 		}
@@ -295,7 +309,7 @@ func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[s
 	return nil
 }
 
-func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
+func (tl *TypeLoader) buildIndexFuncName(ixTpl *internal.Index) string {
 	// build func name
 	funcName := ixTpl.Type.Name
 	if !ixTpl.Index.IsUnique {
@@ -316,7 +330,7 @@ func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
 }
 
 // LoadIndexColumns loads the index column information.
-func (tl *TypeLoader) LoadIndexColumns(args *ArgType, ixTpl *Index) error {
+func (tl *TypeLoader) LoadIndexColumns(ixTpl *internal.Index) error {
 	var err error
 
 	// load index columns
@@ -327,7 +341,7 @@ func (tl *TypeLoader) LoadIndexColumns(args *ArgType, ixTpl *Index) error {
 
 	// process index columns
 	for _, ic := range indexCols {
-		var field *Field
+		var field *internal.Field
 
 	fieldLoop:
 		// find field
@@ -373,8 +387,8 @@ func (tl *TypeLoader) LoadCustomTypes(path string) error {
 	return nil
 }
 
-func setIndexesToTables(tableMap map[string]*Type, ixMap map[string]*Index) {
-	indexes := make([]*Index, 0, len(ixMap))
+func setIndexesToTables(tableMap map[string]*internal.Type, ixMap map[string]*internal.Index) {
+	indexes := make([]*internal.Index, 0, len(ixMap))
 	for _, ix := range ixMap {
 		indexes = append(indexes, ix)
 	}

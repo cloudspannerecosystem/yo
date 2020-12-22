@@ -39,6 +39,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/testing/protocmp"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -606,7 +607,7 @@ func TestSessionNotFound(t *testing.T) {
 			ResourceName: "xxx",
 		}
 
-		if diff := cmp.Diff(expectedResourceInfo, ri); diff != "" {
+		if diff := cmp.Diff(expectedResourceInfo, ri, protocmp.Transform()); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})
@@ -621,7 +622,7 @@ func TestSessionNotFound(t *testing.T) {
 			ResourceName: "xxx",
 		}
 
-		if diff := cmp.Diff(expectedResourceInfo, ri); diff != "" {
+		if diff := cmp.Diff(expectedResourceInfo, ri, protocmp.Transform()); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})

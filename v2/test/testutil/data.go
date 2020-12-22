@@ -97,7 +97,7 @@ func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string
 
 	dbAdminCli, err := dbadmin.NewDatabaseAdminClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create database admin client: %v")
+		return fmt.Errorf("failed to create database admin client: %v", err)
 	}
 	defer dbAdminCli.Close()
 

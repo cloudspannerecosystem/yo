@@ -61,7 +61,7 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
-func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
+func setGenerateOpts(cmd *cobra.Command, opts *GenerateOption) {
 	cmd.Flags().StringVar(&opts.CustomTypesFile, "custom-types-file", "", "custom table field type definition file")
 	cmd.Flags().StringVarP(&opts.Out, "out", "o", "", "output path or file name")
 	cmd.Flags().StringVar(&opts.Suffix, "suffix", defaultSuffix, "output file suffix")

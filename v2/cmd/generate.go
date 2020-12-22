@@ -28,8 +28,22 @@ import (
 	"go.mercari.io/yo/v2/loaders"
 )
 
+// GenerateOption is the type that specifies the command line arguments.
+type GenerateOption struct {
+	// IgnoreFields allows the user to specify field names which should not be
+	// handled by yo in the generated code.
+	IgnoreFields []string
+
+	// IgnoreTables allows the user to specify table names which should not be
+	// handled by yo in the generated code.
+	IgnoreTables []string
+
+	// TODO: stop depending internal.ArgType
+	internal.ArgType
+}
+
 var (
-	generateOpts = internal.ArgType{}
+	generateOpts = GenerateOption{}
 	generateCmd  = &cobra.Command{
 		Use:   "generate",
 		Short: "yo generate generates Go code from ddl file.",
@@ -52,7 +66,7 @@ var (
   yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := processArgs(&generateOpts, args); err != nil {
+			if err := processArgs(&generateOpts.ArgType, args); err != nil {
 				return err
 			}
 
@@ -60,20 +74,24 @@ var (
 			if err != nil {
 				return fmt.Errorf("load inflection rule failed: %v", err)
 			}
-			var loader *internal.TypeLoader
+			var loader *loaders.TypeLoader
+			loadOpt := loaders.Option{
+				IgnoreTables: generateOpts.IgnoreTables,
+				IgnoreFields: generateOpts.IgnoreFields,
+			}
 			if generateOpts.FromDDL {
 				spannerLoader, err := loaders.NewSpannerLoaderFromDDL(args[0])
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
 				}
-				loader = internal.NewTypeLoader(spannerLoader, inflector)
+				loader = loaders.NewTypeLoader(spannerLoader, inflector, loadOpt)
 			} else {
 				spannerClient, err := connectSpanner(&rootOpts)
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
 				}
 				spannerLoader := loaders.NewSpannerLoader(spannerClient)
-				loader = internal.NewTypeLoader(spannerLoader, inflector)
+				loader = loaders.NewTypeLoader(spannerLoader, inflector, loadOpt)
 			}
 
 			// load custom type definitions
@@ -84,7 +102,7 @@ var (
 			}
 
 			// load defs into type map
-			tableMap, ixMap, err := loader.LoadSchema(&generateOpts)
+			tableMap, ixMap, err := loader.LoadSchema()
 			if err != nil {
 				return fmt.Errorf("error: %v", err)
 			}
@@ -108,6 +126,6 @@ var (
 
 func init() {
 	generateCmd.Flags().BoolVar(&generateOpts.FromDDL, "from-ddl", false, "toggle using ddl file")
-	setRootOpts(generateCmd, &generateOpts)
+	setGenerateOpts(generateCmd, &generateOpts)
 	rootCmd.AddCommand(generateCmd)
 }

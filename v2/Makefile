@@ -32,7 +32,7 @@ tplbin/templates.go: $(wildcard templates/*.tpl)
 .PHONY: test
 test: ## run test
 	@echo run tests with spanner emulator
-	go test -race -v ./test
+	go test -race -v ./...
 
 testdata: ## generate test models
 	$(MAKE) -j4 testdata/default testdata/customtypes

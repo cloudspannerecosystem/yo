@@ -48,14 +48,6 @@ type ArgType struct {
 	// CustomTypePackage is the Go package name to use for unknown types.
 	CustomTypePackage string
 
-	// IgnoreFields allows the user to specify field names which should not be
-	// handled by yo in the generated code.
-	IgnoreFields []string
-
-	// IgnoreTables allows the user to specify table names which should not be
-	// handled by yo in the generated code.
-	IgnoreTables []string
-
 	// TemplatePath is the path to use the user supplied templates instead of
 	// the built in versions.
 	TemplatePath string
