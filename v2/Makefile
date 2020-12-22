@@ -39,11 +39,11 @@ testdata: ## generate test models
 
 testdata/default:
 	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
-	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --out test/testmodels/default/
+	$(YOBIN) generate $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --out test/testmodels/default/
 
 testdata/customtypes:
 	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
-	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
+	$(YOBIN) generate $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
 
 testdata-from-ddl:
 	$(MAKE) -j4 testdata-from-ddl/default testdata-from-ddl/customtypes

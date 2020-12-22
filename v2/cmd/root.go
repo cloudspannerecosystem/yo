@@ -28,77 +28,30 @@ import (
 
 	"cloud.google.com/go/spanner"
 	"github.com/spf13/cobra"
-	"go.mercari.io/yo/v2/generator"
 	"go.mercari.io/yo/v2/internal"
-	"go.mercari.io/yo/v2/loaders"
 )
 
 const (
 	defaultSuffix = ".yo.go"
 	exampleUsage  = `
-  # Generate models under models directory
-  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
+  # Generate models from ddl under models directory
+  yo generate schema.sql --from-ddl -o models
 
-  # Generate models under models directory with custom types
-  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
+  # Generate models under models directory
+  yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 `
 )
 
 var (
 	rootOpts = internal.ArgType{}
 	rootCmd  = &cobra.Command{
-		Use:   "yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME",
+		Use:   "yo",
 		Short: "yo is a command-line tool to generate Go code for Google Cloud Spanner.",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 3 {
-				return fmt.Errorf("must specify 3 arguments")
-			}
 			return nil
 		},
-		Example: strings.Trim(exampleUsage, "\n"),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := processArgs(&rootOpts, args); err != nil {
-				return err
-			}
-
-			spannerClient, err := connectSpanner(&rootOpts)
-			if err != nil {
-				return fmt.Errorf("error: %v", err)
-			}
-			spannerLoader := loaders.NewSpannerLoader(spannerClient)
-			inflector, err := internal.NewInflector(rootOpts.InflectionRuleFile)
-			if err != nil {
-				return fmt.Errorf("load inflection rule failed: %v", err)
-			}
-			loader := internal.NewTypeLoader(spannerLoader, inflector)
-
-			// load custom type definitions
-			if rootOpts.CustomTypesFile != "" {
-				if err := loader.LoadCustomTypes(rootOpts.CustomTypesFile); err != nil {
-					return fmt.Errorf("load custom types file failed: %v", err)
-				}
-			}
-
-			// load defs into type map
-			tableMap, ixMap, err := loader.LoadSchema(&rootOpts)
-			if err != nil {
-				return fmt.Errorf("error: %v", err)
-			}
-
-			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
-				PackageName:       rootOpts.Package,
-				Tags:              rootOpts.Tags,
-				TemplatePath:      rootOpts.TemplatePath,
-				CustomTypePackage: rootOpts.CustomTypePackage,
-				FilenameSuffix:    rootOpts.Suffix,
-				Path:              rootOpts.Path,
-			})
-			if err := g.Generate(tableMap, ixMap); err != nil {
-				return fmt.Errorf("error: %v", err)
-			}
-
-			return nil
-		},
+		Example:       strings.Trim(exampleUsage, "\n"),
+		RunE:          nil,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
@@ -106,10 +59,6 @@ var (
 
 func Execute() error {
 	return rootCmd.Execute()
-}
-
-func init() {
-	setRootOpts(rootCmd, &rootOpts)
 }
 
 func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {

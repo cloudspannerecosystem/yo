@@ -205,6 +205,8 @@ See https://github.com/jinzhu/inflection#register-rules for details.
 ### Deprecations
 
 * `--single-file` option is deprecated
+* Top-level command for code generation is deprecated
+   * Use `yo generate` sub command instead.
 
 ## Contributions
 
