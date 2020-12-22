@@ -30,7 +30,10 @@ import (
 
 	"cloud.google.com/go/spanner"
 	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
+	insadmin "cloud.google.com/go/spanner/admin/instance/apiv1"
 	dbadminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
+	instancepb "google.golang.org/genproto/googleapis/spanner/admin/instance/v1"
+	"google.golang.org/grpc/codes"
 )
 
 func DatabaseName(projectName, instanceName, dbName string) string {
@@ -80,7 +83,17 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 }
 
 func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string) error {
+	if v := os.Getenv("SPANNER_EMULATOR_HOST"); v == "" {
+		return fmt.Errorf("test must use spanner emulator")
+	}
+
 	fullDBName := DatabaseName(projectName, instanceName, dbName)
+
+	insAdminCli, err := insadmin.NewInstanceAdminClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create instance admin client: %v", err)
+	}
+	defer insAdminCli.Close()
 
 	dbAdminCli, err := dbadmin.NewDatabaseAdminClient(ctx)
 	if err != nil {
@@ -88,8 +101,85 @@ func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string
 	}
 	defer dbAdminCli.Close()
 
+	found, err := CheckDatabaseExist(ctx, dbAdminCli, fullDBName)
+	if err != nil {
+		return err
+	}
+
+	if found {
+		if err := DropDatabase(ctx, dbAdminCli, fullDBName); err != nil {
+			return err
+		}
+	} else {
+		if err := CreateInstance(ctx, insAdminCli, projectName, instanceName); err != nil {
+			return err
+		}
+	}
+
+	if err := CreateDatabase(ctx, dbAdminCli, projectName, instanceName, dbName); err != nil {
+		return err
+	}
+
 	if err := ApplyTestSchema(ctx, dbAdminCli, fullDBName); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func CheckDatabaseExist(ctx context.Context, dbAdminCli *dbadmin.DatabaseAdminClient, fullDBName string) (bool, error) {
+	_, err := dbAdminCli.GetDatabase(ctx, &dbadminpb.GetDatabaseRequest{
+		Name: fullDBName,
+	})
+	if err != nil {
+		if code := spanner.ErrCode(err); code == codes.NotFound {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("failed to get database: %v", err)
+	}
+
+	return true, nil
+}
+
+func DropDatabase(ctx context.Context, dbAdminCli *dbadmin.DatabaseAdminClient, fullDBName string) error {
+	err := dbAdminCli.DropDatabase(ctx, &dbadminpb.DropDatabaseRequest{
+		Database: fullDBName,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to drop database: %v", err)
+	}
+
+	return nil
+}
+
+func CreateInstance(ctx context.Context, insAdminCli *insadmin.InstanceAdminClient, projectName, instanceName string) error {
+	insOp, err := insAdminCli.CreateInstance(ctx, &instancepb.CreateInstanceRequest{
+		Parent:     fmt.Sprintf("projects/%s", projectName),
+		InstanceId: instanceName,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create instance operation: %v", err)
+	}
+
+	if _, err := insOp.Wait(ctx); err != nil {
+		return fmt.Errorf("failed to wait operation done: %v", err)
+	}
+
+	return nil
+}
+
+func CreateDatabase(ctx context.Context, dbAdminCli *dbadmin.DatabaseAdminClient, projectName, instanceName, dbName string) error {
+	dbOp, err := dbAdminCli.CreateDatabase(ctx, &dbadminpb.CreateDatabaseRequest{
+		Parent:          fmt.Sprintf("projects/%s/instances/%s", projectName, instanceName),
+		CreateStatement: fmt.Sprintf("CREATE DATABASE `%s`", dbName),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create database operation: %v", err)
+	}
+
+	if _, err := dbOp.Wait(ctx); err != nil {
+		return fmt.Errorf("failed to wait operation done: %v", err)
 	}
 
 	return nil
