@@ -21,7 +21,6 @@ package loader
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -32,33 +31,17 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-func NewSpannerLoader(client *spanner.Client) *SpannerLoader {
-	return &SpannerLoader{
+func NewInformationSchemaSource(client *spanner.Client) (SchemaSource, error) {
+	return &informationSchemaSource{
 		client: client,
-	}
+	}, nil
 }
 
-type SpannerLoader struct {
+type informationSchemaSource struct {
 	client *spanner.Client
 }
 
-func (s *SpannerLoader) ParamN(n int) string {
-	return fmt.Sprintf("@param%d", n)
-}
-
-func (s *SpannerLoader) MaskFunc() string {
-	return "?"
-}
-
-func (s *SpannerLoader) ParseType(dt string, nullable bool) (int, string, string) {
-	return SpanParseType(dt, nullable)
-}
-
-func (s *SpannerLoader) ValidCustomType(dataType string, customType string) bool {
-	return SpanValidateCustomType(dataType, customType)
-}
-
-func (s *SpannerLoader) TableList() ([]*models.Table, error) {
+func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
 	var err error
 
 	// get the tables
@@ -80,15 +63,15 @@ func (s *SpannerLoader) TableList() ([]*models.Table, error) {
 	return tables, nil
 }
 
-func (s *SpannerLoader) ColumnList(table string) ([]*models.Column, error) {
+func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, error) {
 	return SpanTableColumns(s.client, table)
 }
 
-func (s *SpannerLoader) IndexList(table string) ([]*models.Index, error) {
+func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, error) {
 	return SpanTableIndexes(s.client, table)
 }
 
-func (s *SpannerLoader) IndexColumnList(table string, index string) ([]*models.IndexColumn, error) {
+func (s *informationSchemaSource) IndexColumnList(table string, index string) ([]*models.IndexColumn, error) {
 	return SpanIndexColumns(s.client, table, index)
 }
 

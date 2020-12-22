@@ -74,25 +74,28 @@ var (
 			if err != nil {
 				return fmt.Errorf("load inflection rule failed: %v", err)
 			}
-			var typeLoader *loader.TypeLoader
-			loadOpt := loader.Option{
-				IgnoreTables: generateOpts.IgnoreTables,
-				IgnoreFields: generateOpts.IgnoreFields,
-			}
+
+			var source loader.SchemaSource
 			if generateOpts.FromDDL {
-				spannerLoader, err := loader.NewSpannerLoaderFromDDL(args[0])
+				source, err = loader.NewSchemaParserSource(args[0])
 				if err != nil {
-					return fmt.Errorf("error: %v", err)
+					return fmt.Errorf("failed to create spanner loader: %v", err)
 				}
-				typeLoader = loader.NewTypeLoader(spannerLoader, inflector, loadOpt)
 			} else {
 				spannerClient, err := connectSpanner(&rootOpts)
 				if err != nil {
-					return fmt.Errorf("error: %v", err)
+					return fmt.Errorf("failed to connect spanner: %v", err)
 				}
-				spannerLoader := loader.NewSpannerLoader(spannerClient)
-				typeLoader = loader.NewTypeLoader(spannerLoader, inflector, loadOpt)
+				source, err = loader.NewInformationSchemaSource(spannerClient)
+				if err != nil {
+					return fmt.Errorf("failed to create spanner loader: %v", err)
+				}
 			}
+
+			typeLoader := loader.NewTypeLoader(source, inflector, loader.Option{
+				IgnoreTables: generateOpts.IgnoreTables,
+				IgnoreFields: generateOpts.IgnoreFields,
+			})
 
 			// load custom type definitions
 			if generateOpts.CustomTypesFile != "" {

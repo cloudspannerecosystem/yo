@@ -36,20 +36,16 @@ type Option struct {
 	IgnoreTables []string
 }
 
-type loaderImpl interface {
-	ParamN(int) string
-	MaskFunc() string
-	ParseType(string, bool) (int, string, string)
-	ValidCustomType(string, string) bool
+type SchemaSource interface {
 	TableList() ([]*models.Table, error)
 	ColumnList(string) ([]*models.Column, error)
 	IndexList(string) ([]*models.Index, error)
 	IndexColumnList(string, string) ([]*models.IndexColumn, error)
 }
 
-func NewTypeLoader(l loaderImpl, inflector internal.Inflector, opt Option) *TypeLoader {
+func NewTypeLoader(source SchemaSource, inflector internal.Inflector, opt Option) *TypeLoader {
 	return &TypeLoader{
-		loader:       l,
+		source:       source,
 		inflector:    inflector,
 		ignoreFields: opt.IgnoreFields,
 		ignoreTables: opt.IgnoreTables,
@@ -60,7 +56,7 @@ func NewTypeLoader(l loaderImpl, inflector internal.Inflector, opt Option) *Type
 // schema/query loaders.
 type TypeLoader struct {
 	CustomTypes *models.CustomTypes
-	loader      loaderImpl
+	source      SchemaSource
 	inflector   internal.Inflector
 
 	ignoreFields []string
@@ -69,13 +65,16 @@ type TypeLoader struct {
 
 // NthParam satisifies Loader's NthParam.
 func (tl *TypeLoader) NthParam(i int) string {
-	return tl.loader.ParamN(i)
+	return fmt.Sprintf("@param%d", i)
 }
 
 // Mask returns the parameter mask.
 func (tl *TypeLoader) Mask() string {
+	return "?"
+}
 
-	return tl.loader.MaskFunc()
+func (tl *TypeLoader) ValidCustomType(dataType string, customType string) bool {
+	return SpanValidateCustomType(dataType, customType)
 }
 
 // LoadSchema loads schema definitions.
@@ -104,7 +103,7 @@ func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 	var err error
 
 	// load tables
-	tableList, err := tl.loader.TableList()
+	tableList, err := tl.source.TableList()
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +156,7 @@ func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 // loadPrimaryKeys loads primary key fields
 func (tl *TypeLoader) loadPrimaryKeys(typeTpl *internal.Type) error {
 	// reorder primary keys
-	indexCols, err := tl.loader.IndexColumnList(typeTpl.Table.TableName, "PRIMARY_KEY")
+	indexCols, err := tl.source.IndexColumnList(typeTpl.Table.TableName, "PRIMARY_KEY")
 	if err != nil {
 		panic(err)
 	}
@@ -205,7 +204,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 	var err error
 
 	// load columns
-	columnList, err := tl.loader.ColumnList(typeTpl.Table.TableName)
+	columnList, err := tl.source.ColumnList(typeTpl.Table.TableName)
 	if err != nil {
 		return err
 	}
@@ -238,11 +237,11 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 			Col: c,
 		}
 
-		f.Len, f.NilType, f.Type = tl.loader.ParseType(c.DataType, !c.NotNull)
+		f.Len, f.NilType, f.Type = SpanParseType(c.DataType, !c.NotNull)
 
 		// set custom type
 		if columnTypes != nil {
-			if t, ok := columnTypes[c.ColumnName]; ok && tl.loader.ValidCustomType(c.DataType, t) {
+			if t, ok := columnTypes[c.ColumnName]; ok && tl.ValidCustomType(c.DataType, t) {
 				f.CustomType = t
 			}
 		}
@@ -276,7 +275,7 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 	var priIxLoaded bool
 
 	// load indexes
-	indexList, err := tl.loader.IndexList(typeTpl.Table.TableName)
+	indexList, err := tl.source.IndexList(typeTpl.Table.TableName)
 	if err != nil {
 		return err
 	}
@@ -334,7 +333,7 @@ func (tl *TypeLoader) LoadIndexColumns(ixTpl *internal.Index) error {
 	var err error
 
 	// load index columns
-	indexCols, err := tl.loader.IndexColumnList(ixTpl.Type.Table.TableName, ixTpl.Index.IndexName)
+	indexCols, err := tl.source.IndexColumnList(ixTpl.Type.Table.TableName, ixTpl.Index.IndexName)
 	if err != nil {
 		return err
 	}

@@ -30,7 +30,7 @@ import (
 	"go.mercari.io/yo/v2/models"
 )
 
-func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
+func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 	b, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 		}
 	}
 
-	return &SpannerLoaderFromDDL{tables: tables}, nil
+	return &schemaParserSource{tables: tables}, nil
 }
 
 type table struct {
@@ -74,27 +74,11 @@ type table struct {
 	createIndexes []*ast.CreateIndex
 }
 
-type SpannerLoaderFromDDL struct {
+type schemaParserSource struct {
 	tables map[string]table
 }
 
-func (s *SpannerLoaderFromDDL) ParamN(n int) string {
-	return fmt.Sprintf("@param%d", n)
-}
-
-func (s *SpannerLoaderFromDDL) MaskFunc() string {
-	return "?"
-}
-
-func (s *SpannerLoaderFromDDL) ParseType(dt string, nullable bool) (int, string, string) {
-	return SpanParseType(dt, nullable)
-}
-
-func (s *SpannerLoaderFromDDL) ValidCustomType(dataType string, customType string) bool {
-	return SpanValidateCustomType(dataType, customType)
-}
-
-func (s *SpannerLoaderFromDDL) TableList() ([]*models.Table, error) {
+func (s *schemaParserSource) TableList() ([]*models.Table, error) {
 	var tables []*models.Table
 	for _, t := range s.tables {
 		tables = append(tables, &models.Table{
@@ -106,7 +90,7 @@ func (s *SpannerLoaderFromDDL) TableList() ([]*models.Table, error) {
 	return tables, nil
 }
 
-func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error) {
+func (s *schemaParserSource) ColumnList(name string) ([]*models.Column, error) {
 	var cols []*models.Column
 	table := s.tables[name].createTable
 
@@ -129,7 +113,7 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 	return cols, nil
 }
 
-func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
+func (s *schemaParserSource) IndexList(name string) ([]*models.Index, error) {
 	var indexes []*models.Index
 	for _, index := range s.tables[name].createIndexes {
 		indexes = append(indexes, &models.Index{
@@ -141,7 +125,7 @@ func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
 	return indexes, nil
 }
 
-func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.IndexColumn, error) {
+func (s *schemaParserSource) IndexColumnList(table, index string) ([]*models.IndexColumn, error) {
 	if index == "PRIMARY_KEY" {
 		return s.primaryKeyColumnList(table)
 	}
@@ -175,7 +159,7 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 	return cols, nil
 }
 
-func (s *SpannerLoaderFromDDL) primaryKeyColumnList(table string) ([]*models.IndexColumn, error) {
+func (s *schemaParserSource) primaryKeyColumnList(table string) ([]*models.IndexColumn, error) {
 	tbl, ok := s.tables[table]
 	if !ok {
 		return nil, nil
