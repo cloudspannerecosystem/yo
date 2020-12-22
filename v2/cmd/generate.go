@@ -20,7 +20,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
+	pathpkg "path"
+	"time"
 
 	"github.com/spf13/cobra"
 	"go.mercari.io/yo/v2/generator"
@@ -28,8 +32,48 @@ import (
 	"go.mercari.io/yo/v2/loader"
 )
 
-// GenerateOption is the type that specifies the command line arguments.
-type GenerateOption struct {
+// generateCmdOption is the type that specifies the command line arguments.
+type generateCmdOption struct {
+	// Project is the GCP project string
+	Project string
+
+	// Instance is the instance string
+	Instance string
+
+	// Database is the database string
+	Database string
+
+	// Out is the output path. If Out is a file, then that will be used as the
+	// path. If Out is a directory, then the output file will be
+	// Out/<$CWD>.yo.go
+	Out string
+
+	// Suffix is the output suffix for filenames.
+	Suffix string
+
+	// Package is the name used to generate package headers. If not specified,
+	// the name of the output directory will be used instead.
+	Package string
+
+	// CustomTypePackage is the Go package name to use for unknown types.
+	CustomTypePackage string
+
+	// TemplatePath is the path to use the user supplied templates instead of
+	// the built in versions.
+	TemplatePath string
+
+	// Tags is the list of build tags to add to generated Go files.
+	Tags string
+
+	Path     string
+	Filename string
+
+	// DDLFilepath is the filepath of the ddl file.
+	DDLFilepath string
+
+	// FromDDL indicates generating from ddl flie or not.
+	FromDDL bool
+
 	// IgnoreFields allows the user to specify field names which should not be
 	// handled by yo in the generated code.
 	IgnoreFields []string
@@ -38,13 +82,16 @@ type GenerateOption struct {
 	// handled by yo in the generated code.
 	IgnoreTables []string
 
-	// TODO: stop depending internal.ArgType
-	internal.ArgType
+	// InflectionRuleFile is custom inflection rule file.
+	InflectionRuleFile string
+
+	// CustomTypesFile is the path for custom table field type definition file (xx.yml)
+	CustomTypesFile string
 }
 
 var (
-	generateOpts = GenerateOption{}
-	generateCmd  = &cobra.Command{
+	generateCmdOpts = generateCmdOption{}
+	generateCmd     = &cobra.Command{
 		Use:   "generate",
 		Short: "yo generate generates Go code from ddl file.",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -66,23 +113,26 @@ var (
   yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := processArgs(&generateOpts.ArgType, args); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+
+			if err := processGenerateCmdOption(&generateCmdOpts, args); err != nil {
 				return err
 			}
 
-			inflector, err := internal.NewInflector(generateOpts.InflectionRuleFile)
+			inflector, err := internal.NewInflector(generateCmdOpts.InflectionRuleFile)
 			if err != nil {
 				return fmt.Errorf("load inflection rule failed: %v", err)
 			}
 
 			var source loader.SchemaSource
-			if generateOpts.FromDDL {
-				source, err = loader.NewSchemaParserSource(args[0])
+			if generateCmdOpts.FromDDL {
+				source, err = loader.NewSchemaParserSource(generateCmdOpts.DDLFilepath)
 				if err != nil {
 					return fmt.Errorf("failed to create spanner loader: %v", err)
 				}
 			} else {
-				spannerClient, err := connectSpanner(&rootOpts)
+				spannerClient, err := connectSpanner(ctx, generateCmdOpts.Project, generateCmdOpts.Instance, generateCmdOpts.Database)
 				if err != nil {
 					return fmt.Errorf("failed to connect spanner: %v", err)
 				}
@@ -93,13 +143,13 @@ var (
 			}
 
 			typeLoader := loader.NewTypeLoader(source, inflector, loader.Option{
-				IgnoreTables: generateOpts.IgnoreTables,
-				IgnoreFields: generateOpts.IgnoreFields,
+				IgnoreTables: generateCmdOpts.IgnoreTables,
+				IgnoreFields: generateCmdOpts.IgnoreFields,
 			})
 
 			// load custom type definitions
-			if generateOpts.CustomTypesFile != "" {
-				if err := typeLoader.LoadCustomTypes(generateOpts.CustomTypesFile); err != nil {
+			if generateCmdOpts.CustomTypesFile != "" {
+				if err := typeLoader.LoadCustomTypes(generateCmdOpts.CustomTypesFile); err != nil {
 					return fmt.Errorf("load custom types file failed: %v", err)
 				}
 			}
@@ -111,12 +161,12 @@ var (
 			}
 
 			g := generator.NewGenerator(typeLoader, inflector, generator.GeneratorOption{
-				PackageName:       generateOpts.Package,
-				Tags:              generateOpts.Tags,
-				TemplatePath:      generateOpts.TemplatePath,
-				CustomTypePackage: generateOpts.CustomTypePackage,
-				FilenameSuffix:    generateOpts.Suffix,
-				Path:              generateOpts.Path,
+				PackageName:       generateCmdOpts.Package,
+				Tags:              generateCmdOpts.Tags,
+				TemplatePath:      generateCmdOpts.TemplatePath,
+				CustomTypePackage: generateCmdOpts.CustomTypePackage,
+				FilenameSuffix:    generateCmdOpts.Suffix,
+				Path:              generateCmdOpts.Path,
 			})
 			if err := g.Generate(tableMap, ixMap); err != nil {
 				return fmt.Errorf("error: %v", err)
@@ -128,7 +178,82 @@ var (
 )
 
 func init() {
-	generateCmd.Flags().BoolVar(&generateOpts.FromDDL, "from-ddl", false, "toggle using ddl file")
-	setGenerateOpts(generateCmd, &generateOpts)
+	generateCmd.Flags().BoolVar(&generateCmdOpts.FromDDL, "from-ddl", false, "toggle using ddl file")
+	generateCmd.Flags().StringVar(&generateCmdOpts.CustomTypesFile, "custom-types-file", "", "custom table field type definition file")
+	generateCmd.Flags().StringVarP(&generateCmdOpts.Out, "out", "o", "", "output path or file name")
+	generateCmd.Flags().StringVar(&generateCmdOpts.Suffix, "suffix", defaultSuffix, "output file suffix")
+	generateCmd.Flags().StringVarP(&generateCmdOpts.Package, "package", "p", "", "package name used in generated Go code")
+	generateCmd.Flags().StringVar(&generateCmdOpts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
+	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
+	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
+	generateCmd.Flags().StringVar(&generateCmdOpts.TemplatePath, "template-path", "", "user supplied template path")
+	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
+	generateCmd.Flags().StringVar(&generateCmdOpts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
+
+	helpFn := generateCmd.HelpFunc()
+	generateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		helpFn(cmd, args)
+		os.Exit(1)
+	})
+
 	rootCmd.AddCommand(generateCmd)
+}
+
+func processGenerateCmdOption(opts *generateCmdOption, argv []string) error {
+	if len(argv) == 3 {
+		opts.Project = argv[0]
+		opts.Instance = argv[1]
+		opts.Database = argv[2]
+	} else {
+		opts.DDLFilepath = argv[0]
+	}
+
+	path := ""
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	// determine out path
+	if opts.Out == "" {
+		path = cwd
+	} else {
+		// determine what to do with Out
+		fi, err := os.Stat(opts.Out)
+		if err != nil {
+			return err
+		}
+		if fi.IsDir() {
+			// out is directory
+			path = opts.Out
+		} else {
+			return fmt.Errorf("output path must be a directory")
+		}
+	}
+
+	// check template path
+	if opts.TemplatePath != "" {
+		info, err := os.Stat(opts.TemplatePath)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("template path is not directory")
+		}
+	}
+
+	// fix path
+	if path == "." {
+		path = cwd
+	}
+
+	// determine package name
+	if opts.Package == "" {
+		opts.Package = pathpkg.Base(path)
+	}
+
+	opts.Path = path
+
+	return nil
 }

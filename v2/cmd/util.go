@@ -20,36 +20,19 @@
 package cmd
 
 import (
-	"strings"
+	"context"
+	"fmt"
 
-	"github.com/spf13/cobra"
+	"cloud.google.com/go/spanner"
 )
 
-const (
-	defaultSuffix = ".yo.go"
-	exampleUsage  = `
-  # Generate models from ddl under models directory
-  yo generate schema.sql --from-ddl -o models
-
-  # Generate models under models directory
-  yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
-`
-)
-
-var (
-	rootCmd = &cobra.Command{
-		Use:   "yo",
-		Short: "yo is a command-line tool to generate Go code for Google Cloud Spanner.",
-		Args: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
-		Example:       strings.Trim(exampleUsage, "\n"),
-		RunE:          nil,
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func connectSpanner(ctx context.Context, project, instance, database string) (*spanner.Client, error) {
+	databaseName := fmt.Sprintf("projects/%s/instances/%s/databases/%s",
+		project, instance, database)
+	spannerClient, err := spanner.NewClient(ctx, databaseName)
+	if err != nil {
+		return nil, err
 	}
-)
 
-func Execute() error {
-	return rootCmd.Execute()
+	return spannerClient, nil
 }
