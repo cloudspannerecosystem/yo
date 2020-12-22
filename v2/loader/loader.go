@@ -78,24 +78,33 @@ func (tl *TypeLoader) ValidCustomType(dataType string, customType string) bool {
 }
 
 // LoadSchema loads schema definitions.
-func (tl *TypeLoader) LoadSchema() (map[string]*internal.Type, map[string]*internal.Index, error) {
-	var err error
-
+func (tl *TypeLoader) LoadSchema() (*internal.Schema, error) {
 	// load tables
 	tableMap, err := tl.LoadTable()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// load indexes
 	ixMap, err := tl.LoadIndexes(tableMap)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	setIndexesToTables(tableMap, ixMap)
 
-	return tableMap, ixMap, nil
+	tables := make([]*internal.Type, 0, len(tableMap))
+	for _, tbl := range tableMap {
+		tables = append(tables, tbl)
+	}
+
+	sort.Slice(tables, func(i, j int) bool {
+		return tables[i].Name < tables[j].Name
+	})
+
+	return &internal.Schema{
+		Types: tables,
+	}, nil
 }
 
 // LoadTable loads a schema table/view definition.

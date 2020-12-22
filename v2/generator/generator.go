@@ -111,17 +111,17 @@ func (g *Generator) templateLoader(name string) ([]byte, error) {
 	return ioutil.ReadFile(path.Join(g.templatePath, name))
 }
 
-func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[string]*internal.Index) error {
+func (g *Generator) Generate(schema *internal.Schema) error {
 	// generate table templates
-	for _, t := range tableMap {
-		if err := g.ExecuteTemplate(TypeTemplate, t.Name, "", t); err != nil {
+	for _, tbl := range schema.Types {
+		if err := g.ExecuteTemplate(TypeTemplate, tbl.Name, "", tbl); err != nil {
 			return err
 		}
 	}
 
 	// generate index templates
-	for _, ix := range ixMap {
-		if err := g.ExecuteTemplate(IndexTemplate, ix.Type.Name, ix.Index.IndexName, ix); err != nil {
+	for _, tbl := range schema.Types {
+		if err := g.ExecuteTemplate(IndexTemplate, tbl.Name, "", tbl); err != nil {
 			return err
 		}
 	}
@@ -129,7 +129,7 @@ func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[strin
 	ds := &basicDataSet{
 		BuildTag: g.tags,
 		Package:  g.packageName,
-		TableMap: tableMap,
+		Schema:   schema,
 	}
 
 	if err := g.ExecuteTemplate(YOTemplate, "yo_db", "", ds); err != nil {

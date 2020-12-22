@@ -287,6 +287,83 @@ func ReadCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanne
 	return res, nil
 }
 
+// FindCompositePrimaryKeysByXY retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
+//
+// Generated from index 'CompositePrimaryKeysByXY'.
+func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} " +
+		"WHERE X = @param0 AND Y = @param1"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = x
+	stmt.Params["param1"] = y
+
+	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, x, y)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
+		}
+
+		cpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
+		}
+
+		res = append(res, cpk)
+	}
+
+	return res, nil
+}
+
+// ReadCompositePrimaryKeysByXY retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CompositePrimaryKeysByXY'.
+func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+	var res []*CompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"X",
+		"Y",
+	}
+
+	decoder := newCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CompositePrimaryKeys", "CompositePrimaryKeysByXY", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		cpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
 // FindCompositePrimaryKeysByZError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError2'.
@@ -435,83 +512,6 @@ func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys span
 	})
 	if err != nil {
 		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByZYError", "CompositePrimaryKeys", err)
-	}
-
-	return res, nil
-}
-
-// FindCompositePrimaryKeysByXY retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
-//
-// Generated from index 'CompositePrimaryKeysByXY'.
-func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CompositePrimaryKey, error) {
-	const sqlstr = "SELECT " +
-		"Id, PKey1, PKey2, Error, X, Y, Z " +
-		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} " +
-		"WHERE X = @param0 AND Y = @param1"
-
-	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = x
-	stmt.Params["param1"] = y
-
-	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
-
-	// run query
-	YOLog(ctx, sqlstr, x, y)
-	iter := db.Query(ctx, stmt)
-	defer iter.Stop()
-
-	// load results
-	res := []*CompositePrimaryKey{}
-	for {
-		row, err := iter.Next()
-		if err != nil {
-			if err == iterator.Done {
-				break
-			}
-			return nil, newError("FindCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
-		}
-
-		cpk, err := decoder(row)
-		if err != nil {
-			return nil, newErrorWithCode(codes.Internal, "FindCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
-		}
-
-		res = append(res, cpk)
-	}
-
-	return res, nil
-}
-
-// ReadCompositePrimaryKeysByXY retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
-//
-// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
-// used for primary key, index key and storing columns. If you need more columns, add storing
-// columns or Read by primary key or Query with join.
-//
-// Generated from unique index 'CompositePrimaryKeysByXY'.
-func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
-	var res []*CompositePrimaryKey
-	columns := []string{
-		"PKey1",
-		"PKey2",
-		"X",
-		"Y",
-	}
-
-	decoder := newCompositePrimaryKey_Decoder(columns)
-
-	rows := db.ReadUsingIndex(ctx, "CompositePrimaryKeys", "CompositePrimaryKeysByXY", keys, columns)
-	err := rows.Do(func(row *spanner.Row) error {
-		cpk, err := decoder(row)
-		if err != nil {
-			return err
-		}
-		res = append(res, cpk)
-
-		return nil
-	})
-	if err != nil {
-		return nil, newErrorWithCode(codes.Internal, "ReadCompositePrimaryKeysByXY", "CompositePrimaryKeys", err)
 	}
 
 	return res, nil

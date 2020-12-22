@@ -155,7 +155,7 @@ var (
 			}
 
 			// load defs into type map
-			tableMap, ixMap, err := typeLoader.LoadSchema()
+			schema, err := typeLoader.LoadSchema()
 			if err != nil {
 				return fmt.Errorf("error: %v", err)
 			}
@@ -168,7 +168,7 @@ var (
 				FilenameSuffix:    generateCmdOpts.Suffix,
 				Path:              generateCmdOpts.Path,
 			})
-			if err := g.Generate(tableMap, ixMap); err != nil {
+			if err := g.Generate(schema); err != nil {
 				return fmt.Errorf("error: %v", err)
 			}
 

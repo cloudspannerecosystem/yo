@@ -56,15 +56,13 @@ func newTestGenerator(t *testing.T) *Generator {
 func TestGenerator(t *testing.T) {
 	table := []struct {
 		name             string
-		tableMap         map[string]*internal.Type
-		ixMap            map[string]*internal.Index
+		schema           *internal.Schema
 		expectedFilesDir string
 		compareBaseFile  bool
 	}{
 		{
 			name:             "BaseOnly",
-			tableMap:         map[string]*internal.Type{},
-			ixMap:            map[string]*internal.Index{},
+			schema:           &internal.Schema{},
 			expectedFilesDir: "testdata/empty",
 			compareBaseFile:  true,
 		},
@@ -73,7 +71,7 @@ func TestGenerator(t *testing.T) {
 	for _, tc := range table {
 		t.Run(tc.name, func(t *testing.T) {
 			g := newTestGenerator(t)
-			if err := g.Generate(tc.tableMap, tc.ixMap); err != nil {
+			if err := g.Generate(tc.schema); err != nil {
 				t.Fatalf("failed to generate: %v", err)
 			}
 

@@ -21,6 +21,11 @@ package internal
 
 import "go.mercari.io/yo/v2/models"
 
+// Schema contains chema information.
+type Schema struct {
+	Types []*Type
+}
+
 // Field contains field information.
 type Field struct {
 	Name       string

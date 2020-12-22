@@ -115,7 +115,7 @@ var (
 type basicDataSet struct {
 	BuildTag string
 	Package  string
-	TableMap map[string]*internal.Type
+	Schema   *internal.Schema
 }
 
 // templateSet is a set of templates.

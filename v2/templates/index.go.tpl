@@ -1,3 +1,4 @@
+{{- range .Indexes }}
 {{- $short := (shortname .Type.Name "err" "sqlstr" "db" "q" "res" "YOLog" .Fields) -}}
 {{- $table := (.Type.Table.TableName) -}}
 {{- if not .Index.IsUnique }}
@@ -138,4 +139,4 @@ func Read{{ .FuncName }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([
 
     return res, nil
 }
-
+{{- end -}}
