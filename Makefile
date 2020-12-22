@@ -31,16 +31,8 @@ tplbin/templates.go: $(wildcard templates/*.tpl)
 
 .PHONY: test
 test: ## run test
-	@echo run tests with fake spanner server
-	go test -race -v -short ./test
-
-e2etest: ## run e2e test
-	@echo run tests with real spanner server
+	@echo run tests with spanner emulator
 	go test -race -v ./test
-
-testsetup: ## setup test database with emulator
-	curl -s "${SPANNER_EMULATOR_HOST_REST}/v1/projects/${SPANNER_PROJECT_NAME}/instances" --data '{"instanceId": "${SPANNER_INSTANCE_NAME}"}'
-	curl -s "${SPANNER_EMULATOR_HOST_REST}/v1/projects/${SPANNER_PROJECT_NAME}/instances/${SPANNER_INSTANCE_NAME}/databases" --data '{"createStatement": "CREATE DATABASE `${SPANNER_DATABASE_NAME}`"}'
 
 testdata: ## generate test models
 	$(MAKE) -j4 testdata/default testdata/customtypes testdata/single
