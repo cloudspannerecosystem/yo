@@ -13,7 +13,6 @@ type {{ .Name }} struct {
 {{- end }}
 }
 
-{{ if .PrimaryKey }}
 func {{ .Name }}PrimaryKeys() []string {
      return []string{
 {{- range .PrimaryKeyFields }}
@@ -21,7 +20,6 @@ func {{ .Name }}PrimaryKeys() []string {
 {{- end }}
 	}
 }
-{{- end }}
 
 func {{ .Name }}Columns() []string {
 	return []string{

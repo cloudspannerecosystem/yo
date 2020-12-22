@@ -207,6 +207,7 @@ See https://github.com/jinzhu/inflection#register-rules for details.
 * `--single-file` option is deprecated
 * Top-level command for code generation is deprecated
    * Use `yo generate` sub command instead.
+* Remove `PrimaryKey` field from `internal.Type` struct
 
 ## Contributions
 

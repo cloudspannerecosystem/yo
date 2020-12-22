@@ -35,7 +35,6 @@ type Field struct {
 type Type struct {
 	Name             string
 	Schema           string
-	PrimaryKey       *Field
 	PrimaryKeyFields []*Field
 	Fields           []*Field
 	Table            *models.Table

@@ -179,7 +179,6 @@ func (tl *TypeLoader) loadPrimaryKeys(typeTpl *internal.Type) error {
 		fields = append(fields, field)
 	}
 
-	typeTpl.PrimaryKey = fields[0] // backward compatibility
 	typeTpl.PrimaryKeyFields = fields
 	return nil
 }
