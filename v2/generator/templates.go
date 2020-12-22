@@ -113,6 +113,7 @@ var (
 
 // basicDataSet is used for template data for yo_db and yo_package.
 type basicDataSet struct {
+	BuildTag string
 	Package  string
 	TableMap map[string]*internal.Type
 }

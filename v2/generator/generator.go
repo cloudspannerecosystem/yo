@@ -50,7 +50,6 @@ type GeneratorOption struct {
 	TemplatePath      string
 	CustomTypePackage string
 	FilenameSuffix    string
-	Filename          string
 	Path              string
 }
 
@@ -64,7 +63,6 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 		tags:               opt.Tags,
 		customTypePackage:  opt.CustomTypePackage,
 		filenameSuffix:     opt.FilenameSuffix,
-		filename:           opt.Filename,
 		path:               opt.Path,
 		files:              make(map[string]*os.File),
 	}
@@ -129,6 +127,7 @@ func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[strin
 	}
 
 	ds := &basicDataSet{
+		BuildTag: g.tags,
 		Package:  g.packageName,
 		TableMap: tableMap,
 	}
@@ -176,11 +175,6 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	f, err = os.OpenFile(filename, mode, 0666)
 	if err != nil {
 		return nil, err
-	}
-
-	// add build tags
-	if g.tags != "" {
-		_, _ = f.WriteString(`// +build ` + g.tags + "\n\n")
 	}
 
 	// execute

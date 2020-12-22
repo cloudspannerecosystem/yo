@@ -91,7 +91,6 @@ var (
 				TemplatePath:      rootOpts.TemplatePath,
 				CustomTypePackage: rootOpts.CustomTypePackage,
 				FilenameSuffix:    rootOpts.Suffix,
-				Filename:          rootOpts.Filename,
 				Path:              rootOpts.Path,
 			})
 			if err := g.Generate(tableMap, ixMap); err != nil {
@@ -142,7 +141,6 @@ func processArgs(args *internal.ArgType, argv []string) error {
 	}
 
 	path := ""
-	filename := ""
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -187,13 +185,7 @@ func processArgs(args *internal.ArgType, argv []string) error {
 		args.Package = pathpkg.Base(path)
 	}
 
-	// determine filename if not previously set
-	if filename == "" {
-		filename = args.Package + args.Suffix
-	}
-
 	args.Path = path
-	args.Filename = filename
 
 	return nil
 }

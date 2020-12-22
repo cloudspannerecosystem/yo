@@ -95,7 +95,6 @@ var (
 				TemplatePath:      generateOpts.TemplatePath,
 				CustomTypePackage: generateOpts.CustomTypePackage,
 				FilenameSuffix:    generateOpts.Suffix,
-				Filename:          generateOpts.Filename,
 				Path:              generateOpts.Path,
 			})
 			if err := g.Generate(tableMap, ixMap); err != nil {
