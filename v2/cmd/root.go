@@ -91,7 +91,6 @@ var (
 				TemplatePath:      rootOpts.TemplatePath,
 				CustomTypePackage: rootOpts.CustomTypePackage,
 				FilenameSuffix:    rootOpts.Suffix,
-				SingleFile:        rootOpts.SingleFile,
 				Filename:          rootOpts.Filename,
 				Path:              rootOpts.Path,
 			})
@@ -118,7 +117,6 @@ func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
 	cmd.Flags().StringVar(&opts.CustomTypesFile, "custom-types-file", "", "custom table field type definition file")
 	cmd.Flags().StringVarP(&opts.Out, "out", "o", "", "output path or file name")
 	cmd.Flags().StringVar(&opts.Suffix, "suffix", defaultSuffix, "output file suffix")
-	cmd.Flags().BoolVar(&opts.SingleFile, "single-file", false, "toggle single file output")
 	cmd.Flags().StringVarP(&opts.Package, "package", "p", "", "package name used in generated Go code")
 	cmd.Flags().StringVar(&opts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
 	cmd.Flags().StringArrayVar(&opts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
@@ -157,29 +155,14 @@ func processArgs(args *internal.ArgType, argv []string) error {
 	} else {
 		// determine what to do with Out
 		fi, err := os.Stat(args.Out)
-		if err == nil && fi.IsDir() {
+		if err != nil {
+			return err
+		}
+		if fi.IsDir() {
 			// out is directory
 			path = args.Out
-		} else if err == nil && !fi.IsDir() {
-			// file exists (will truncate later)
-			path = pathpkg.Dir(args.Out)
-			filename = pathpkg.Base(args.Out)
-
-			// error if not split was set, but destination is not a directory
-			if !args.SingleFile {
-				return fmt.Errorf("output path is not directory")
-			}
-		} else if _, ok := err.(*os.PathError); ok {
-			// path error (ie, file doesn't exist yet)
-			path = pathpkg.Dir(args.Out)
-			filename = pathpkg.Base(args.Out)
-
-			// error if split was set, but dest doesn't exist
-			if !args.SingleFile {
-				return fmt.Errorf("output path must be a directory and already exist when not writing to a single file")
-			}
 		} else {
-			return err
+			return fmt.Errorf("output path must be a directory")
 		}
 	}
 

@@ -50,7 +50,6 @@ type GeneratorOption struct {
 	TemplatePath      string
 	CustomTypePackage string
 	FilenameSuffix    string
-	SingleFile        bool
 	Filename          string
 	Path              string
 }
@@ -65,7 +64,6 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 		tags:               opt.Tags,
 		customTypePackage:  opt.CustomTypePackage,
 		filenameSuffix:     opt.FilenameSuffix,
-		singleFile:         opt.SingleFile,
 		filename:           opt.Filename,
 		path:               opt.Path,
 		files:              make(map[string]*os.File),
@@ -87,7 +85,6 @@ type Generator struct {
 	tags              string
 	customTypePackage string
 	filenameSuffix    string
-	singleFile        bool
 	filename          string
 	path              string
 
@@ -153,9 +150,6 @@ func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[strin
 func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	// determine filename
 	var filename = strings.ToLower(t.Name) + g.filenameSuffix
-	if g.singleFile {
-		filename = g.filename
-	}
 	filename = path.Join(g.path, filename)
 
 	// lookup file

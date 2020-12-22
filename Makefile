@@ -35,7 +35,7 @@ test: ## run test
 	go test -race -v ./test
 
 testdata: ## generate test models
-	$(MAKE) -j4 testdata/default testdata/customtypes testdata/single
+	$(MAKE) -j4 testdata/default testdata/customtypes testdata/
 
 testdata/default:
 	rm -rf test/testmodels/default && mkdir -p test/testmodels/default

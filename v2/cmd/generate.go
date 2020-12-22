@@ -95,7 +95,6 @@ var (
 				TemplatePath:      generateOpts.TemplatePath,
 				CustomTypePackage: generateOpts.CustomTypePackage,
 				FilenameSuffix:    generateOpts.Suffix,
-				SingleFile:        generateOpts.SingleFile,
 				Filename:          generateOpts.Filename,
 				Path:              generateOpts.Path,
 			})

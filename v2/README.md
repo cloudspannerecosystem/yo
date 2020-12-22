@@ -56,7 +56,6 @@ Flags:
       --inflection-rule-file string  custom inflection rule file
   -o, --out string                   output path or file name
   -p, --package string               package name used in generated Go code
-      --single-file                  toggle single file output
       --suffix string                output file suffix (default ".yo.go")
       --tags string                  build tags to add to package header
       --template-path string         user supplied template path
@@ -200,6 +199,12 @@ rule yaml file sample is
 ```
 
 See https://github.com/jinzhu/inflection#register-rules for details.
+
+## Changes from V1
+
+### Deprecations
+
+* `--single-file` option is deprecated
 
 ## Contributions
 
