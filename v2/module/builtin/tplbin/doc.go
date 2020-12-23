@@ -17,35 +17,4 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package generator
-
-import (
-	"io"
-	"os"
-	"path/filepath"
-
-	"go.mercari.io/yo/v2/module/builtin/tplbin"
-)
-
-// CopyDefaultTemplates copies default templete files to dir.
-func CopyDefaultTemplates(dir string) error {
-	for _, tf := range tplbin.Assets.Files {
-		if err := func() (err error) {
-			file, err := os.OpenFile(filepath.Join(dir, tf.Name()), os.O_RDWR|os.O_CREATE, 0666)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if cerr := file.Close(); err == nil {
-					err = cerr
-				}
-			}()
-
-			_, err = io.Copy(file, tf)
-			return
-		}(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+package tplbin // import "go.mercari.io/yo/v2/module/builtin/tplbin"

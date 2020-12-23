@@ -17,35 +17,46 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package generator
+package builtin
 
 import (
-	"io"
-	"os"
-	"path/filepath"
+	"fmt"
+	"io/ioutil"
 
-	"go.mercari.io/yo/v2/module/builtin/tplbin"
+	"go.mercari.io/yo/v2/module"
+	templates "go.mercari.io/yo/v2/module/builtin/tplbin"
 )
 
-// CopyDefaultTemplates copies default templete files to dir.
-func CopyDefaultTemplates(dir string) error {
-	for _, tf := range tplbin.Assets.Files {
-		if err := func() (err error) {
-			file, err := os.OpenFile(filepath.Join(dir, tf.Name()), os.O_RDWR|os.O_CREATE, 0666)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if cerr := file.Close(); err == nil {
-					err = cerr
-				}
-			}()
+type builtinMod struct {
+	typ  module.ModuleType
+	name string
+}
 
-			_, err = io.Copy(file, tf)
-			return
-		}(); err != nil {
-			return err
-		}
+func newBuiltin(typ module.ModuleType, name string) module.Module {
+	return &builtinMod{
+		typ:  typ,
+		name: name,
 	}
-	return nil
+}
+
+func (m *builtinMod) Name() string {
+	return m.name
+}
+
+func (m *builtinMod) Type() module.ModuleType {
+	return m.typ
+}
+
+func (m *builtinMod) Load() ([]byte, error) {
+	f, err := templates.Assets.Open(fmt.Sprintf("%s.go.tpl", m.name))
+	if err != nil {
+		return nil, fmt.Errorf("open %s: %w", m.name, err)
+	}
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file from assets: %w", err)
+	}
+
+	return b, nil
 }

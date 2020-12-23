@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.5.4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/jinzhu/inflection v1.0.0
-	github.com/k0kubun/pp v3.0.2-0.20190719145753-b20d3da80efa+incompatible
+	github.com/k0kubun/pp v3.0.2-0.20190719145753-b20d3da80efa+incompatible // indirect
 	github.com/kenshaw/snaker v0.1.0
 	github.com/spf13/cobra v1.1.1
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924 // indirect

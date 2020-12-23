@@ -17,17 +17,18 @@ all: build
 build: regen ## build yo command and regenerate template bin
 	go build
 
-regen: tplbin/templates.go ## regenerate template bin
+regen: module/builtin/tplbin/templates.go ## regenerate template bin
 
 deps:
 	go get -u github.com/jessevdk/go-assets-builder
 
-tplbin/templates.go: $(wildcard templates/*.tpl)
+module/builtin/tplbin/templates.go: $(wildcard module/builtin/templates/*.tpl)
+	mkdir -p module/builtin/tplbin
 	go-assets-builder \
 		--package=tplbin \
-		--strip-prefix="/templates/" \
-		--output tplbin/templates.go \
-		templates/*.tpl
+		--strip-prefix="/module/builtin/templates/" \
+		--output module/builtin/tplbin/templates.go \
+		module/builtin/templates/*.tpl
 
 .PHONY: test
 test: ## run test

@@ -17,35 +17,15 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package generator
+package builtin
 
 import (
-	"io"
-	"os"
-	"path/filepath"
-
-	"go.mercari.io/yo/v2/module/builtin/tplbin"
+	"go.mercari.io/yo/v2/module"
 )
 
-// CopyDefaultTemplates copies default templete files to dir.
-func CopyDefaultTemplates(dir string) error {
-	for _, tf := range tplbin.Assets.Files {
-		if err := func() (err error) {
-			file, err := os.OpenFile(filepath.Join(dir, tf.Name()), os.O_RDWR|os.O_CREATE, 0666)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if cerr := file.Close(); err == nil {
-					err = cerr
-				}
-			}()
-
-			_, err = io.Copy(file, tf)
-			return
-		}(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+var (
+	Header    = newBuiltin(module.HeaderModule, "yo_package")
+	Type      = newBuiltin(module.TypeModule, "type")
+	Index     = newBuiltin(module.TypeModule, "index")
+	Interface = newBuiltin(module.GlobalModule, "yo_db")
+)

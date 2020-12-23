@@ -17,35 +17,55 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package generator
+package module
 
 import (
-	"io"
-	"os"
-	"path/filepath"
-
-	"go.mercari.io/yo/v2/module/builtin/tplbin"
+	"fmt"
+	"io/ioutil"
 )
 
-// CopyDefaultTemplates copies default templete files to dir.
-func CopyDefaultTemplates(dir string) error {
-	for _, tf := range tplbin.Assets.Files {
-		if err := func() (err error) {
-			file, err := os.OpenFile(filepath.Join(dir, tf.Name()), os.O_RDWR|os.O_CREATE, 0666)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if cerr := file.Close(); err == nil {
-					err = cerr
-				}
-			}()
+// ModuleType represents a module type.
+type ModuleType uint
 
-			_, err = io.Copy(file, tf)
-			return
-		}(); err != nil {
-			return err
-		}
+const (
+	GlobalModule ModuleType = iota
+	TypeModule
+	HeaderModule
+)
+
+type Module interface {
+	Type() ModuleType
+	Name() string
+	Load() ([]byte, error)
+}
+
+type module struct {
+	typ  ModuleType
+	name string
+	path string
+}
+
+func New(typ ModuleType, name string, path string) Module {
+	return &module{
+		typ:  typ,
+		name: name,
+		path: path,
 	}
-	return nil
+}
+
+func (m *module) Name() string {
+	return m.name
+}
+
+func (m *module) Type() ModuleType {
+	return m.typ
+}
+
+func (m *module) Load() ([]byte, error) {
+	b, err := ioutil.ReadFile(m.path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %s: %w", m.path, err)
+	}
+
+	return b, nil
 }
