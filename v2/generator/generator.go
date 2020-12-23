@@ -21,17 +21,12 @@ package generator
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
-	"sort"
 	"strings"
 	"text/template"
-
-	"golang.org/x/tools/imports"
 
 	"go.mercari.io/yo/v2/internal"
 	templates "go.mercari.io/yo/v2/tplbin"
@@ -64,7 +59,7 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 		customTypePackage:  opt.CustomTypePackage,
 		filenameSuffix:     opt.FilenameSuffix,
 		path:               opt.Path,
-		files:              make(map[string]*os.File),
+		files:              make(map[string]*FileBuffer),
 	}
 }
 
@@ -74,10 +69,7 @@ type Generator struct {
 	templatePath string
 
 	// files is a map of filenames to open file handles.
-	files map[string]*os.File
-
-	// generated is the generated templates after a run.
-	generated []TBuf
+	files map[string]*FileBuffer
 
 	packageName       string
 	tags              string
@@ -85,6 +77,7 @@ type Generator struct {
 	filenameSuffix    string
 	filename          string
 	path              string
+	tempDir           string
 
 	nameConflictSuffix string
 }
@@ -112,6 +105,15 @@ func (g *Generator) templateLoader(name string) ([]byte, error) {
 }
 
 func (g *Generator) Generate(schema *internal.Schema) error {
+	tempDir, err := ioutil.TempDir("", "yo_")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %v", err)
+	}
+
+	// create a workspace for the code generation and cleanup it after done
+	g.tempDir = tempDir
+	defer os.RemoveAll(g.tempDir)
+
 	// generate table templates
 	for _, tbl := range schema.Types {
 		if err := g.ExecuteTemplate(TypeTemplate, tbl.Name, "", tbl); err != nil {
@@ -136,121 +138,52 @@ func (g *Generator) Generate(schema *internal.Schema) error {
 		return err
 	}
 
-	if err := g.writeTypes(ds); err != nil {
+	if err := g.writeFiles(ds); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// getFile builds the filepath from the TBuf information, and retrieves the
-// file from files. If the built filename is not already defined, then it calls
-// the os.OpenFile with the correct parameters depending on the state of args.
-func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
-	// determine filename
-	var filename = strings.ToLower(t.Name) + g.filenameSuffix
+func (g *Generator) getFile(name string) *FileBuffer {
+	var filename = strings.ToLower(name) + g.filenameSuffix
 	filename = path.Join(g.path, filename)
 
-	// lookup file
 	f, ok := g.files[filename]
 	if ok {
-		return f, nil
+		return f
 	}
 
-	// default open mode
-	mode := os.O_RDWR | os.O_CREATE | os.O_TRUNC
-
-	// stat file to determine if file already exists
-	fi, err := os.Stat(filename)
-	if err == nil && fi.IsDir() {
-		return nil, errors.New("filename cannot be directory")
+	file := &FileBuffer{
+		FileName: filename,
+		BaseName: name,
+		TempDir:  g.tempDir,
 	}
 
-	// skip
-	if t.TemplateType == YOTemplate && fi != nil {
-		return nil, nil
-	}
-
-	// open file
-	f, err = os.OpenFile(filename, mode, 0666)
-	if err != nil {
-		return nil, err
-	}
-
-	// execute
-	if err := g.newTemplateSet().Execute(f, "yo_package.go.tpl", ds); err != nil {
-		return nil, err
-	}
-
-	// store file
-	g.files[filename] = f
-
-	return f, nil
+	g.files[filename] = file
+	return file
 }
 
-// importsOptions is the same as x/tools/cmd/goimports options except Fragment.
-var importsOptions = &imports.Options{
-	TabWidth:  8,
-	TabIndent: true,
-	Comments:  true,
-}
-
-// writeTypes writes the generated definitions.
-func (g *Generator) writeTypes(ds *basicDataSet) error {
-	var err error
-
-	out := TBufSlice(g.generated)
-
-	// sort segments
-	sort.Sort(out)
-
-	// loop, writing in order
-	for _, t := range out {
-		// check if generated template is only whitespace/empty
-		bufStr := strings.TrimSpace(t.Buf.String())
-		if len(bufStr) == 0 {
-			continue
-		}
-
-		var f *os.File
-		// get file and filename
-		f, err = g.getFile(ds, &t)
-		if err != nil {
+// writeFiles writes the generated definitions.
+func (g *Generator) writeFiles(ds *basicDataSet) error {
+	for _, file := range g.files {
+		if err := g.ExecuteHeaderTemplate(file, ds); err != nil {
 			return err
 		}
 
-		// should only be nil when type == yo
-		if f == nil {
-			continue
-		}
-
-		// write segment
-		if _, err = t.Buf.WriteTo(f); err != nil {
+		if err := file.WriteTempFile(); err != nil {
 			return err
 		}
 	}
 
-	// format by imports, closing files
-	for k, f := range g.files {
-		// close
-		err = f.Close()
-		if err != nil {
+	for _, file := range g.files {
+		if err := file.Postprocess(); err != nil {
 			return err
 		}
+	}
 
-		// imports.Process needs absolute filepath for accurate fix
-		abs, err := filepath.Abs(k)
-		if err != nil {
-			return err
-		}
-		// format
-		formatted, err := imports.Process(abs, nil, importsOptions)
-		if err != nil {
-			return err
-		}
-
-		// since abs file exists, set perm to 0
-		if err := ioutil.WriteFile(abs, formatted, 0); err != nil {
+	for _, file := range g.files {
+		if err := file.Finalize(); err != nil {
 			return err
 		}
 	}
@@ -261,15 +194,8 @@ func (g *Generator) writeTypes(ds *basicDataSet) error {
 // ExecuteTemplate loads and parses the supplied template with name and
 // executes it with obj as the context.
 func (g *Generator) ExecuteTemplate(tt TemplateType, name string, sub string, obj interface{}) error {
-	var err error
-
-	// setup generated
-	if g.generated == nil {
-		g.generated = []TBuf{}
-	}
-
-	// create store
-	v := TBuf{
+	file := g.getFile(name)
+	tbuf := TBuf{
 		TemplateType: tt,
 		Name:         name,
 		Subname:      sub,
@@ -280,11 +206,21 @@ func (g *Generator) ExecuteTemplate(tt TemplateType, name string, sub string, ob
 	templateName := fmt.Sprintf("%s.go.tpl", tt)
 
 	// execute template
-	err = g.newTemplateSet().Execute(v.Buf, templateName, obj)
-	if err != nil {
+	if err := g.newTemplateSet().Execute(tbuf.Buf, templateName, obj); err != nil {
 		return err
 	}
 
-	g.generated = append(g.generated, v)
+	file.Chunks = append(file.Chunks, &tbuf)
+	return nil
+}
+
+func (g *Generator) ExecuteHeaderTemplate(file *FileBuffer, obj interface{}) error {
+	buf := new(bytes.Buffer)
+
+	if err := g.newTemplateSet().Execute(buf, "yo_package.go.tpl", obj); err != nil {
+		return err
+	}
+
+	file.Header = buf.Bytes()
 	return nil
 }
