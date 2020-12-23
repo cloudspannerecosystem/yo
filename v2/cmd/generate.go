@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"os"
 	pathpkg "path"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -32,6 +33,12 @@ import (
 	"go.mercari.io/yo/v2/loader"
 	"go.mercari.io/yo/v2/module"
 	"go.mercari.io/yo/v2/module/builtin"
+)
+
+var (
+	defaultHeaderModule  = builtin.Header
+	defaultGlobalModules = []module.Module{builtin.Interface}
+	defaultTypeModules   = []module.Module{builtin.Type, builtin.Operation, builtin.Index}
 )
 
 // generateCmdOption is the type that specifies the command line arguments.
@@ -82,6 +89,13 @@ type generateCmdOption struct {
 
 	// CustomTypesFile is the path for custom table field type definition file (xx.yml)
 	CustomTypesFile string
+
+	// DisableDefaultModules disable to use the default modules for code generation
+	DisableDefaultModules bool
+
+	HeaderModule            string
+	AdditionalGlobalModules []string
+	AdditionalTypeModules   []string
 
 	baseDir string
 }
@@ -157,6 +171,8 @@ var (
 				return fmt.Errorf("error: %v", err)
 			}
 
+			headerModule, globalModules, typeModules := decideModules(&generateCmdOpts)
+
 			g := generator.NewGenerator(typeLoader, inflector, generator.GeneratorOption{
 				PackageName:       generateCmdOpts.Package,
 				Tags:              generateCmdOpts.Tags,
@@ -164,9 +180,9 @@ var (
 				FilenameSuffix:    generateCmdOpts.Suffix,
 				BaseDir:           generateCmdOpts.baseDir,
 
-				HeaderModule:  builtin.Header,
-				GlobalModules: []module.Module{builtin.Interface},
-				TypeModules:   []module.Module{builtin.Type, builtin.Operation, builtin.Index},
+				HeaderModule:  headerModule,
+				GlobalModules: globalModules,
+				TypeModules:   typeModules,
 			})
 			if err := g.Generate(schema); err != nil {
 				return fmt.Errorf("error: %v", err)
@@ -188,6 +204,10 @@ func init() {
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
 	generateCmd.Flags().StringVar(&generateCmdOpts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableDefaultModules, "disable-default-modules", false, "disable the default modules for code generation")
+	generateCmd.Flags().StringVar(&generateCmdOpts.HeaderModule, "header-module", "", "replace the default header module by user defined module")
+	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
+	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")
 
 	helpFn := generateCmd.HelpFunc()
 	generateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
@@ -244,4 +264,42 @@ func processGenerateCmdOption(opts *generateCmdOption, argv []string) error {
 	opts.baseDir = path
 
 	return nil
+}
+
+func decideModules(opts *generateCmdOption) (module.Module, []module.Module, []module.Module) {
+	var headerModule module.Module
+	var globalModules []module.Module
+	var typeModules []module.Module
+
+	if !generateCmdOpts.DisableDefaultModules {
+		headerModule = defaultHeaderModule
+		globalModules = defaultGlobalModules
+		typeModules = defaultTypeModules
+	}
+
+	for _, path := range generateCmdOpts.AdditionalGlobalModules {
+		basename := filepath.Base(path)
+		for i := 0; i < 3; i++ {
+			basename = basename[:len(basename)-len(filepath.Ext(basename))]
+		}
+		globalModules = append(globalModules, module.New(module.GlobalModule, basename, path))
+	}
+
+	for _, path := range generateCmdOpts.AdditionalTypeModules {
+		basename := filepath.Base(path)
+		for i := 0; i < 3; i++ {
+			basename = basename[:len(basename)-len(filepath.Ext(basename))]
+		}
+		typeModules = append(typeModules, module.New(module.TypeModule, basename, path))
+	}
+
+	if path := generateCmdOpts.HeaderModule; path != "" {
+		basename := filepath.Base(path)
+		for i := 0; i < 3; i++ {
+			basename = basename[:len(basename)-len(filepath.Ext(basename))]
+		}
+		headerModule = module.New(module.HeaderModule, basename, path)
+	}
+
+	return headerModule, globalModules, typeModules
 }
