@@ -46,10 +46,9 @@ func newTestGenerator(t *testing.T) *Generator {
 	return NewGenerator(&fakeLoader{}, inflector, GeneratorOption{
 		PackageName:       "yotest",
 		Tags:              "",
-		TemplatePath:      "",
 		CustomTypePackage: "",
 		FilenameSuffix:    ".yo.go",
-		Path:              t.TempDir(),
+		BaseDir:           t.TempDir(),
 	})
 }
 
@@ -75,7 +74,7 @@ func TestGenerator(t *testing.T) {
 				t.Fatalf("failed to generate: %v", err)
 			}
 
-			if err := filepath.Walk(g.path, func(path string, info os.FileInfo, err error) error {
+			if err := filepath.Walk(g.baseDir, func(path string, info os.FileInfo, err error) error {
 				if info.IsDir() {
 					return nil
 				}

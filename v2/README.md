@@ -208,6 +208,8 @@ See https://github.com/jinzhu/inflection#register-rules for details.
 * Top-level command for code generation is deprecated
    * Use `yo generate` sub command instead.
 * Remove `PrimaryKey` field from `internal.Type` struct
+* `--template-path` option is deprecated
+   * Use module system instead (TODO)
 
 ## Contributions
 

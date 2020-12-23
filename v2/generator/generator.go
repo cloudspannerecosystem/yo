@@ -29,7 +29,6 @@ import (
 
 	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/module"
-	"go.mercari.io/yo/v2/module/builtin"
 )
 
 // Loader is the common interface for database drivers that can generate code
@@ -42,22 +41,29 @@ type Loader interface {
 type GeneratorOption struct {
 	PackageName       string
 	Tags              string
-	TemplatePath      string
 	CustomTypePackage string
 	FilenameSuffix    string
-	Path              string
+	BaseDir           string
+
+	HeaderModule  module.Module
+	GlobalModules []module.Module
+	TypeModules   []module.Module
 }
 
 func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOption) *Generator {
 	return &Generator{
-		loader:             loader,
-		inflector:          inflector,
-		templatePath:       opt.TemplatePath,
-		packageName:        opt.PackageName,
-		tags:               opt.Tags,
-		customTypePackage:  opt.CustomTypePackage,
-		filenameSuffix:     opt.FilenameSuffix,
-		path:               opt.Path,
+		loader:            loader,
+		inflector:         inflector,
+		packageName:       opt.PackageName,
+		tags:              opt.Tags,
+		customTypePackage: opt.CustomTypePackage,
+		filenameSuffix:    opt.FilenameSuffix,
+		baseDir:           opt.BaseDir,
+
+		headerModule:  opt.HeaderModule,
+		globalModules: opt.GlobalModules,
+		typeModules:   opt.TypeModules,
+
 		files:              make(map[string]*FileBuffer),
 		nameConflictSuffix: "z",
 	}
@@ -66,14 +72,17 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 type Generator struct {
 	loader            Loader
 	inflector         internal.Inflector
-	templatePath      string
 	packageName       string
 	tags              string
 	customTypePackage string
 	filenameSuffix    string
 	filename          string
-	path              string
+	baseDir           string
 	tempDir           string
+
+	headerModule  module.Module
+	globalModules []module.Module
+	typeModules   []module.Module
 
 	files              map[string]*FileBuffer
 	nameConflictSuffix string
@@ -95,17 +104,12 @@ func (g *Generator) Generate(schema *internal.Schema) error {
 	g.tempDir = tempDir
 	defer os.RemoveAll(g.tempDir)
 
-	// generate table templates
-	for _, tbl := range schema.Types {
-		if err := g.ExecuteTemplate(builtin.Type, tbl.Name, "", tbl); err != nil {
-			return err
-		}
-	}
-
-	// generate index templates
-	for _, tbl := range schema.Types {
-		if err := g.ExecuteTemplate(builtin.Index, tbl.Name, "", tbl); err != nil {
-			return err
+	// execute type modules
+	for _, mod := range g.typeModules {
+		for _, tbl := range schema.Types {
+			if err := g.ExecuteTemplate(mod, tbl.Name, tbl); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -115,8 +119,11 @@ func (g *Generator) Generate(schema *internal.Schema) error {
 		Schema:   schema,
 	}
 
-	if err := g.ExecuteTemplate(builtin.Interface, "yo_db", "", ds); err != nil {
-		return err
+	// execute global modules
+	for _, mod := range g.globalModules {
+		if err := g.ExecuteTemplate(mod, mod.Name(), ds); err != nil {
+			return err
+		}
 	}
 
 	if err := g.writeFiles(ds); err != nil {
@@ -128,7 +135,7 @@ func (g *Generator) Generate(schema *internal.Schema) error {
 
 func (g *Generator) getFile(name string) *FileBuffer {
 	var filename = strings.ToLower(name) + g.filenameSuffix
-	filename = path.Join(g.path, filename)
+	filename = path.Join(g.baseDir, filename)
 
 	f, ok := g.files[filename]
 	if ok {
@@ -148,7 +155,7 @@ func (g *Generator) getFile(name string) *FileBuffer {
 // writeFiles writes the generated definitions.
 func (g *Generator) writeFiles(ds *basicDataSet) error {
 	for _, file := range g.files {
-		if err := g.ExecuteHeaderTemplate(builtin.Header, file, ds); err != nil {
+		if err := g.ExecuteHeaderTemplate(g.headerModule, file, ds); err != nil {
 			return err
 		}
 
@@ -174,12 +181,11 @@ func (g *Generator) writeFiles(ds *basicDataSet) error {
 
 // ExecuteTemplate loads and parses the supplied template with name and
 // executes it with obj as the context.
-func (g *Generator) ExecuteTemplate(mod module.Module, name string, sub string, obj interface{}) error {
+func (g *Generator) ExecuteTemplate(mod module.Module, name string, obj interface{}) error {
 	file := g.getFile(name)
 	tbuf := TBuf{
-		Name:    name,
-		Subname: sub,
-		Buf:     new(bytes.Buffer),
+		Name: name,
+		Buf:  new(bytes.Buffer),
 	}
 
 	// execute template

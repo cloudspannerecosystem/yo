@@ -30,6 +30,8 @@ import (
 	"go.mercari.io/yo/v2/generator"
 	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/loader"
+	"go.mercari.io/yo/v2/module"
+	"go.mercari.io/yo/v2/module/builtin"
 )
 
 // generateCmdOption is the type that specifies the command line arguments.
@@ -58,15 +60,8 @@ type generateCmdOption struct {
 	// CustomTypePackage is the Go package name to use for unknown types.
 	CustomTypePackage string
 
-	// TemplatePath is the path to use the user supplied templates instead of
-	// the built in versions.
-	TemplatePath string
-
 	// Tags is the list of build tags to add to generated Go files.
 	Tags string
-
-	Path     string
-	Filename string
 
 	// DDLFilepath is the filepath of the ddl file.
 	DDLFilepath string
@@ -87,6 +82,8 @@ type generateCmdOption struct {
 
 	// CustomTypesFile is the path for custom table field type definition file (xx.yml)
 	CustomTypesFile string
+
+	baseDir string
 }
 
 var (
@@ -163,10 +160,13 @@ var (
 			g := generator.NewGenerator(typeLoader, inflector, generator.GeneratorOption{
 				PackageName:       generateCmdOpts.Package,
 				Tags:              generateCmdOpts.Tags,
-				TemplatePath:      generateCmdOpts.TemplatePath,
 				CustomTypePackage: generateCmdOpts.CustomTypePackage,
 				FilenameSuffix:    generateCmdOpts.Suffix,
-				Path:              generateCmdOpts.Path,
+				BaseDir:           generateCmdOpts.baseDir,
+
+				HeaderModule:  builtin.Header,
+				GlobalModules: []module.Module{builtin.Interface},
+				TypeModules:   []module.Module{builtin.Type, builtin.Index},
 			})
 			if err := g.Generate(schema); err != nil {
 				return fmt.Errorf("error: %v", err)
@@ -186,7 +186,6 @@ func init() {
 	generateCmd.Flags().StringVar(&generateCmdOpts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
-	generateCmd.Flags().StringVar(&generateCmdOpts.TemplatePath, "template-path", "", "user supplied template path")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
 	generateCmd.Flags().StringVar(&generateCmdOpts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
 
@@ -232,17 +231,6 @@ func processGenerateCmdOption(opts *generateCmdOption, argv []string) error {
 		}
 	}
 
-	// check template path
-	if opts.TemplatePath != "" {
-		info, err := os.Stat(opts.TemplatePath)
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			return fmt.Errorf("template path is not directory")
-		}
-	}
-
 	// fix path
 	if path == "." {
 		path = cwd
@@ -253,7 +241,7 @@ func processGenerateCmdOption(opts *generateCmdOption, argv []string) error {
 		opts.Package = pathpkg.Base(path)
 	}
 
-	opts.Path = path
+	opts.baseDir = path
 
 	return nil
 }
