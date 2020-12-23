@@ -1,6 +1,7 @@
 {{- range .Indexes }}
 {{- $short := (shortname .Type.Name "err" "sqlstr" "db" "q" "res" "YOLog" .Fields) -}}
 {{- $table := (.Type.Table.TableName) -}}
+
 {{- if not .Index.IsUnique }}
 // Find{{ .FuncName }} retrieves multiple rows from '{{ $table }}' as a slice of {{ .Type.Name }}.
 //

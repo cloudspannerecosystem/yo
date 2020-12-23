@@ -166,7 +166,7 @@ var (
 
 				HeaderModule:  builtin.Header,
 				GlobalModules: []module.Module{builtin.Interface},
-				TypeModules:   []module.Module{builtin.Type, builtin.Index},
+				TypeModules:   []module.Module{builtin.Type, builtin.Operation, builtin.Index},
 			})
 			if err := g.Generate(schema); err != nil {
 				return fmt.Errorf("error: %v", err)

@@ -24,8 +24,9 @@ import (
 )
 
 var (
-	Header    = newBuiltin(module.HeaderModule, "yo_package")
+	Header    = newBuiltin(module.HeaderModule, "header")
 	Type      = newBuiltin(module.TypeModule, "type")
+	Operation = newBuiltin(module.TypeModule, "operation")
 	Index     = newBuiltin(module.TypeModule, "index")
 	Interface = newBuiltin(module.GlobalModule, "yo_db")
 )
