@@ -37,7 +37,7 @@
 # Index list of FullType
 
 * FullTypesByFTString
+* FullTypesByInTimestampNull
 * FullTypesByIntDate
 * FullTypesByIntTimestamp
-* FullTypesByInTimestampNull
 * FullTypesByTimestamp

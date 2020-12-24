@@ -177,10 +177,10 @@ func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
 	return spanner.Delete("snake_cases", spanner.Key(values))
 }
 
-// FindSnakeCasesByStringIDFooBarBaz retrieves multiple rows from 'snake_cases' as a slice of SnakeCase.
+// FindSnakeCasesBySnakeCasesByStringID retrieves multiple rows from 'snake_cases' as a slice of SnakeCase.
 //
 // Generated from index 'snake_cases_by_string_id'.
-func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
+func FindSnakeCasesBySnakeCasesByStringID(ctx context.Context, db YORODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
 	const sqlstr = "SELECT " +
 		"id, string_id, foo_bar_baz " +
 		"FROM snake_cases@{FORCE_INDEX=snake_cases_by_string_id} " +
@@ -205,12 +205,12 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 			if err == iterator.Done {
 				break
 			}
-			return nil, newError("FindSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
+			return nil, newError("FindSnakeCasesBySnakeCasesByStringID", "snake_cases", err)
 		}
 
 		sc, err := decoder(row)
 		if err != nil {
-			return nil, newErrorWithCode(codes.Internal, "FindSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
+			return nil, newErrorWithCode(codes.Internal, "FindSnakeCasesBySnakeCasesByStringID", "snake_cases", err)
 		}
 
 		res = append(res, sc)
@@ -219,14 +219,14 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 	return res, nil
 }
 
-// ReadSnakeCasesByStringIDFooBarBaz retrieves multiples rows from 'snake_cases' by KeySet as a slice.
+// ReadSnakeCasesBySnakeCasesByStringID retrieves multiples rows from 'snake_cases' by KeySet as a slice.
 //
 // This does not retrives all columns of 'snake_cases' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'snake_cases_by_string_id'.
-func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+func ReadSnakeCasesBySnakeCasesByStringID(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
 	var res []*SnakeCase
 	columns := []string{
 		"id",
@@ -247,7 +247,7 @@ func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys span
 		return nil
 	})
 	if err != nil {
-		return nil, newErrorWithCode(codes.Internal, "ReadSnakeCasesByStringIDFooBarBaz", "snake_cases", err)
+		return nil, newErrorWithCode(codes.Internal, "ReadSnakeCasesBySnakeCasesByStringID", "snake_cases", err)
 	}
 
 	return res, nil

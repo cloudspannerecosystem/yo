@@ -65,10 +65,12 @@ func TestClient(ctx context.Context, projectName, instanceName, dbName string) (
 func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 	tables := []string{
 		"CompositePrimaryKeys",
+		"OutOfOrderPrimaryKeys",
 		"FullTypes",
 		"MaxLengths",
 		"snake_cases",
-		"Tests",
+		"Items",
+		"FereignItems",
 	}
 	var muts []*spanner.Mutation
 	for _, table := range tables {

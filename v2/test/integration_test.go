@@ -33,6 +33,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/v2/test/testmodels/customtypes"
 	models "go.mercari.io/yo/v2/test/testmodels/default"
+	legacy_models "go.mercari.io/yo/v2/test/testmodels/legacy_default"
 	"go.mercari.io/yo/v2/test/testutil"
 	"google.golang.org/api/option"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -152,6 +153,10 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
+
 	cpk := &models.CompositePrimaryKey{
 		ID:    200,
 		PKey1: "x200",
@@ -204,7 +209,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("FindByError", func(t *testing.T) {
-		got, err := models.FindCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		got, err := models.FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -219,7 +224,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -239,7 +244,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError2", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByZError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError2(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -260,7 +265,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError3", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByZYError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError3(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -285,6 +290,10 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 func TestDefaultFullType(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
 
 	now := time.Now()
 	date := civil.DateOf(now)
@@ -431,7 +440,7 @@ func TestDefaultFullType(t *testing.T) {
 	}
 
 	t.Run("FindWithNonNull", func(t *testing.T) {
-		fts, err := models.FindFullTypesByFTIntFTTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+		fts, err := models.FindFullTypesByFullTypesByInTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
 			Time:  now,
 			Valid: true,
 		})
@@ -451,7 +460,337 @@ func TestDefaultFullType(t *testing.T) {
 	})
 
 	t.Run("FindWithNull", func(t *testing.T) {
-		fts, err := models.FindFullTypesByFTIntFTTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+		fts, err := models.FindFullTypesByFullTypesByInTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+			Valid: false,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var pkeys []string
+		for i := range fts {
+			pkeys = append(pkeys, fts[i].PKey)
+		}
+
+		expected := []string{"pkey3", "pkey2"}
+		if diff := cmp.Diff(expected, pkeys); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
+func TestLegacyDefaultCompositePrimaryKey(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
+
+	cpk := &legacy_models.CompositePrimaryKey{
+		ID:    200,
+		PKey1: "x200",
+		PKey2: 200,
+		Error: 200,
+		X:     "x200",
+		Y:     "y200",
+		Z:     "z200",
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{cpk.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	t.Run("FindByPrimaryKey", func(t *testing.T) {
+		got, err := legacy_models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if diff := cmp.Diff(cpk, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ReadByPrimaryKey", func(t *testing.T) {
+		got, err := legacy_models.ReadCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x200", 200})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		if diff := cmp.Diff(cpk, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		_, err := legacy_models.FindCompositePrimaryKey(ctx, client.Single(), "default", 100)
+		if err == nil {
+			t.Fatal("unexpected success")
+		}
+
+		testGRPCStatus(t, err, codes.NotFound)
+		testNotFound(t, err, true)
+		testTableName(t, err, "CompositePrimaryKeys")
+	})
+
+	t.Run("FindByError", func(t *testing.T) {
+		got, err := legacy_models.FindCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		if diff := cmp.Diff(cpk, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ReadByError", func(t *testing.T) {
+		got, err := legacy_models.ReadCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		expected := &legacy_models.CompositePrimaryKey{
+			PKey1: cpk.PKey1,
+			PKey2: cpk.PKey2,
+			Error: cpk.Error,
+		}
+		if diff := cmp.Diff(expected, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ReadByError2", func(t *testing.T) {
+		got, err := legacy_models.ReadCompositePrimaryKeysByZError(ctx, client.Single(), spanner.Key{cpk.Error})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		expected := &legacy_models.CompositePrimaryKey{
+			PKey1: cpk.PKey1,
+			PKey2: cpk.PKey2,
+			Error: cpk.Error,
+			Z:     cpk.Z,
+		}
+		if diff := cmp.Diff(expected, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ReadByError3", func(t *testing.T) {
+		got, err := legacy_models.ReadCompositePrimaryKeysByZYError(ctx, client.Single(), spanner.Key{cpk.Error})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		expected := &legacy_models.CompositePrimaryKey{
+			PKey1: cpk.PKey1,
+			PKey2: cpk.PKey2,
+			Error: cpk.Error,
+			Y:     cpk.Y,
+			Z:     cpk.Z,
+		}
+		if diff := cmp.Diff(expected, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
+func TestLegacyDefaultFullType(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
+
+	now := time.Now()
+	date := civil.DateOf(now)
+	tomorrow := now.AddDate(0, 0, 1)
+	nextdate := civil.DateOf(tomorrow)
+
+	table := map[string]struct {
+		ft *legacy_models.FullType
+	}{
+		"case1": {
+			ft: &legacy_models.FullType{
+				PKey:     "pkey1",
+				FTString: "xxx1",
+				FTStringNull: spanner.NullString{
+					StringVal: "xxx1",
+					Valid:     true,
+				},
+				FTBool: true,
+				FTBoolNull: spanner.NullBool{
+					Bool:  true,
+					Valid: true,
+				},
+				FTBytes:     []byte("xxx1"),
+				FTBytesNull: []byte("xxx1"),
+				FTTimestamp: now,
+				FTTimestampNull: spanner.NullTime{
+					Time:  now,
+					Valid: true,
+				},
+				FTInt: 101,
+				FTIntNull: spanner.NullInt64{
+					Int64: 101,
+					Valid: true,
+				},
+				FTFloat: 0.123,
+				FTFloatNull: spanner.NullFloat64{
+					Float64: 0.123,
+					Valid:   true,
+				},
+				FTDate: date,
+				FTDateNull: spanner.NullDate{
+					Date:  date,
+					Valid: true,
+				},
+				FTArrayStringNull:    []string{"xxx1", "yyy1"},
+				FTArrayString:        []string{"xxx1", "yyy1"},
+				FTArrayBoolNull:      []bool{true, false},
+				FTArrayBool:          []bool{true, false},
+				FTArrayBytesNull:     [][]byte{[]byte("xxx1"), []byte("yyy1")},
+				FTArrayBytes:         [][]byte{[]byte("xxx1"), []byte("yyy1")},
+				FTArrayTimestampNull: []time.Time{now, tomorrow},
+				FTArrayTimestamp:     []time.Time{now, tomorrow},
+				FTArrayIntNull:       []int64{100, 200},
+				FTArrayInt:           []int64{100, 200},
+				FTArrayFloatNull:     []float64{0.111, 0.222},
+				FTArrayFloat:         []float64{0.111, 0.222},
+				FTArrayDateNull:      []civil.Date{date, nextdate},
+				FTArrayDate:          []civil.Date{date, nextdate},
+			},
+		},
+		"case2": {
+			ft: &legacy_models.FullType{
+				PKey:                 "pkey2",
+				FTString:             "xxx2",
+				FTStringNull:         spanner.NullString{},
+				FTBool:               true,
+				FTBoolNull:           spanner.NullBool{},
+				FTBytes:              []byte("xxx2"),
+				FTBytesNull:          nil,
+				FTTimestamp:          now,
+				FTTimestampNull:      spanner.NullTime{},
+				FTInt:                101,
+				FTIntNull:            spanner.NullInt64{},
+				FTFloat:              0.123,
+				FTFloatNull:          spanner.NullFloat64{},
+				FTDate:               date,
+				FTDateNull:           spanner.NullDate{},
+				FTArrayStringNull:    []string{"xxx2", "yyy2"},
+				FTArrayString:        []string{"xxx2", "yyy2"},
+				FTArrayBoolNull:      nil,
+				FTArrayBool:          []bool{true, false},
+				FTArrayBytesNull:     nil,
+				FTArrayBytes:         [][]byte{[]byte("xxx2"), []byte("yyy2")},
+				FTArrayTimestampNull: nil,
+				FTArrayTimestamp:     []time.Time{now, tomorrow},
+				FTArrayIntNull:       nil,
+				FTArrayInt:           []int64{100, 200},
+				FTArrayFloatNull:     nil,
+				FTArrayFloat:         []float64{0.111, 0.222},
+				FTArrayDateNull:      nil,
+				FTArrayDate:          []civil.Date{date, nextdate},
+			},
+		},
+		"case3": {
+			ft: &legacy_models.FullType{
+				PKey:                 "pkey3",
+				FTString:             "xxx3",
+				FTStringNull:         spanner.NullString{},
+				FTBool:               true,
+				FTBoolNull:           spanner.NullBool{},
+				FTBytes:              []byte("xxx3"),
+				FTBytesNull:          nil,
+				FTTimestamp:          now,
+				FTTimestampNull:      spanner.NullTime{},
+				FTInt:                101,
+				FTIntNull:            spanner.NullInt64{},
+				FTFloat:              0.123,
+				FTFloatNull:          spanner.NullFloat64{},
+				FTDate:               date,
+				FTDateNull:           spanner.NullDate{},
+				FTArrayStringNull:    []string{},
+				FTArrayString:        []string{},
+				FTArrayBoolNull:      []bool{},
+				FTArrayBool:          []bool{},
+				FTArrayBytesNull:     [][]byte{},
+				FTArrayBytes:         [][]byte{},
+				FTArrayTimestampNull: []time.Time{},
+				FTArrayTimestamp:     []time.Time{},
+				FTArrayIntNull:       []int64{},
+				FTArrayInt:           []int64{},
+				FTArrayFloatNull:     []float64{},
+				FTArrayFloat:         []float64{},
+				FTArrayDateNull:      []civil.Date{},
+				FTArrayDate:          []civil.Date{},
+			},
+		},
+	}
+
+	for name, tt := range table {
+		t.Run(name, func(t *testing.T) {
+			if _, err := client.Apply(ctx, []*spanner.Mutation{tt.ft.Insert(ctx)}); err != nil {
+				t.Fatalf("Apply failed: %v", err)
+			}
+
+			got, err := legacy_models.FindFullType(ctx, client.Single(), tt.ft.PKey)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tt.ft, got); diff != "" {
+				t.Errorf("(-got, +want)\n%s", diff)
+			}
+		})
+	}
+
+	t.Run("FindWithNonNull", func(t *testing.T) {
+		fts, err := legacy_models.FindFullTypesByFTIntFTTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+			Time:  now,
+			Valid: true,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var pkeys []string
+		for i := range fts {
+			pkeys = append(pkeys, fts[i].PKey)
+		}
+
+		expected := []string{"pkey1"}
+		if diff := cmp.Diff(expected, pkeys); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("FindWithNull", func(t *testing.T) {
+		fts, err := legacy_models.FindFullTypesByFTIntFTTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
 			Valid: false,
 		})
 		if err != nil {
@@ -473,6 +812,10 @@ func TestDefaultFullType(t *testing.T) {
 func TestCustomCompositePrimaryKey(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
 
 	cpk := &customtypes.CompositePrimaryKey{
 		ID:    300,
@@ -526,7 +869,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("FindByError", func(t *testing.T) {
-		got, err := customtypes.FindCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		got, err := customtypes.FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -541,7 +884,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError", func(t *testing.T) {
-		got, err := customtypes.ReadCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := customtypes.ReadCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}

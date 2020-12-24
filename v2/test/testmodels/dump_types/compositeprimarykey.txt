@@ -16,6 +16,6 @@
 # Index list of CompositePrimaryKey
 
 * CompositePrimaryKeysByError
-* CompositePrimaryKeysByXY
 * CompositePrimaryKeysByError2
 * CompositePrimaryKeysByError3
+* CompositePrimaryKeysByXY
