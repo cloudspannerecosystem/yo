@@ -24,11 +24,12 @@ import (
 )
 
 var (
-	Header    = newBuiltin(module.HeaderModule, "header")
-	Type      = newBuiltin(module.TypeModule, "type")
-	Operation = newBuiltin(module.TypeModule, "operation")
-	Index     = newBuiltin(module.TypeModule, "index")
-	Interface = newBuiltin(module.GlobalModule, "yo_db")
+	Header      = newBuiltin(module.HeaderModule, "header")
+	Type        = newBuiltin(module.TypeModule, "type")
+	Operation   = newBuiltin(module.TypeModule, "operation")
+	Index       = newBuiltin(module.TypeModule, "index")
+	LegacyIndex = newBuiltin(module.TypeModule, "legacy_index")
+	Interface   = newBuiltin(module.GlobalModule, "yo_db")
 )
 
 var (

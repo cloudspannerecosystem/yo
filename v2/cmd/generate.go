@@ -38,7 +38,7 @@ import (
 var (
 	defaultHeaderModule  = builtin.Header
 	defaultGlobalModules = []module.Module{builtin.Interface}
-	defaultTypeModules   = []module.Module{builtin.Type, builtin.Operation, builtin.Index}
+	defaultTypeModules   = []module.Module{builtin.Type, builtin.Operation}
 )
 
 // generateCmdOption is the type that specifies the command line arguments.
@@ -99,6 +99,9 @@ type generateCmdOption struct {
 	HeaderModule            string
 	AdditionalGlobalModules []string
 	AdditionalTypeModules   []string
+
+	// UseLegacyIndexModule uses legacy index module instead of the default index module
+	UseLegacyIndexModule bool
 
 	baseDir string
 }
@@ -213,6 +216,7 @@ func init() {
 	generateCmd.Flags().StringVar(&generateCmdOpts.HeaderModule, "header-module", "", "replace the default header module by user defined module")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.UseLegacyIndexModule, "use-legacy-index-module", false, "use legacy index func name")
 
 	helpFn := generateCmd.HelpFunc()
 	generateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
@@ -281,6 +285,11 @@ func decideModules(opts *generateCmdOption) (module.Module, []module.Module, []m
 		headerModule = defaultHeaderModule
 		globalModules = defaultGlobalModules
 		typeModules = defaultTypeModules
+		if generateCmdOpts.UseLegacyIndexModule {
+			typeModules = append(typeModules, builtin.LegacyIndex)
+		} else {
+			typeModules = append(typeModules, builtin.Index)
+		}
 	}
 
 	for _, path := range generateCmdOpts.AdditionalGlobalModules {
