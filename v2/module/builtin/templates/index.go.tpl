@@ -140,4 +140,4 @@ func Read{{ .FuncName }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([
 
     return res, nil
 }
-{{- end -}}
+{{- end }}

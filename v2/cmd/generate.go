@@ -267,7 +267,8 @@ func processGenerateCmdOption(opts *generateCmdOption, argv []string) error {
 }
 
 func decideModules(opts *generateCmdOption) (module.Module, []module.Module, []module.Module) {
-	var headerModule module.Module
+	// header module uses null module that generates nothing when disabling default
+	headerModule := builtin.NullHeader
 	var globalModules []module.Module
 	var typeModules []module.Module
 

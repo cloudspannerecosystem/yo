@@ -23,16 +23,24 @@ import (
 	"go.mercari.io/yo/v2/module"
 )
 
-var (
-	Header    = newBuiltin(module.HeaderModule, "header")
-	Type      = newBuiltin(module.TypeModule, "type")
-	Operation = newBuiltin(module.TypeModule, "operation")
-	Index     = newBuiltin(module.TypeModule, "index")
-	Interface = newBuiltin(module.GlobalModule, "yo_db")
-)
+type nullMod struct {
+	typ module.ModuleType
+}
 
-var (
-	NullHeader = newNullModule(module.HeaderModule)
-	NullGlobal = newNullModule(module.GlobalModule)
-	NullType   = newNullModule(module.TypeModule)
-)
+func newNullModule(typ module.ModuleType) module.Module {
+	return &nullMod{
+		typ: typ,
+	}
+}
+
+func (m *nullMod) Name() string {
+	return "null"
+}
+
+func (m *nullMod) Type() module.ModuleType {
+	return m.typ
+}
+
+func (m *nullMod) Load() ([]byte, error) {
+	return nil, nil
+}
