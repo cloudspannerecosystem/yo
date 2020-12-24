@@ -79,7 +79,12 @@ func (f *FileBuffer) writeChunks(file *os.File) error {
 	sort.Sort(chunks)
 
 	// write chunks to the file in order
-	for _, chunk := range chunks {
+	for i, chunk := range chunks {
+		// add new line between chunks
+		if i != 0 {
+			_, _ = file.Write([]byte("\n"))
+		}
+
 		// check if generated template is only whitespace/empty
 		bufStr := strings.TrimSpace(chunk.Buf.String())
 		if len(bufStr) == 0 {
@@ -94,17 +99,19 @@ func (f *FileBuffer) writeChunks(file *os.File) error {
 	return nil
 }
 
-func (f *FileBuffer) Postprocess() error {
-	// run gofmt for the temp file
-	formatted, err := imports.Process(f.TempFilePath, nil, importsOptions)
-	if err != nil {
-		return fmt.Errorf("failed to fmt file for %s: %v", f.BaseName, err)
-	}
+func (f *FileBuffer) Postprocess(disableFormat bool) error {
+	if !disableFormat {
+		// run gofmt for the temp file
+		formatted, err := imports.Process(f.TempFilePath, nil, importsOptions)
+		if err != nil {
+			return fmt.Errorf("failed to fmt file for %s: %v", f.BaseName, err)
+		}
 
-	// overwrite the tempfile by gofmt result
-	// since abs file exists, set perm to 0
-	if err := ioutil.WriteFile(f.TempFilePath, formatted, 0); err != nil {
-		return fmt.Errorf("failed to formatted file for %s: %v", f.BaseName, err)
+		// overwrite the tempfile by gofmt result
+		// since abs file exists, set perm to 0
+		if err := ioutil.WriteFile(f.TempFilePath, formatted, 0); err != nil {
+			return fmt.Errorf("failed to formatted file for %s: %v", f.BaseName, err)
+		}
 	}
 
 	// change permission

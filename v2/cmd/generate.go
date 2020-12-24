@@ -93,6 +93,9 @@ type generateCmdOption struct {
 	// DisableDefaultModules disable to use the default modules for code generation
 	DisableDefaultModules bool
 
+	// DisableFormat disable to apply gofmt to generated files
+	DisableFormat bool
+
 	HeaderModule            string
 	AdditionalGlobalModules []string
 	AdditionalTypeModules   []string
@@ -179,6 +182,7 @@ var (
 				CustomTypePackage: generateCmdOpts.CustomTypePackage,
 				FilenameSuffix:    generateCmdOpts.Suffix,
 				BaseDir:           generateCmdOpts.baseDir,
+				DisableFormat:     generateCmdOpts.DisableFormat,
 
 				HeaderModule:  headerModule,
 				GlobalModules: globalModules,
@@ -205,6 +209,7 @@ func init() {
 	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
 	generateCmd.Flags().StringVar(&generateCmdOpts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableDefaultModules, "disable-default-modules", false, "disable the default modules for code generation")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableFormat, "disable-format", false, "disable to apply gofmt to generated files")
 	generateCmd.Flags().StringVar(&generateCmdOpts.HeaderModule, "header-module", "", "replace the default header module by user defined module")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")

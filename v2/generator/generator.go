@@ -44,6 +44,7 @@ type GeneratorOption struct {
 	CustomTypePackage string
 	FilenameSuffix    string
 	BaseDir           string
+	DisableFormat     bool
 
 	HeaderModule  module.Module
 	GlobalModules []module.Module
@@ -59,6 +60,7 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 		customTypePackage: opt.CustomTypePackage,
 		filenameSuffix:    opt.FilenameSuffix,
 		baseDir:           opt.BaseDir,
+		disableFormat:     opt.DisableFormat,
 
 		headerModule:  opt.HeaderModule,
 		globalModules: opt.GlobalModules,
@@ -79,6 +81,7 @@ type Generator struct {
 	filename          string
 	baseDir           string
 	tempDir           string
+	disableFormat     bool
 
 	headerModule  module.Module
 	globalModules []module.Module
@@ -165,7 +168,7 @@ func (g *Generator) writeFiles(ds *basicDataSet) error {
 	}
 
 	for _, file := range g.files {
-		if err := file.Postprocess(); err != nil {
+		if err := file.Postprocess(g.disableFormat); err != nil {
 			return err
 		}
 	}
