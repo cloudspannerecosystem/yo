@@ -36,12 +36,9 @@ type Column struct {
 
 // Index represents an index.
 type Index struct {
-	IndexName string // index_name
-	IsUnique  bool   // is_unique
-	IsPrimary bool   // is_primary
-	SeqNo     int    // seq_no
-	Origin    string // origin
-	IsPartial bool   // is_partial
+	IndexName string // index name
+	IsUnique  bool   // the index is unique ro not
+	IsPrimary bool   // the index is primary key or not
 }
 
 // IndexColumn represents index column info.

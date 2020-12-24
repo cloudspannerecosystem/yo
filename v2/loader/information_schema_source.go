@@ -145,7 +145,10 @@ func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, erro
 	const sqlstr = `SELECT ` +
 		`INDEX_NAME, IS_UNIQUE ` +
 		`FROM INFORMATION_SCHEMA.INDEXES ` +
-		`WHERE TABLE_SCHEMA = "" AND INDEX_NAME != "PRIMARY_KEY" AND TABLE_NAME = @table `
+		`WHERE TABLE_SCHEMA = "" ` +
+		`AND INDEX_NAME != "PRIMARY_KEY" ` +
+		`AND TABLE_NAME = @table ` +
+		`AND SPANNER_IS_MANAGED = FALSE `
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["table"] = table

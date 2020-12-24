@@ -292,7 +292,7 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 	// process indexes
 	for _, ix := range indexList {
 		// save whether or not the primary key index was processed
-		priIxLoaded = priIxLoaded || ix.IsPrimary || (ix.Origin == "pk")
+		priIxLoaded = priIxLoaded || ix.IsPrimary
 
 		// create index template
 		ixTpl := &internal.Index{
