@@ -21,12 +21,8 @@ package loader
 
 import (
 	"context"
-	"regexp"
-	"strconv"
-	"strings"
 
 	"cloud.google.com/go/spanner"
-	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/models"
 	"google.golang.org/api/iterator"
 )
@@ -42,10 +38,10 @@ type informationSchemaSource struct {
 }
 
 func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
-	var err error
+	ctx := context.Background()
 
 	// get the tables
-	rows, err := spanTables(s.client)
+	rows, err := s.getTables(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -63,128 +59,18 @@ func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
 	return tables, nil
 }
 
-func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, error) {
-	return SpanTableColumns(s.client, table)
-}
-
-func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, error) {
-	return SpanTableIndexes(s.client, table)
-}
-
-func (s *informationSchemaSource) IndexColumnList(table string, index string) ([]*models.IndexColumn, error) {
-	return SpanIndexColumns(s.client, table, index)
-}
-
-var lengthRegexp = regexp.MustCompile(`\(([0-9]+|MAX)\)$`)
-
-// SpanParseType parse a mysql type into a Go type based on the column
-// definition.
-func SpanParseType(dt string, nullable bool) (int, string, string) {
-	nilVal := "nil"
-	length := -1
-
-	// separate type and length from dt with length such as STRING(32) or BYTES(256)
-	m := lengthRegexp.FindStringSubmatchIndex(dt)
-	if m != nil {
-		lengthStr := dt[m[2]:m[3]]
-		if lengthStr == "MAX" {
-			length = -1
-		} else {
-			l, err := strconv.Atoi(lengthStr)
-			if err != nil {
-				panic("could not convert precision")
-			}
-			length = l
-		}
-
-		// trim length from dt
-		dt = dt[:m[0]] + dt[m[1]:]
-	}
-
-	var typ string
-	switch dt {
-	case "BOOL":
-		nilVal = "false"
-		typ = "bool"
-		if nullable {
-			nilVal = "spanner.NullBool{}"
-			typ = "spanner.NullBool"
-		}
-
-	case "STRING":
-		nilVal = `""`
-		typ = "string"
-		if nullable {
-			nilVal = "spanner.NullString{}"
-			typ = "spanner.NullString"
-		}
-
-	case "INT64":
-		nilVal = "0"
-		typ = "int64"
-		if nullable {
-			nilVal = "spanner.NullInt64{}"
-			typ = "spanner.NullInt64"
-		}
-
-	case "FLOAT64":
-		nilVal = "0.0"
-		typ = "float64"
-		if nullable {
-			nilVal = "spanner.NullFloat64{}"
-			typ = "spanner.NullFloat64"
-		}
-
-	case "BYTES":
-		typ = "[]byte"
-
-	case "TIMESTAMP":
-		nilVal = "time.Time{}"
-		typ = "time.Time"
-		if nullable {
-			nilVal = "spanner.NullTime{}"
-			typ = "spanner.NullTime"
-		}
-
-	case "DATE":
-		nilVal = "civil.Date{}"
-		typ = "civil.Date"
-		if nullable {
-			nilVal = "spanner.NullDate{}"
-			typ = "spanner.NullDate"
-		}
-
-	default:
-		if strings.HasPrefix(dt, "ARRAY<") {
-			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
-			_, _, eleTyp := SpanParseType(eleDataType, false)
-			typ, nilVal = "[]"+eleTyp, "nil"
-			if !nullable {
-				nilVal = typ + "{}"
-			}
-			break
-		}
-
-		typ = internal.SnakeToCamel(dt)
-		nilVal = typ + "{}"
-	}
-
-	return length, nilVal, typ
-}
-
-// spanTables runs a custom query, returning results as Table.
-func spanTables(client *spanner.Client) ([]*models.Table, error) {
-	ctx := context.Background()
-
+// getTables runs a custom query, returning results as Table.
+func (s *informationSchemaSource) getTables(ctx context.Context) ([]*models.Table, error) {
 	const sqlstr = `SELECT ` +
 		`TABLE_NAME ` +
 		`FROM INFORMATION_SCHEMA.TABLES ` +
 		`WHERE TABLE_SCHEMA = ""`
 	stmt := spanner.NewStatement(sqlstr)
-	iter := client.Single().Query(ctx, stmt)
+
+	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	res := []*models.Table{}
+	var res []*models.Table
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -205,8 +91,7 @@ func spanTables(client *spanner.Client) ([]*models.Table, error) {
 	return res, nil
 }
 
-// spanTableColumns runs a custom query, returning results as Column.
-func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, error) {
+func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, error) {
 	ctx := context.Background()
 
 	// sql query
@@ -224,11 +109,11 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["table"] = table
-	iter := client.Single().Query(ctx, stmt)
 
+	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	res := []*models.Column{}
+	var res []*models.Column
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -267,12 +152,7 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 	return res, nil
 }
 
-// SpanTableColumns parses the query and generates a type for it.
-func SpanTableColumns(client *spanner.Client, table string) ([]*models.Column, error) {
-	return spanTableColumns(client, table)
-}
-
-func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, error) {
+func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, error) {
 	ctx := context.Background()
 
 	// sql query
@@ -283,11 +163,11 @@ func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, er
 
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["table"] = table
-	iter := client.Single().Query(ctx, stmt)
 
+	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	res := []*models.Index{}
+	var res []*models.Index
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -311,8 +191,7 @@ func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, er
 	return res, nil
 }
 
-// SpanIndexColumns runs a custom query, returning results as IndexColumn.
-func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*models.IndexColumn, error) {
+func (s *informationSchemaSource) IndexColumnList(table string, index string) ([]*models.IndexColumn, error) {
 	ctx := context.Background()
 
 	// sql query
@@ -325,11 +204,11 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 	stmt := spanner.NewStatement(sqlstr)
 	stmt.Params["table"] = table
 	stmt.Params["index"] = index
-	iter := client.Single().Query(ctx, stmt)
 
+	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	res := []*models.IndexColumn{}
+	var res []*models.IndexColumn
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -356,9 +235,4 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 	}
 
 	return res, nil
-}
-
-func SpanValidateCustomType(dataType string, customType string) bool {
-	// No custom type validation now
-	return true
 }

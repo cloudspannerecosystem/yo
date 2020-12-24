@@ -73,7 +73,7 @@ func (tl *TypeLoader) Mask() string {
 }
 
 func (tl *TypeLoader) ValidCustomType(dataType string, customType string) bool {
-	return SpanValidateCustomType(dataType, customType)
+	return validateCustomType(dataType, customType)
 }
 
 // LoadSchema loads schema definitions.
@@ -237,7 +237,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 			continue
 		}
 
-		len, nilType, typ := SpanParseType(c.DataType, !c.NotNull)
+		len, nilType, typ := parseSpannerType(c.DataType, !c.NotNull)
 
 		// set col info
 		f := &internal.Field{
