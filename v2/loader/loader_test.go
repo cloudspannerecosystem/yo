@@ -44,11 +44,13 @@ func Test_setIndexesToTables(t *testing.T) {
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableA"},
 					},
+					Index: &models.Index{IndexName: "Index1"},
 				},
 				"TableA_Index2": &internal.Index{
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableA"},
 					},
+					Index: &models.Index{IndexName: "Index2"},
 				},
 			},
 			result: map[string]int{
@@ -69,11 +71,13 @@ func Test_setIndexesToTables(t *testing.T) {
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableA"},
 					},
+					Index: &models.Index{IndexName: "Index1"},
 				},
 				"TableA_Index2": &internal.Index{
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableA"},
 					},
+					Index: &models.Index{IndexName: "Index2"},
 				},
 			},
 			result: map[string]int{
@@ -95,21 +99,25 @@ func Test_setIndexesToTables(t *testing.T) {
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableA"},
 					},
+					Index: &models.Index{IndexName: "Index1"},
 				},
 				"TableA_Index2": &internal.Index{
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableA"},
 					},
+					Index: &models.Index{IndexName: "Index2"},
 				},
 				"TableB_Index1": &internal.Index{
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableB"},
 					},
+					Index: &models.Index{IndexName: "Index1"},
 				},
 				"TableB_Index2forTableA_Hoge": &internal.Index{
 					Type: &internal.Type{
 						Table: &models.Table{TableName: "TableB"},
 					},
+					Index: &models.Index{IndexName: "Index2"},
 				},
 			},
 			result: map[string]int{

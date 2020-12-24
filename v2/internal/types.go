@@ -28,7 +28,7 @@ type Schema struct {
 
 // Field contains field information.
 type Field struct {
-	Name       string
+	Name       string // Go like (CamelCase) field name
 	Type       string
 	CustomType string
 	NilType    string
@@ -38,7 +38,7 @@ type Field struct {
 
 // Type is a template item for a type.
 type Type struct {
-	Name             string
+	Name             string // Go like (CamelCase) table name
 	Schema           string
 	PrimaryKeyFields []*Field
 	Fields           []*Field
@@ -48,7 +48,9 @@ type Type struct {
 
 // Index is a template item for a index into a table.
 type Index struct {
-	FuncName       string
+	Name           string // Go like (CamelCase) index name
+	FuncName       string // `By` + Name
+	LegacyFuncName string // `By` + Type name + Field names
 	Schema         string
 	Type           *Type
 	Fields         []*Field

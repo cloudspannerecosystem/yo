@@ -25,7 +25,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kenshaw/snaker"
 	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/models"
 	"gopkg.in/yaml.v2"
@@ -238,14 +237,16 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 			continue
 		}
 
+		len, nilType, typ := SpanParseType(c.DataType, !c.NotNull)
+
 		// set col info
 		f := &internal.Field{
-			Name: snaker.ForceCamelIdentifier(c.ColumnName),
-			// Name: c.ColumnName,
-			Col: c,
+			Name:    internal.SnakeToCamel(c.ColumnName),
+			Col:     c,
+			Len:     len,
+			NilType: nilType,
+			Type:    typ,
 		}
-
-		f.Len, f.NilType, f.Type = SpanParseType(c.DataType, !c.NotNull)
 
 		// set custom type
 		if columnTypes != nil {
@@ -295,6 +296,7 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 
 		// create index template
 		ixTpl := &internal.Index{
+			Name:   internal.SnakeToCamel(ix.IndexName),
 			Schema: "",
 			Type:   typeTpl,
 			Fields: []*internal.Field{},
@@ -309,6 +311,7 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 
 		// build func name
 		ixTpl.FuncName = tl.buildIndexFuncName(ixTpl)
+		ixTpl.LegacyFuncName = tl.buildLegacyIndexFuncName(ixTpl)
 
 		ixMap[typeTpl.Table.TableName+"_"+ix.IndexName] = ixTpl
 	}
@@ -316,7 +319,7 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 	return nil
 }
 
-func (tl *TypeLoader) buildIndexFuncName(ixTpl *internal.Index) string {
+func (tl *TypeLoader) buildLegacyIndexFuncName(ixTpl *internal.Index) string {
 	// build func name
 	funcName := ixTpl.Type.Name
 	if !ixTpl.Index.IsUnique {
@@ -334,6 +337,15 @@ func (tl *TypeLoader) buildIndexFuncName(ixTpl *internal.Index) string {
 	}
 
 	return funcName + strings.Join(paramNames, "")
+}
+
+func (tl *TypeLoader) buildIndexFuncName(ixTpl *internal.Index) string {
+	// build func name
+	funcName := ixTpl.Type.Name
+	if !ixTpl.Index.IsUnique {
+		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
+	}
+	return funcName + "By" + internal.SnakeToCamel(ixTpl.Index.IndexName)
 }
 
 // LoadIndexColumns loads the index column information.
@@ -399,8 +411,9 @@ func setIndexesToTables(tableMap map[string]*internal.Type, ixMap map[string]*in
 	for _, ix := range ixMap {
 		indexes = append(indexes, ix)
 	}
+	// sort by index name
 	sort.Slice(indexes, func(i, j int) bool {
-		return indexes[i].FuncName < indexes[j].FuncName
+		return indexes[i].Index.IndexName < indexes[j].Index.IndexName
 	})
 	for tbl, t := range tableMap {
 		for _, ix := range indexes {

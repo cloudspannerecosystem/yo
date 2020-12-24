@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/spanner"
-	"github.com/kenshaw/snaker"
+	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/models"
 	"google.golang.org/api/iterator"
 )
@@ -165,7 +165,7 @@ func SpanParseType(dt string, nullable bool) (int, string, string) {
 			break
 		}
 
-		typ = snaker.SnakeToCamelIdentifier(dt)
+		typ = internal.SnakeToCamel(dt)
 		nilVal = typ + "{}"
 	}
 

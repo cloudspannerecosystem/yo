@@ -51,7 +51,11 @@ func SingularizeIdentifier(in Inflector, s string) string {
 		s = in.Singularize(s)
 	}
 
-	// return snaker.SnakeToCamelIdentifier(s)
+	return snaker.ForceCamelIdentifier(s)
+}
+
+// SnakeToCamel converts the string to CamelCase
+func SnakeToCamel(s string) string {
 	return snaker.ForceCamelIdentifier(s)
 }
 
