@@ -80,7 +80,7 @@ jobs:
           name: regenerate templates and check diff
           command: |
             make -C v2 regen
-            git diff --quiet v2/tplbin/
+            git diff --quiet v2/module/builtin/tplbin/
 
       - run:
           name: regenerate testdata-from-ddl and check diff
@@ -92,7 +92,7 @@ jobs:
           name: regenerate template files and check diff
           command: |
             make -C v2 recreate-templates YOBIN=./yo
-            git diff --quiet v2/templates/
+            git diff --quiet v2/module/builtin/templates/
 
       - run:
           name: run integration test

@@ -58,5 +58,5 @@ testdata-from-ddl/customtypes:
 	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
 
 recreate-templates:: ## recreate templates
-	rm -rf templates && mkdir templates
-	$(YOBIN) create-template --template-path templates
+	rm -rf module/builtin/templates && mkdir module/builtin/templates
+	$(YOBIN) create-template --template-path module/builtin/templates
