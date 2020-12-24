@@ -1,0 +1,14 @@
+# Field list of OutOfOrderPrimaryKey
+
+* PKey1 STRING(32) string
+* PKey2 STRING(32) string
+* PKey3 STRING(32) string
+
+# Primary Key
+
+* PKey2 STRING(32) string
+* PKey1 STRING(32) string
+* PKey3 STRING(32) string
+
+# Index list of OutOfOrderPrimaryKey
+

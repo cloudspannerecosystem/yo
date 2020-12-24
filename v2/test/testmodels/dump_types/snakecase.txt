@@ -1,0 +1,13 @@
+# Field list of SnakeCase
+
+* ID INT64 int64
+* StringID STRING(32) string
+* FooBarBaz INT64 int64
+
+# Primary Key
+
+* ID INT64 int64
+
+# Index list of SnakeCase
+
+* snake_cases_by_string_id

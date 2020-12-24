@@ -83,12 +83,6 @@ jobs:
             git diff --quiet v2/module/builtin/tplbin/
 
       - run:
-          name: regenerate testdata-from-ddl and check diff
-          command: |
-            make -C v2 testdata-from-ddl YOBIN=./yo
-            git diff --quiet test/
-
-      - run:
           name: regenerate template files and check diff
           command: |
             make -C v2 recreate-templates YOBIN=./yo
@@ -98,6 +92,12 @@ jobs:
           name: run integration test
           command: |
             make -C v2 test
+
+      - run:
+          name: regenerate testdata-from-ddl and check diff
+          command: |
+            make -C v2 testdata-from-ddl YOBIN=./yo
+            git diff --quiet test/
 
       - run:
           name: regenerate testdata and check diff

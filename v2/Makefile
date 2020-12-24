@@ -35,28 +35,31 @@ test: ## run test
 	@echo run tests with spanner emulator
 	go test -race -v ./...
 
-testdata: ## generate test models
-	$(MAKE) -j4 testdata/default testdata/customtypes
-
-testdata/default:
-	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
-	$(YOBIN) generate $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --out test/testmodels/default/
-
-testdata/customtypes:
-	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
-	$(YOBIN) generate $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
-
-testdata-from-ddl:
-	$(MAKE) -j4 testdata-from-ddl/default testdata-from-ddl/customtypes
-
-testdata-from-ddl/default:
-	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
-	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --package models --out test/testmodels/default/
-
-testdata-from-ddl/customtypes:
-	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
-	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
-
 recreate-templates:: ## recreate templates
 	rm -rf module/builtin/templates && mkdir module/builtin/templates
 	$(YOBIN) create-template --template-path module/builtin/templates
+
+USE_DDL ?= false
+ifeq ($(USE_DDL),true)
+GENERATE_OPT = ./test/testdata/schema.sql --from-ddl
+else
+GENERATE_OPT = $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME)
+endif
+
+testdata: ## generate test models
+	$(MAKE) -j4 testdata/default testdata/customtypes testdata/dump_types
+
+testdata-from-ddl: ## generate test models
+	$(MAKE) USE_DDL=true -j4 testdata/default testdata/customtypes testdata/dump_types
+
+testdata/default:
+	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
+	$(YOBIN) generate $(GENERATE_OPT) --package models --out test/testmodels/default/
+
+testdata/customtypes:
+	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
+	$(YOBIN) generate $(GENERATE_OPT) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
+
+testdata/dump_types:
+	rm -rf test/testmodels/dump_types && mkdir -p test/testmodels/dump_types
+	$(YOBIN) generate $(GENERATE_OPT) --from-ddl --suffix '.txt' --disable-format --disable-default-modules --type-module test/testdata/dump_types.go.tpl --package models --out test/testmodels/dump_types/
