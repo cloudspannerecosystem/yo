@@ -22,6 +22,7 @@ package loader
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 
 	"github.com/MakeNowJust/memefish/pkg/ast"
@@ -81,11 +82,20 @@ type schemaParserSource struct {
 func (s *schemaParserSource) TableList() ([]*models.Table, error) {
 	var tables []*models.Table
 	for _, t := range s.tables {
+		var parent string
+		if t.createTable.Cluster != nil {
+			parent = t.createTable.Cluster.TableName.Name
+		}
+
 		tables = append(tables, &models.Table{
-			TableName: t.createTable.Name.Name,
-			ManualPk:  true,
+			TableName:       t.createTable.Name.Name,
+			ParentTableName: parent,
 		})
 	}
+
+	sort.Slice(tables, func(i, j int) bool {
+		return tables[i].TableName < tables[j].TableName
+	})
 
 	return tables, nil
 }

@@ -127,7 +127,7 @@ func TestMain(m *testing.M) {
 		ctx := context.Background()
 
 		if !testing.Short() {
-			if err := testutil.SetupDatabase(ctx, spannerProjectName, spannerInstanceName, spannerDatabaseName); err != nil {
+			if err := testutil.SetupDatabase(ctx, spannerProjectName, spannerInstanceName, spannerDatabaseName, ""); err != nil {
 				panic(err)
 			}
 		}

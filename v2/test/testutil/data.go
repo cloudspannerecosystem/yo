@@ -84,7 +84,7 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 	return nil
 }
 
-func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string) error {
+func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string, schema string) error {
 	if v := os.Getenv("SPANNER_EMULATOR_HOST"); v == "" {
 		return fmt.Errorf("test must use spanner emulator")
 	}
@@ -122,8 +122,14 @@ func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string
 		return err
 	}
 
-	if err := ApplyTestSchema(ctx, dbAdminCli, fullDBName); err != nil {
-		return err
+	if schema == "" {
+		if err := ApplyTestSchema(ctx, dbAdminCli, fullDBName); err != nil {
+			return err
+		}
+	} else {
+		if err := ApplySchema(ctx, dbAdminCli, fullDBName, schema); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -238,10 +244,16 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 		contents = contents[pos:]
 	}
 
+	// Apply DDL statements to create tables
+	return ApplySchema(ctx, adminClient, dbname, contents)
+}
+
+// ApplyTestScheme applies test schema in testdata.
+func ApplySchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClient, dbname string, schema string) error {
 	// Split scheme definition to DDL statements.
 	// This assuemes there is no comments and each statement is separated by semi-colon
 	var statements []string
-	for _, s := range strings.Split(contents, ";") {
+	for _, s := range strings.Split(schema, ";") {
 		s = strings.TrimSpace(s)
 		if len(s) == 0 {
 			continue

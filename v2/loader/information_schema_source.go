@@ -40,31 +40,11 @@ type informationSchemaSource struct {
 func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
 	ctx := context.Background()
 
-	// get the tables
-	rows, err := s.getTables(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add information about manual FK.
-	var tables []*models.Table
-	for _, row := range rows {
-		tables = append(tables, &models.Table{
-			TableName: row.TableName,
-			Type:      row.Type,
-			ManualPk:  true,
-		})
-	}
-
-	return tables, nil
-}
-
-// getTables runs a custom query, returning results as Table.
-func (s *informationSchemaSource) getTables(ctx context.Context) ([]*models.Table, error) {
 	const sqlstr = `SELECT ` +
-		`TABLE_NAME ` +
+		`TABLE_NAME, PARENT_TABLE_NAME ` +
 		`FROM INFORMATION_SCHEMA.TABLES ` +
-		`WHERE TABLE_SCHEMA = ""`
+		`WHERE TABLE_SCHEMA = "" ` +
+		`ORDER BY TABLE_NAME`
 	stmt := spanner.NewStatement(sqlstr)
 
 	iter := s.client.Single().Query(ctx, stmt)
@@ -84,6 +64,12 @@ func (s *informationSchemaSource) getTables(ctx context.Context) ([]*models.Tabl
 		if err := row.ColumnByName("TABLE_NAME", &t.TableName); err != nil {
 			return nil, err
 		}
+
+		var parentTableName spanner.NullString
+		if err := row.ColumnByName("PARENT_TABLE_NAME", &parentTableName); err != nil {
+			return nil, err
+		}
+		t.ParentTableName = parentTableName.StringVal
 
 		res = append(res, &t)
 	}

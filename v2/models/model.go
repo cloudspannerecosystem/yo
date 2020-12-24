@@ -21,9 +21,8 @@ package models
 
 // Table represents table info.
 type Table struct {
-	Type      string // type
-	TableName string // table_name
-	ManualPk  bool   // manual_pk
+	TableName       string // table_name
+	ParentTableName string
 }
 
 // Column represents column info.
