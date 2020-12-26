@@ -33,21 +33,16 @@ func SnakeCaseColumns() []string {
 	}
 }
 
-func (sc *SnakeCase) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (sc *SnakeCase) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "id":
-			ret = append(ret, &sc.ID)
+			ret = append(ret, yoDecode(&sc.ID))
 		case "string_id":
-			ret = append(ret, &sc.StringID)
+			ret = append(ret, yoDecode(&sc.StringID))
 		case "foo_bar_baz":
-			ret = append(ret, &sc.FooBarBaz)
+			ret = append(ret, yoDecode(&sc.FooBarBaz))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -60,11 +55,11 @@ func (sc *SnakeCase) columnsToValues(cols []string) ([]interface{}, error) {
 	for _, col := range cols {
 		switch col {
 		case "id":
-			ret = append(ret, sc.ID)
+			ret = append(ret, yoEncode(sc.ID))
 		case "string_id":
-			ret = append(ret, sc.StringID)
+			ret = append(ret, yoEncode(sc.StringID))
 		case "foo_bar_baz":
-			ret = append(ret, sc.FooBarBaz)
+			ret = append(ret, yoEncode(sc.FooBarBaz))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -76,11 +71,9 @@ func (sc *SnakeCase) columnsToValues(cols []string) ([]interface{}, error) {
 // newSnakeCase_Decoder returns a decoder which reads a row from *spanner.Row
 // into SnakeCase. The decoder is not goroutine-safe. Don't use it concurrently.
 func newSnakeCase_Decoder(cols []string) func(*spanner.Row) (*SnakeCase, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*SnakeCase, error) {
 		var sc SnakeCase
-		ptrs, err := sc.columnsToPtrs(cols, customPtrs)
+		ptrs, err := sc.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -96,26 +89,23 @@ func newSnakeCase_Decoder(cols []string) func(*spanner.Row) (*SnakeCase, error) 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (sc *SnakeCase) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("snake_cases", SnakeCaseColumns(), []interface{}{
-		sc.ID, sc.StringID, sc.FooBarBaz,
-	})
+	values, _ := sc.columnsToValues(SnakeCaseColumns())
+	return spanner.Insert("snake_cases", SnakeCaseColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (sc *SnakeCase) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("snake_cases", SnakeCaseColumns(), []interface{}{
-		sc.ID, sc.StringID, sc.FooBarBaz,
-	})
+	values, _ := sc.columnsToValues(SnakeCaseColumns())
+	return spanner.Update("snake_cases", SnakeCaseColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (sc *SnakeCase) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("snake_cases", SnakeCaseColumns(), []interface{}{
-		sc.ID, sc.StringID, sc.FooBarBaz,
-	})
+	values, _ := sc.columnsToValues(SnakeCaseColumns())
+	return spanner.InsertOrUpdate("snake_cases", SnakeCaseColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -187,8 +177,8 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 		"WHERE string_id = @param0 AND foo_bar_baz = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = stringID
-	stmt.Params["param1"] = fooBarBaz
+	stmt.Params["param0"] = yoEncode(stringID)
+	stmt.Params["param1"] = yoEncode(fooBarBaz)
 
 	decoder := newSnakeCase_Decoder(SnakeCaseColumns())
 

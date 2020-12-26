@@ -32,21 +32,16 @@ func FereignItemColumns() []string {
 	}
 }
 
-func (fi *FereignItem) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (fi *FereignItem) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "ID":
-			ret = append(ret, &fi.ID)
+			ret = append(ret, yoDecode(&fi.ID))
 		case "ItemID":
-			ret = append(ret, &fi.ItemID)
+			ret = append(ret, yoDecode(&fi.ItemID))
 		case "Category":
-			ret = append(ret, &fi.Category)
+			ret = append(ret, yoDecode(&fi.Category))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -59,11 +54,11 @@ func (fi *FereignItem) columnsToValues(cols []string) ([]interface{}, error) {
 	for _, col := range cols {
 		switch col {
 		case "ID":
-			ret = append(ret, fi.ID)
+			ret = append(ret, yoEncode(fi.ID))
 		case "ItemID":
-			ret = append(ret, fi.ItemID)
+			ret = append(ret, yoEncode(fi.ItemID))
 		case "Category":
-			ret = append(ret, fi.Category)
+			ret = append(ret, yoEncode(fi.Category))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -75,11 +70,9 @@ func (fi *FereignItem) columnsToValues(cols []string) ([]interface{}, error) {
 // newFereignItem_Decoder returns a decoder which reads a row from *spanner.Row
 // into FereignItem. The decoder is not goroutine-safe. Don't use it concurrently.
 func newFereignItem_Decoder(cols []string) func(*spanner.Row) (*FereignItem, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*FereignItem, error) {
 		var fi FereignItem
-		ptrs, err := fi.columnsToPtrs(cols, customPtrs)
+		ptrs, err := fi.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -95,26 +88,23 @@ func newFereignItem_Decoder(cols []string) func(*spanner.Row) (*FereignItem, err
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (fi *FereignItem) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("FereignItems", FereignItemColumns(), []interface{}{
-		fi.ID, fi.ItemID, fi.Category,
-	})
+	values, _ := fi.columnsToValues(FereignItemColumns())
+	return spanner.Insert("FereignItems", FereignItemColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (fi *FereignItem) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("FereignItems", FereignItemColumns(), []interface{}{
-		fi.ID, fi.ItemID, fi.Category,
-	})
+	values, _ := fi.columnsToValues(FereignItemColumns())
+	return spanner.Update("FereignItems", FereignItemColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (fi *FereignItem) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("FereignItems", FereignItemColumns(), []interface{}{
-		fi.ID, fi.ItemID, fi.Category,
-	})
+	values, _ := fi.columnsToValues(FereignItemColumns())
+	return spanner.InsertOrUpdate("FereignItems", FereignItemColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

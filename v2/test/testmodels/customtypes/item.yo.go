@@ -30,19 +30,14 @@ func ItemColumns() []string {
 	}
 }
 
-func (i *Item) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (i *Item) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "ID":
-			ret = append(ret, &i.ID)
+			ret = append(ret, yoDecode(&i.ID))
 		case "Price":
-			ret = append(ret, &i.Price)
+			ret = append(ret, yoDecode(&i.Price))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -55,9 +50,9 @@ func (i *Item) columnsToValues(cols []string) ([]interface{}, error) {
 	for _, col := range cols {
 		switch col {
 		case "ID":
-			ret = append(ret, i.ID)
+			ret = append(ret, yoEncode(i.ID))
 		case "Price":
-			ret = append(ret, i.Price)
+			ret = append(ret, yoEncode(i.Price))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -69,11 +64,9 @@ func (i *Item) columnsToValues(cols []string) ([]interface{}, error) {
 // newItem_Decoder returns a decoder which reads a row from *spanner.Row
 // into Item. The decoder is not goroutine-safe. Don't use it concurrently.
 func newItem_Decoder(cols []string) func(*spanner.Row) (*Item, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*Item, error) {
 		var i Item
-		ptrs, err := i.columnsToPtrs(cols, customPtrs)
+		ptrs, err := i.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -89,26 +82,23 @@ func newItem_Decoder(cols []string) func(*spanner.Row) (*Item, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (i *Item) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("Items", ItemColumns(), []interface{}{
-		i.ID, i.Price,
-	})
+	values, _ := i.columnsToValues(ItemColumns())
+	return spanner.Insert("Items", ItemColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (i *Item) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("Items", ItemColumns(), []interface{}{
-		i.ID, i.Price,
-	})
+	values, _ := i.columnsToValues(ItemColumns())
+	return spanner.Update("Items", ItemColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (i *Item) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("Items", ItemColumns(), []interface{}{
-		i.ID, i.Price,
-	})
+	values, _ := i.columnsToValues(ItemColumns())
+	return spanner.InsertOrUpdate("Items", ItemColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

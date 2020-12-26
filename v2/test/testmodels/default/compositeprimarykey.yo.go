@@ -42,29 +42,24 @@ func CompositePrimaryKeyColumns() []string {
 	}
 }
 
-func (cpk *CompositePrimaryKey) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (cpk *CompositePrimaryKey) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "Id":
-			ret = append(ret, &cpk.ID)
+			ret = append(ret, yoDecode(&cpk.ID))
 		case "PKey1":
-			ret = append(ret, &cpk.PKey1)
+			ret = append(ret, yoDecode(&cpk.PKey1))
 		case "PKey2":
-			ret = append(ret, &cpk.PKey2)
+			ret = append(ret, yoDecode(&cpk.PKey2))
 		case "Error":
-			ret = append(ret, &cpk.Error)
+			ret = append(ret, yoDecode(&cpk.Error))
 		case "X":
-			ret = append(ret, &cpk.X)
+			ret = append(ret, yoDecode(&cpk.X))
 		case "Y":
-			ret = append(ret, &cpk.Y)
+			ret = append(ret, yoDecode(&cpk.Y))
 		case "Z":
-			ret = append(ret, &cpk.Z)
+			ret = append(ret, yoDecode(&cpk.Z))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -77,19 +72,19 @@ func (cpk *CompositePrimaryKey) columnsToValues(cols []string) ([]interface{}, e
 	for _, col := range cols {
 		switch col {
 		case "Id":
-			ret = append(ret, cpk.ID)
+			ret = append(ret, yoEncode(cpk.ID))
 		case "PKey1":
-			ret = append(ret, cpk.PKey1)
+			ret = append(ret, yoEncode(cpk.PKey1))
 		case "PKey2":
-			ret = append(ret, cpk.PKey2)
+			ret = append(ret, yoEncode(cpk.PKey2))
 		case "Error":
-			ret = append(ret, cpk.Error)
+			ret = append(ret, yoEncode(cpk.Error))
 		case "X":
-			ret = append(ret, cpk.X)
+			ret = append(ret, yoEncode(cpk.X))
 		case "Y":
-			ret = append(ret, cpk.Y)
+			ret = append(ret, yoEncode(cpk.Y))
 		case "Z":
-			ret = append(ret, cpk.Z)
+			ret = append(ret, yoEncode(cpk.Z))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -101,11 +96,9 @@ func (cpk *CompositePrimaryKey) columnsToValues(cols []string) ([]interface{}, e
 // newCompositePrimaryKey_Decoder returns a decoder which reads a row from *spanner.Row
 // into CompositePrimaryKey. The decoder is not goroutine-safe. Don't use it concurrently.
 func newCompositePrimaryKey_Decoder(cols []string) func(*spanner.Row) (*CompositePrimaryKey, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*CompositePrimaryKey, error) {
 		var cpk CompositePrimaryKey
-		ptrs, err := cpk.columnsToPtrs(cols, customPtrs)
+		ptrs, err := cpk.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -121,26 +114,23 @@ func newCompositePrimaryKey_Decoder(cols []string) func(*spanner.Row) (*Composit
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyColumns())
+	return spanner.Insert("CompositePrimaryKeys", CompositePrimaryKeyColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyColumns())
+	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (cpk *CompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyColumns())
+	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -212,7 +202,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx context.Context, 
 		"WHERE Error = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = e
+	stmt.Params["param0"] = yoEncode(e)
 
 	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
 
@@ -287,7 +277,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByError2(ctx context.Context,
 		"WHERE Error = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = e
+	stmt.Params["param0"] = yoEncode(e)
 
 	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
 
@@ -363,7 +353,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByError3(ctx context.Context,
 		"WHERE Error = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = e
+	stmt.Params["param0"] = yoEncode(e)
 
 	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
 
@@ -440,8 +430,8 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByXY(ctx context.Context, db 
 		"WHERE X = @param0 AND Y = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = x
-	stmt.Params["param1"] = y
+	stmt.Params["param0"] = yoEncode(x)
+	stmt.Params["param1"] = yoEncode(y)
 
 	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
 

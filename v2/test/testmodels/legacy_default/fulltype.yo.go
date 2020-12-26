@@ -88,73 +88,68 @@ func FullTypeColumns() []string {
 	}
 }
 
-func (ft *FullType) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (ft *FullType) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "PKey":
-			ret = append(ret, &ft.PKey)
+			ret = append(ret, yoDecode(&ft.PKey))
 		case "FTString":
-			ret = append(ret, &ft.FTString)
+			ret = append(ret, yoDecode(&ft.FTString))
 		case "FTStringNull":
-			ret = append(ret, &ft.FTStringNull)
+			ret = append(ret, yoDecode(&ft.FTStringNull))
 		case "FTBool":
-			ret = append(ret, &ft.FTBool)
+			ret = append(ret, yoDecode(&ft.FTBool))
 		case "FTBoolNull":
-			ret = append(ret, &ft.FTBoolNull)
+			ret = append(ret, yoDecode(&ft.FTBoolNull))
 		case "FTBytes":
-			ret = append(ret, &ft.FTBytes)
+			ret = append(ret, yoDecode(&ft.FTBytes))
 		case "FTBytesNull":
-			ret = append(ret, &ft.FTBytesNull)
+			ret = append(ret, yoDecode(&ft.FTBytesNull))
 		case "FTTimestamp":
-			ret = append(ret, &ft.FTTimestamp)
+			ret = append(ret, yoDecode(&ft.FTTimestamp))
 		case "FTTimestampNull":
-			ret = append(ret, &ft.FTTimestampNull)
+			ret = append(ret, yoDecode(&ft.FTTimestampNull))
 		case "FTInt":
-			ret = append(ret, &ft.FTInt)
+			ret = append(ret, yoDecode(&ft.FTInt))
 		case "FTIntNull":
-			ret = append(ret, &ft.FTIntNull)
+			ret = append(ret, yoDecode(&ft.FTIntNull))
 		case "FTFloat":
-			ret = append(ret, &ft.FTFloat)
+			ret = append(ret, yoDecode(&ft.FTFloat))
 		case "FTFloatNull":
-			ret = append(ret, &ft.FTFloatNull)
+			ret = append(ret, yoDecode(&ft.FTFloatNull))
 		case "FTDate":
-			ret = append(ret, &ft.FTDate)
+			ret = append(ret, yoDecode(&ft.FTDate))
 		case "FTDateNull":
-			ret = append(ret, &ft.FTDateNull)
+			ret = append(ret, yoDecode(&ft.FTDateNull))
 		case "FTArrayStringNull":
-			ret = append(ret, &ft.FTArrayStringNull)
+			ret = append(ret, yoDecode(&ft.FTArrayStringNull))
 		case "FTArrayString":
-			ret = append(ret, &ft.FTArrayString)
+			ret = append(ret, yoDecode(&ft.FTArrayString))
 		case "FTArrayBoolNull":
-			ret = append(ret, &ft.FTArrayBoolNull)
+			ret = append(ret, yoDecode(&ft.FTArrayBoolNull))
 		case "FTArrayBool":
-			ret = append(ret, &ft.FTArrayBool)
+			ret = append(ret, yoDecode(&ft.FTArrayBool))
 		case "FTArrayBytesNull":
-			ret = append(ret, &ft.FTArrayBytesNull)
+			ret = append(ret, yoDecode(&ft.FTArrayBytesNull))
 		case "FTArrayBytes":
-			ret = append(ret, &ft.FTArrayBytes)
+			ret = append(ret, yoDecode(&ft.FTArrayBytes))
 		case "FTArrayTimestampNull":
-			ret = append(ret, &ft.FTArrayTimestampNull)
+			ret = append(ret, yoDecode(&ft.FTArrayTimestampNull))
 		case "FTArrayTimestamp":
-			ret = append(ret, &ft.FTArrayTimestamp)
+			ret = append(ret, yoDecode(&ft.FTArrayTimestamp))
 		case "FTArrayIntNull":
-			ret = append(ret, &ft.FTArrayIntNull)
+			ret = append(ret, yoDecode(&ft.FTArrayIntNull))
 		case "FTArrayInt":
-			ret = append(ret, &ft.FTArrayInt)
+			ret = append(ret, yoDecode(&ft.FTArrayInt))
 		case "FTArrayFloatNull":
-			ret = append(ret, &ft.FTArrayFloatNull)
+			ret = append(ret, yoDecode(&ft.FTArrayFloatNull))
 		case "FTArrayFloat":
-			ret = append(ret, &ft.FTArrayFloat)
+			ret = append(ret, yoDecode(&ft.FTArrayFloat))
 		case "FTArrayDateNull":
-			ret = append(ret, &ft.FTArrayDateNull)
+			ret = append(ret, yoDecode(&ft.FTArrayDateNull))
 		case "FTArrayDate":
-			ret = append(ret, &ft.FTArrayDate)
+			ret = append(ret, yoDecode(&ft.FTArrayDate))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -167,63 +162,63 @@ func (ft *FullType) columnsToValues(cols []string) ([]interface{}, error) {
 	for _, col := range cols {
 		switch col {
 		case "PKey":
-			ret = append(ret, ft.PKey)
+			ret = append(ret, yoEncode(ft.PKey))
 		case "FTString":
-			ret = append(ret, ft.FTString)
+			ret = append(ret, yoEncode(ft.FTString))
 		case "FTStringNull":
-			ret = append(ret, ft.FTStringNull)
+			ret = append(ret, yoEncode(ft.FTStringNull))
 		case "FTBool":
-			ret = append(ret, ft.FTBool)
+			ret = append(ret, yoEncode(ft.FTBool))
 		case "FTBoolNull":
-			ret = append(ret, ft.FTBoolNull)
+			ret = append(ret, yoEncode(ft.FTBoolNull))
 		case "FTBytes":
-			ret = append(ret, ft.FTBytes)
+			ret = append(ret, yoEncode(ft.FTBytes))
 		case "FTBytesNull":
-			ret = append(ret, ft.FTBytesNull)
+			ret = append(ret, yoEncode(ft.FTBytesNull))
 		case "FTTimestamp":
-			ret = append(ret, ft.FTTimestamp)
+			ret = append(ret, yoEncode(ft.FTTimestamp))
 		case "FTTimestampNull":
-			ret = append(ret, ft.FTTimestampNull)
+			ret = append(ret, yoEncode(ft.FTTimestampNull))
 		case "FTInt":
-			ret = append(ret, ft.FTInt)
+			ret = append(ret, yoEncode(ft.FTInt))
 		case "FTIntNull":
-			ret = append(ret, ft.FTIntNull)
+			ret = append(ret, yoEncode(ft.FTIntNull))
 		case "FTFloat":
-			ret = append(ret, ft.FTFloat)
+			ret = append(ret, yoEncode(ft.FTFloat))
 		case "FTFloatNull":
-			ret = append(ret, ft.FTFloatNull)
+			ret = append(ret, yoEncode(ft.FTFloatNull))
 		case "FTDate":
-			ret = append(ret, ft.FTDate)
+			ret = append(ret, yoEncode(ft.FTDate))
 		case "FTDateNull":
-			ret = append(ret, ft.FTDateNull)
+			ret = append(ret, yoEncode(ft.FTDateNull))
 		case "FTArrayStringNull":
-			ret = append(ret, ft.FTArrayStringNull)
+			ret = append(ret, yoEncode(ft.FTArrayStringNull))
 		case "FTArrayString":
-			ret = append(ret, ft.FTArrayString)
+			ret = append(ret, yoEncode(ft.FTArrayString))
 		case "FTArrayBoolNull":
-			ret = append(ret, ft.FTArrayBoolNull)
+			ret = append(ret, yoEncode(ft.FTArrayBoolNull))
 		case "FTArrayBool":
-			ret = append(ret, ft.FTArrayBool)
+			ret = append(ret, yoEncode(ft.FTArrayBool))
 		case "FTArrayBytesNull":
-			ret = append(ret, ft.FTArrayBytesNull)
+			ret = append(ret, yoEncode(ft.FTArrayBytesNull))
 		case "FTArrayBytes":
-			ret = append(ret, ft.FTArrayBytes)
+			ret = append(ret, yoEncode(ft.FTArrayBytes))
 		case "FTArrayTimestampNull":
-			ret = append(ret, ft.FTArrayTimestampNull)
+			ret = append(ret, yoEncode(ft.FTArrayTimestampNull))
 		case "FTArrayTimestamp":
-			ret = append(ret, ft.FTArrayTimestamp)
+			ret = append(ret, yoEncode(ft.FTArrayTimestamp))
 		case "FTArrayIntNull":
-			ret = append(ret, ft.FTArrayIntNull)
+			ret = append(ret, yoEncode(ft.FTArrayIntNull))
 		case "FTArrayInt":
-			ret = append(ret, ft.FTArrayInt)
+			ret = append(ret, yoEncode(ft.FTArrayInt))
 		case "FTArrayFloatNull":
-			ret = append(ret, ft.FTArrayFloatNull)
+			ret = append(ret, yoEncode(ft.FTArrayFloatNull))
 		case "FTArrayFloat":
-			ret = append(ret, ft.FTArrayFloat)
+			ret = append(ret, yoEncode(ft.FTArrayFloat))
 		case "FTArrayDateNull":
-			ret = append(ret, ft.FTArrayDateNull)
+			ret = append(ret, yoEncode(ft.FTArrayDateNull))
 		case "FTArrayDate":
-			ret = append(ret, ft.FTArrayDate)
+			ret = append(ret, yoEncode(ft.FTArrayDate))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -235,11 +230,9 @@ func (ft *FullType) columnsToValues(cols []string) ([]interface{}, error) {
 // newFullType_Decoder returns a decoder which reads a row from *spanner.Row
 // into FullType. The decoder is not goroutine-safe. Don't use it concurrently.
 func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*FullType, error) {
 		var ft FullType
-		ptrs, err := ft.columnsToPtrs(cols, customPtrs)
+		ptrs, err := ft.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -255,26 +248,23 @@ func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ft *FullType) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeColumns())
+	return spanner.Insert("FullTypes", FullTypeColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ft *FullType) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeColumns())
+	return spanner.Update("FullTypes", FullTypeColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ft *FullType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeColumns())
+	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -349,7 +339,7 @@ func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*F
 		"WHERE FTString = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = fTString
+	stmt.Params["param0"] = yoEncode(fTString)
 
 	decoder := newFullType_Decoder(FullTypeColumns())
 
@@ -425,8 +415,8 @@ func FindFullTypesByFTIntFTTimestampNull(ctx context.Context, db YORODB, fTInt i
 	sqlstr += "WHERE " + strings.Join(conds, " AND ")
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = fTInt
-	stmt.Params["param1"] = fTTimestampNull
+	stmt.Params["param0"] = yoEncode(fTInt)
+	stmt.Params["param1"] = yoEncode(fTTimestampNull)
 
 	decoder := newFullType_Decoder(FullTypeColumns())
 
@@ -501,8 +491,8 @@ func FindFullTypesByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTD
 		"WHERE FTInt = @param0 AND FTDate = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = fTInt
-	stmt.Params["param1"] = fTDate
+	stmt.Params["param0"] = yoEncode(fTInt)
+	stmt.Params["param1"] = yoEncode(fTDate)
 
 	decoder := newFullType_Decoder(FullTypeColumns())
 
@@ -577,8 +567,8 @@ func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int64
 		"WHERE FTInt = @param0 AND FTTimestamp = @param1"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = fTInt
-	stmt.Params["param1"] = fTTimestamp
+	stmt.Params["param0"] = yoEncode(fTInt)
+	stmt.Params["param1"] = yoEncode(fTTimestamp)
 
 	decoder := newFullType_Decoder(FullTypeColumns())
 
@@ -653,7 +643,7 @@ func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time
 		"WHERE FTTimestamp = @param0"
 
 	stmt := spanner.NewStatement(sqlstr)
-	stmt.Params["param0"] = fTTimestamp
+	stmt.Params["param0"] = yoEncode(fTTimestamp)
 
 	decoder := newFullType_Decoder(FullTypeColumns())
 

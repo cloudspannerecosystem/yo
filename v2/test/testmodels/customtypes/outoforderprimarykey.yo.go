@@ -33,21 +33,16 @@ func OutOfOrderPrimaryKeyColumns() []string {
 	}
 }
 
-func (ooopk *OutOfOrderPrimaryKey) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (ooopk *OutOfOrderPrimaryKey) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "PKey1":
-			ret = append(ret, &ooopk.PKey1)
+			ret = append(ret, yoDecode(&ooopk.PKey1))
 		case "PKey2":
-			ret = append(ret, &ooopk.PKey2)
+			ret = append(ret, yoDecode(&ooopk.PKey2))
 		case "PKey3":
-			ret = append(ret, &ooopk.PKey3)
+			ret = append(ret, yoDecode(&ooopk.PKey3))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -60,11 +55,11 @@ func (ooopk *OutOfOrderPrimaryKey) columnsToValues(cols []string) ([]interface{}
 	for _, col := range cols {
 		switch col {
 		case "PKey1":
-			ret = append(ret, ooopk.PKey1)
+			ret = append(ret, yoEncode(ooopk.PKey1))
 		case "PKey2":
-			ret = append(ret, ooopk.PKey2)
+			ret = append(ret, yoEncode(ooopk.PKey2))
 		case "PKey3":
-			ret = append(ret, ooopk.PKey3)
+			ret = append(ret, yoEncode(ooopk.PKey3))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -76,11 +71,9 @@ func (ooopk *OutOfOrderPrimaryKey) columnsToValues(cols []string) ([]interface{}
 // newOutOfOrderPrimaryKey_Decoder returns a decoder which reads a row from *spanner.Row
 // into OutOfOrderPrimaryKey. The decoder is not goroutine-safe. Don't use it concurrently.
 func newOutOfOrderPrimaryKey_Decoder(cols []string) func(*spanner.Row) (*OutOfOrderPrimaryKey, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*OutOfOrderPrimaryKey, error) {
 		var ooopk OutOfOrderPrimaryKey
-		ptrs, err := ooopk.columnsToPtrs(cols, customPtrs)
+		ptrs, err := ooopk.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -96,9 +89,8 @@ func newOutOfOrderPrimaryKey_Decoder(cols []string) func(*spanner.Row) (*OutOfOr
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ooopk *OutOfOrderPrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("OutOfOrderPrimaryKeys", OutOfOrderPrimaryKeyColumns(), []interface{}{
-		ooopk.PKey1, ooopk.PKey2, ooopk.PKey3,
-	})
+	values, _ := ooopk.columnsToValues(OutOfOrderPrimaryKeyColumns())
+	return spanner.Insert("OutOfOrderPrimaryKeys", OutOfOrderPrimaryKeyColumns(), values)
 }
 
 // Delete deletes the OutOfOrderPrimaryKey from the database.

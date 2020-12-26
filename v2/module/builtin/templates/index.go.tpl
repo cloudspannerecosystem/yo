@@ -43,11 +43,7 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 
 	stmt := spanner.NewStatement(sqlstr)
 	{{- range $i, $f := .Fields }}
-		{{- if $f.CustomType }}
-			stmt.Params["param{{ $i }}"] = {{ $f.Type }}({{ goparamname $f.Name }})
-		{{- else }}
-			stmt.Params["param{{ $i }}"] = {{ goparamname $f.Name }}
-		{{- end }}
+		stmt.Params["param{{ $i }}"] = yoEncode({{ goparamname $f.Name }})
 	{{- end}}
 
 

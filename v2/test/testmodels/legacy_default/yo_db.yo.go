@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"cloud.google.com/go/spanner"
 	"google.golang.org/grpc/codes"
@@ -77,3 +78,77 @@ func (e yoError) GRPCStatus() *status.Status {
 func (e yoError) Timeout() bool   { return e.code == codes.DeadlineExceeded }
 func (e yoError) Temporary() bool { return e.code == codes.DeadlineExceeded }
 func (e yoError) NotFound() bool  { return e.code == codes.NotFound }
+
+// yoEncode encodes primitive types that spanner library does not support into spanner types before
+// passing to spanner functions. Suppotted primitive types and user defined types that implement
+// spanner.Encoder interface are handled in encoding phase inside spanner libirary.
+func yoEncode(v interface{}) interface{} {
+	switch vv := v.(type) {
+	case int8:
+		return int64(vv)
+	case uint8:
+		return int64(vv)
+	case int16:
+		return int64(vv)
+	case uint16:
+		return int64(vv)
+	case int32:
+		return int64(vv)
+	case uint32:
+		return int64(vv)
+	case uint64:
+		return int64(vv)
+	default:
+		return v
+	}
+}
+
+// yoDecode wraps primitive types that spanner library does not support to decode from spanner types
+// by yoPrimitiveDecoder before passing to spanner functions. Supported primitive types and
+// user defined types that implement spanner.Decoder interface are handled in decoding phase inside
+// spanner libirary.
+func yoDecode(ptr interface{}) interface{} {
+	switch ptr.(type) {
+	case *int8, *uint8, *int16, *uint16, *int32, *uint32, *uint64:
+		return &yoPrimitiveDecoder{val: ptr}
+	default:
+		return ptr
+	}
+}
+
+type yoPrimitiveDecoder struct {
+	val interface{}
+}
+
+func (y *yoPrimitiveDecoder) DecodeSpanner(val interface{}) error {
+	strVal, ok := val.(string)
+	if !ok {
+		return spanner.ToSpannerError(status.Errorf(codes.FailedPrecondition, "failed to decode customField: %T(%v)", val, val))
+	}
+
+	intVal, err := strconv.ParseInt(strVal, 10, 64)
+	if err != nil {
+		return spanner.ToSpannerError(status.Errorf(codes.FailedPrecondition, "%v wasn't correctly encoded: <%v>", val, err))
+	}
+
+	switch vv := y.val.(type) {
+	case *int8:
+		*vv = int8(intVal)
+	case *uint8:
+		*vv = uint8(intVal)
+	case *int16:
+		*vv = int16(intVal)
+	case *uint16:
+		*vv = uint16(intVal)
+	case *int32:
+		*vv = int32(intVal)
+	case *uint32:
+		*vv = uint32(intVal)
+	case *uint64:
+		*vv = uint64(intVal)
+	default:
+		return status.Errorf(codes.Internal, "unexpected type for yoPrimitiveDecoder: %T", y.val)
+	}
+
+	return nil
+}

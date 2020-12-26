@@ -4,27 +4,24 @@
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func ({{ $short }} *{{ .Name }}) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("{{ $table }}", {{ .Name }}Columns(), []interface{}{
-		{{ fieldnames .Fields $short }},
-	})
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
+	return spanner.Insert("{{ $table }}", {{ .Name }}Columns(), values)
 }
 
 {{ if ne (fieldnames .Fields $short .PrimaryKeyFields) "" }}
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func ({{ $short }} *{{ .Name }}) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("{{ $table }}", {{ .Name }}Columns(), []interface{}{
-		{{ fieldnames .Fields $short }},
-	})
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
+	return spanner.Update("{{ $table }}", {{ .Name }}Columns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func ({{ $short }} *{{ .Name }}) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("{{ $table }}", {{ .Name }}Columns(), []interface{}{
-		{{ fieldnames .Fields $short }},
-	})
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
+	return spanner.InsertOrUpdate("{{ $table }}", {{ .Name }}Columns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

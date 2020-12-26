@@ -30,18 +30,13 @@ func {{ .Name }}Columns() []string {
 	}
 }
 
-func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 {{- range .Fields }}
 		case "{{ colname .Col }}":
-			ret = append(ret, &{{ $short }}.{{ .Name }})
+			ret = append(ret, yoDecode(&{{ $short }}.{{ .Name }}))
 {{- end }}
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
@@ -56,11 +51,7 @@ func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, 
 		switch col {
 {{- range .Fields }}
 		case "{{ colname .Col }}":
-			{{- if .CustomType }}
-			ret = append(ret, {{ .Type }}({{ $short }}.{{ .Name }}))
-			{{- else }}
-			ret = append(ret, {{ $short }}.{{ .Name }})
-			{{- end }}
+			ret = append(ret, yoEncode({{ $short }}.{{ .Name }}))
 {{- end }}
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
@@ -73,22 +64,9 @@ func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, 
 // new{{ .Name }}_Decoder returns a decoder which reads a row from *spanner.Row
 // into {{ .Name }}. The decoder is not goroutine-safe. Don't use it concurrently.
 func new{{ .Name }}_Decoder(cols []string) func(*spanner.Row) (*{{ .Name }}, error) {
-	{{- range .Fields }}
-		{{- if .CustomType }}
-			var {{ customtypeparam .Name }} {{ .Type }}
-		{{- end }}
-	{{- end }}
-	customPtrs := map[string]interface{}{
-		{{- range .Fields }}
-			{{- if .CustomType }}
-				"{{ colname .Col }}": &{{ customtypeparam .Name }},
-			{{- end }}
-	{{- end }}
-	}
-
 	return func(row *spanner.Row) (*{{ .Name }}, error) {
         var {{ $short }} {{ .Name }}
-        ptrs, err := {{ $short }}.columnsToPtrs(cols, customPtrs)
+        ptrs, err := {{ $short }}.columnsToPtrs(cols)
         if err != nil {
             return nil, err
         }
@@ -96,12 +74,6 @@ func new{{ .Name }}_Decoder(cols []string) func(*spanner.Row) (*{{ .Name }}, err
         if err := row.Columns(ptrs...); err != nil {
             return nil, err
         }
-        {{- range .Fields }}
-            {{- if .CustomType }}
-                {{ $short }}.{{ .Name }} = {{ retype .CustomType }}({{ customtypeparam .Name }})
-            {{- end }}
-        {{- end }}
-
 
 		return &{{ $short }}, nil
 	}

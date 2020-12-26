@@ -30,19 +30,14 @@ func MaxLengthColumns() []string {
 	}
 }
 
-func (ml *MaxLength) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+func (ml *MaxLength) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
-		if val, ok := customPtrs[col]; ok {
-			ret = append(ret, val)
-			continue
-		}
-
 		switch col {
 		case "MaxString":
-			ret = append(ret, &ml.MaxString)
+			ret = append(ret, yoDecode(&ml.MaxString))
 		case "MaxBytes":
-			ret = append(ret, &ml.MaxBytes)
+			ret = append(ret, yoDecode(&ml.MaxBytes))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -55,9 +50,9 @@ func (ml *MaxLength) columnsToValues(cols []string) ([]interface{}, error) {
 	for _, col := range cols {
 		switch col {
 		case "MaxString":
-			ret = append(ret, ml.MaxString)
+			ret = append(ret, yoEncode(ml.MaxString))
 		case "MaxBytes":
-			ret = append(ret, ml.MaxBytes)
+			ret = append(ret, yoEncode(ml.MaxBytes))
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
 		}
@@ -69,11 +64,9 @@ func (ml *MaxLength) columnsToValues(cols []string) ([]interface{}, error) {
 // newMaxLength_Decoder returns a decoder which reads a row from *spanner.Row
 // into MaxLength. The decoder is not goroutine-safe. Don't use it concurrently.
 func newMaxLength_Decoder(cols []string) func(*spanner.Row) (*MaxLength, error) {
-	customPtrs := map[string]interface{}{}
-
 	return func(row *spanner.Row) (*MaxLength, error) {
 		var ml MaxLength
-		ptrs, err := ml.columnsToPtrs(cols, customPtrs)
+		ptrs, err := ml.columnsToPtrs(cols)
 		if err != nil {
 			return nil, err
 		}
@@ -89,26 +82,23 @@ func newMaxLength_Decoder(cols []string) func(*spanner.Row) (*MaxLength, error) 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ml *MaxLength) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("MaxLengths", MaxLengthColumns(), []interface{}{
-		ml.MaxString, ml.MaxBytes,
-	})
+	values, _ := ml.columnsToValues(MaxLengthColumns())
+	return spanner.Insert("MaxLengths", MaxLengthColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ml *MaxLength) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("MaxLengths", MaxLengthColumns(), []interface{}{
-		ml.MaxString, ml.MaxBytes,
-	})
+	values, _ := ml.columnsToValues(MaxLengthColumns())
+	return spanner.Update("MaxLengths", MaxLengthColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ml *MaxLength) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), []interface{}{
-		ml.MaxString, ml.MaxBytes,
-	})
+	values, _ := ml.columnsToValues(MaxLengthColumns())
+	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
