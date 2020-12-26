@@ -817,7 +817,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 		t.Fatalf("failed to clear data: %v", err)
 	}
 
-	cpk := &customtypes.CompositePrimaryKey{
+	cpk := &customtypes.CustomCompositePrimaryKey{
 		ID:    300,
 		PKey1: "x300",
 		PKey2: 300,
@@ -832,7 +832,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	}
 
 	t.Run("FindByPrimaryKey", func(t *testing.T) {
-		got, err := customtypes.FindCompositePrimaryKey(ctx, client.Single(), "x300", 300)
+		got, err := customtypes.FindCustomCompositePrimaryKey(ctx, client.Single(), "x300", 300)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -843,7 +843,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByPrimaryKey", func(t *testing.T) {
-		got, err := customtypes.ReadCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x300", 300})
+		got, err := customtypes.ReadCustomCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x300", 300})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -858,18 +858,18 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		_, err := customtypes.FindCompositePrimaryKey(ctx, client.Single(), "custom", 100)
+		_, err := customtypes.FindCustomCompositePrimaryKey(ctx, client.Single(), "custom", 100)
 		if err == nil {
 			t.Fatal("unexpected success")
 		}
 
 		testGRPCStatus(t, err, codes.NotFound)
 		testNotFound(t, err, true)
-		testTableName(t, err, "CompositePrimaryKeys")
+		testTableName(t, err, "CustomCompositePrimaryKeys")
 	})
 
 	t.Run("FindByError", func(t *testing.T) {
-		got, err := customtypes.FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		got, err := customtypes.FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -884,7 +884,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError", func(t *testing.T) {
-		got, err := customtypes.ReadCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := customtypes.ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -893,12 +893,72 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
 		}
 
-		expected := &customtypes.CompositePrimaryKey{
+		expected := &customtypes.CustomCompositePrimaryKey{
 			PKey1: cpk.PKey1,
 			PKey2: cpk.PKey2,
 			Error: cpk.Error,
 		}
 		if diff := cmp.Diff(expected, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
+func TestCustomPrimitiveTypes(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
+
+	cpk := &customtypes.CustomPrimitiveType{
+		PKey:              "pkey1",
+		FTInt64:           1,
+		FTInt64null:       1,
+		FTInt32:           1,
+		FTInt32null:       1,
+		FTInt16:           1,
+		FTInt16null:       1,
+		FTInt8:            1,
+		FTInt8null:        1,
+		FTUInt64:          1,
+		FTUInt64null:      1,
+		FTUInt32:          1,
+		FTUInt32null:      1,
+		FTUInt16:          1,
+		FTUInt16null:      1,
+		FTUInt8:           1,
+		FTUInt8null:       1,
+		FTArrayInt64:      []int64{1, 2},
+		FTArrayInt64null:  []int64{1, 2},
+		FTArrayInt32:      []int64{1, 2},
+		FTArrayInt32null:  []int64{1, 2},
+		FTArrayInt16:      []int64{1, 2},
+		FTArrayInt16null:  []int64{1, 2},
+		FTArrayInt8:       []int64{1, 2},
+		FTArrayInt8null:   []int64{1, 2},
+		FTArrayUINt64:     []int64{1, 2},
+		FTArrayUINt64null: []int64{1, 2},
+		FTArrayUINt32:     []int64{1, 2},
+		FTArrayUINt32null: []int64{1, 2},
+		FTArrayUINt16:     []int64{1, 2},
+		FTArrayUINt16null: []int64{1, 2},
+		FTArrayUINt8:      []int64{1, 2},
+		FTArrayUINt8null:  []int64{1, 2},
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{cpk.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	t.Run("FindByPrimaryKey", func(t *testing.T) {
+		got, err := customtypes.FindCustomPrimitiveType(ctx, client.Single(), "pkey1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if diff := cmp.Diff(cpk, got); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})

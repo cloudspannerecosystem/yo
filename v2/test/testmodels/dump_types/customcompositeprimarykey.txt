@@ -1,0 +1,21 @@
+# Field list of CustomCompositePrimaryKey
+
+* ID INT64 int64
+* PKey1 STRING(32) string
+* PKey2 INT64 int64
+* Error INT64 int64
+* X STRING(32) string
+* Y STRING(32) string
+* Z STRING(32) string
+
+# Primary Key
+
+* PKey1 STRING(32) string
+* PKey2 INT64 int64
+
+# Index list of CustomCompositePrimaryKey
+
+* CustomCompositePrimaryKeysByError
+* CustomCompositePrimaryKeysByError2
+* CustomCompositePrimaryKeysByError3
+* CustomCompositePrimaryKeysByXY

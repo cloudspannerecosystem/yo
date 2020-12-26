@@ -65,8 +65,10 @@ func TestClient(ctx context.Context, projectName, instanceName, dbName string) (
 func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 	tables := []string{
 		"CompositePrimaryKeys",
+		"CustomCompositePrimaryKeys",
 		"OutOfOrderPrimaryKeys",
 		"FullTypes",
+		"CustomPrimitiveTypes",
 		"MaxLengths",
 		"snake_cases",
 		"Items",
@@ -228,7 +230,7 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 	dir := findProjectRootDir()
 
 	// Open test schema
-	file, err := os.Open(filepath.Join(dir, "./test/testdata/schema.sql"))
+	file, err := os.Open(filepath.Join(dir, "./v2/test/testdata/schema.sql"))
 	if err != nil {
 		return fmt.Errorf("scheme file cannot open: %v", err)
 	}

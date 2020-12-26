@@ -26,9 +26,9 @@ type FullType struct {
 	FTBytesNull          []byte              `spanner:"FTBytesNull" json:"FTBytesNull"`                   // FTBytesNull
 	FTTimestamp          time.Time           `spanner:"FTTimestamp" json:"FTTimestamp"`                   // FTTimestamp
 	FTTimestampNull      spanner.NullTime    `spanner:"FTTimestampNull" json:"FTTimestampNull"`           // FTTimestampNull
-	FTInt                int32               `spanner:"FTInt" json:"FTInt"`                               // FTInt
+	FTInt                int64               `spanner:"FTInt" json:"FTInt"`                               // FTInt
 	FTIntNull            spanner.NullInt64   `spanner:"FTIntNull" json:"FTIntNull"`                       // FTIntNull
-	FTFloat              float32             `spanner:"FTFloat" json:"FTFloat"`                           // FTFloat
+	FTFloat              float64             `spanner:"FTFloat" json:"FTFloat"`                           // FTFloat
 	FTFloatNull          spanner.NullFloat64 `spanner:"FTFloatNull" json:"FTFloatNull"`                   // FTFloatNull
 	FTDate               civil.Date          `spanner:"FTDate" json:"FTDate"`                             // FTDate
 	FTDateNull           spanner.NullDate    `spanner:"FTDateNull" json:"FTDateNull"`                     // FTDateNull
@@ -400,7 +400,7 @@ func ReadFullTypeByFullTypesByFTString(ctx context.Context, db YORODB, keys span
 // FindFullTypesByFullTypesByInTimestampNull retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByInTimestampNull'.
-func FindFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, fTInt int32, fTTimestampNull spanner.NullTime) ([]*FullType, error) {
+func FindFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, fTInt int64, fTTimestampNull spanner.NullTime) ([]*FullType, error) {
 	var sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByInTimestampNull} "
@@ -484,7 +484,7 @@ func ReadFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, k
 // FindFullTypesByFullTypesByIntDate retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByIntDate'.
-func FindFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, fTInt int32, fTDate civil.Date) ([]*FullType, error) {
+func FindFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, fTInt int64, fTDate civil.Date) ([]*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} " +
@@ -560,7 +560,7 @@ func ReadFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, keys span
 // FindFullTypesByFullTypesByIntTimestamp retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByIntTimestamp'.
-func FindFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YORODB, fTInt int32, fTTimestamp time.Time) ([]*FullType, error) {
+func FindFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YORODB, fTInt int64, fTTimestamp time.Time) ([]*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntTimestamp} " +

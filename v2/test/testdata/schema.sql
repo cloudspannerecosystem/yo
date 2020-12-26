@@ -32,6 +32,21 @@ CREATE INDEX CompositePrimaryKeysByError  ON CompositePrimaryKeys(Error);
 CREATE INDEX CompositePrimaryKeysByError2 ON CompositePrimaryKeys(Error) STORING(Z);
 CREATE INDEX CompositePrimaryKeysByError3 ON CompositePrimaryKeys(Error) STORING(Z, Y);
 
+CREATE TABLE CustomCompositePrimaryKeys (
+  Id INT64 NOT NULL,
+  PKey1 STRING(32) NOT NULL,
+  PKey2 INT64 NOT NULL,
+  Error INT64 NOT NULL,
+  X STRING(32) NOT NULL,
+  Y STRING(32) NOT NULL,
+  Z STRING(32) NOT NULL,
+) PRIMARY KEY(PKey1, PKey2);
+
+CREATE INDEX CustomCompositePrimaryKeysByXY     ON CustomCompositePrimaryKeys(X, Y);
+CREATE INDEX CustomCompositePrimaryKeysByError  ON CustomCompositePrimaryKeys(Error);
+CREATE INDEX CustomCompositePrimaryKeysByError2 ON CustomCompositePrimaryKeys(Error) STORING(Z);
+CREATE INDEX CustomCompositePrimaryKeysByError3 ON CustomCompositePrimaryKeys(Error) STORING(Z, Y);
+
 CREATE TABLE OutOfOrderPrimaryKeys (
   PKey1 STRING(32) NOT NULL,
   PKey2 STRING(32) NOT NULL,
@@ -79,6 +94,42 @@ CREATE INDEX FullTypesByIntTimestamp ON FullTypes(FTInt, FTTimestamp);
 CREATE INDEX FullTypesByInTimestampNull ON FullTypes(FTInt, FTTimestampNull);
 
 CREATE INDEX FullTypesByTimestamp ON FullTypes(FTTimestamp);
+
+CREATE TABLE CustomPrimitiveTypes (
+  PKey STRING(32) NOT NULL,
+  FTInt64 INT64 NOT NULL,
+  FTInt64Null INT64,
+  FTInt32 INT64 NOT NULL,
+  FTInt32Null INT64,
+  FTInt16 INT64 NOT NULL,
+  FTInt16Null INT64,
+  FTInt8 INT64 NOT NULL,
+  FTInt8Null INT64,
+  FTUInt64 INT64 NOT NULL,
+  FTUInt64Null INT64,
+  FTUInt32 INT64 NOT NULL,
+  FTUInt32Null INT64,
+  FTUInt16 INT64 NOT NULL,
+  FTUInt16Null INT64,
+  FTUInt8 INT64 NOT NULL,
+  FTUInt8Null INT64,
+  FTArrayInt64 ARRAY<INT64> NOT NULL,
+  FTArrayInt64Null ARRAY<INT64>,
+  FTArrayInt32 ARRAY<INT64> NOT NULL,
+  FTArrayInt32Null ARRAY<INT64>,
+  FTArrayInt16 ARRAY<INT64> NOT NULL,
+  FTArrayInt16Null ARRAY<INT64>,
+  FTArrayInt8 ARRAY<INT64> NOT NULL,
+  FTArrayInt8Null ARRAY<INT64>,
+  FTArrayUInt64 ARRAY<INT64> NOT NULL,
+  FTArrayUInt64Null ARRAY<INT64>,
+  FTArrayUInt32 ARRAY<INT64> NOT NULL,
+  FTArrayUInt32Null ARRAY<INT64>,
+  FTArrayUInt16 ARRAY<INT64> NOT NULL,
+  FTArrayUInt16Null ARRAY<INT64>,
+  FTArrayUInt8 ARRAY<INT64> NOT NULL,
+  FTArrayUInt8Null ARRAY<INT64>,
+) PRIMARY KEY(PKey);
 
 CREATE TABLE MaxLengths (
   MaxString STRING(MAX) NOT NULL,
