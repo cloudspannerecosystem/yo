@@ -1,5 +1,5 @@
 {{- $short := (shortname .Name "err" "res" "sqlstr" "db" "YOLog") -}}
-{{- $table := (.Table.TableName) -}}
+{{- $table := (.TableName) -}}
 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
@@ -39,7 +39,7 @@ func ({{ $short }} *{{ .Name }}) UpdateColumns(ctx context.Context, cols ...stri
 
 // Find{{ .Name }} gets a {{ .Name }} by primary key
 func Find{{ .Name }}(ctx context.Context, db YORODB{{ gocustomparamlist .PrimaryKeyFields true true }}) (*{{ .Name }}, error) {
-	key := spanner.Key{ {{ gocustomparamlist .PrimaryKeyFields false false }} }
+	key := spanner.Key{ {{ goEncodedParams .PrimaryKeyFields false }} }
 	row, err := db.ReadRow(ctx, "{{ $table }}", key, {{ .Name }}Columns())
 	if err != nil {
 		return nil, newError("Find{{ .Name }}", "{{ $table }}", err)

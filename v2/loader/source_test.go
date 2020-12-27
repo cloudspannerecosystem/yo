@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"go.mercari.io/yo/v2/models"
 	"go.mercari.io/yo/v2/test/testutil"
 )
 
@@ -113,21 +112,21 @@ func TestFoo(t *testing.T) {
 	table := []struct {
 		name                 string
 		schema               string
-		expectedTables       []*models.Table
-		expectedColumns      map[string][]*models.Column
-		expectedIndex        map[string][]*models.Index
-		expectedIndexColumns map[string][]*models.IndexColumn
+		expectedTables       []*SpannerTable
+		expectedColumns      map[string][]*SpannerColumn
+		expectedIndex        map[string][]*SpannerIndex
+		expectedIndexColumns map[string][]*SpannerIndexColumn
 	}{
 		{
 			name:   "Simple",
 			schema: testSchema1,
-			expectedTables: []*models.Table{
+			expectedTables: []*SpannerTable{
 				{
 					TableName:       "Simple",
 					ParentTableName: "",
 				},
 			},
-			expectedColumns: map[string][]*models.Column{
+			expectedColumns: map[string][]*SpannerColumn{
 				"Simple": {
 					{
 						FieldOrdinal: 1,
@@ -144,7 +143,7 @@ func TestFoo(t *testing.T) {
 					},
 				},
 			},
-			expectedIndex: map[string][]*models.Index{
+			expectedIndex: map[string][]*SpannerIndex{
 				"Simple": {
 					{
 						IndexName: "SimpleIndex",
@@ -158,7 +157,7 @@ func TestFoo(t *testing.T) {
 					},
 				},
 			},
-			expectedIndexColumns: map[string][]*models.IndexColumn{
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{
 				"Simple/SimpleIndex": {
 					{
 						SeqNo:      1,
@@ -180,13 +179,13 @@ func TestFoo(t *testing.T) {
 		{
 			name:   "MaxLength",
 			schema: testSchema2,
-			expectedTables: []*models.Table{
+			expectedTables: []*SpannerTable{
 				{
 					TableName:       "MaxLengths",
 					ParentTableName: "",
 				},
 			},
-			expectedColumns: map[string][]*models.Column{
+			expectedColumns: map[string][]*SpannerColumn{
 				"MaxLengths": {
 					{
 						FieldOrdinal: 1,
@@ -203,21 +202,21 @@ func TestFoo(t *testing.T) {
 					},
 				},
 			},
-			expectedIndex: map[string][]*models.Index{
+			expectedIndex: map[string][]*SpannerIndex{
 				"MaxLengths": nil,
 			},
-			expectedIndexColumns: map[string][]*models.IndexColumn{},
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{},
 		},
 		{
 			name:   "FullTypes",
 			schema: testSchema3,
-			expectedTables: []*models.Table{
+			expectedTables: []*SpannerTable{
 				{
 					TableName:       "FullTypes",
 					ParentTableName: "",
 				},
 			},
-			expectedColumns: map[string][]*models.Column{
+			expectedColumns: map[string][]*SpannerColumn{
 				"FullTypes": {
 					{FieldOrdinal: 1, ColumnName: "PKey", DataType: "STRING(32)", NotNull: true, IsPrimaryKey: true},
 					{FieldOrdinal: 2, ColumnName: "FTString", DataType: "STRING(32)", NotNull: true},
@@ -249,15 +248,15 @@ func TestFoo(t *testing.T) {
 					{FieldOrdinal: 29, ColumnName: "FTArrayDate", DataType: "ARRAY<DATE>", NotNull: true},
 				},
 			},
-			expectedIndex: map[string][]*models.Index{
+			expectedIndex: map[string][]*SpannerIndex{
 				"FullTypes": nil,
 			},
-			expectedIndexColumns: map[string][]*models.IndexColumn{},
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{},
 		},
 		{
 			name:   "ForeignKey",
 			schema: testSchema4,
-			expectedTables: []*models.Table{
+			expectedTables: []*SpannerTable{
 				{
 					TableName: "ForeignItems",
 				},
@@ -265,7 +264,7 @@ func TestFoo(t *testing.T) {
 					TableName: "Items",
 				},
 			},
-			expectedColumns: map[string][]*models.Column{
+			expectedColumns: map[string][]*SpannerColumn{
 				"Items": {
 					{FieldOrdinal: 1, ColumnName: "ID", DataType: "INT64", NotNull: true, IsPrimaryKey: true},
 				},
@@ -274,16 +273,16 @@ func TestFoo(t *testing.T) {
 					{FieldOrdinal: 2, ColumnName: "ItemID", DataType: "INT64", NotNull: true},
 				},
 			},
-			expectedIndex: map[string][]*models.Index{
+			expectedIndex: map[string][]*SpannerIndex{
 				"Items":        nil,
 				"ForeignItems": nil,
 			},
-			expectedIndexColumns: map[string][]*models.IndexColumn{},
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{},
 		},
 		{
 			name:   "Interleave",
 			schema: testSchema5,
-			expectedTables: []*models.Table{
+			expectedTables: []*SpannerTable{
 				{
 					TableName:       "Interleaved",
 					ParentTableName: "Parent",
@@ -292,7 +291,7 @@ func TestFoo(t *testing.T) {
 					TableName: "Parent",
 				},
 			},
-			expectedColumns: map[string][]*models.Column{
+			expectedColumns: map[string][]*SpannerColumn{
 				"Parent": {
 					{FieldOrdinal: 1, ColumnName: "Id", DataType: "INT64", NotNull: true, IsPrimaryKey: true},
 				},
@@ -302,13 +301,13 @@ func TestFoo(t *testing.T) {
 					{FieldOrdinal: 3, ColumnName: "Value", DataType: "INT64", NotNull: true, IsPrimaryKey: false},
 				},
 			},
-			expectedIndex: map[string][]*models.Index{
+			expectedIndex: map[string][]*SpannerIndex{
 				"Parent": nil,
 				"Interleaved": {
 					{IndexName: "InterleavedKey"},
 				},
 			},
-			expectedIndexColumns: map[string][]*models.IndexColumn{
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{
 				"Interleaved/InterleavedKey": {
 					{SeqNo: 1, ColumnName: "Id"},
 					{SeqNo: 2, ColumnName: "Value"},
@@ -370,7 +369,7 @@ func TestFoo(t *testing.T) {
 						tables = append(tables, tbl.TableName)
 					}
 
-					gotColumns := make(map[string][]*models.Column)
+					gotColumns := make(map[string][]*SpannerColumn)
 					for _, tbl := range tables {
 						columns, err := s.ColumnList(tbl)
 						if err != nil {
@@ -383,7 +382,7 @@ func TestFoo(t *testing.T) {
 						t.Errorf("(-got, +want)\n%s", diff)
 					}
 
-					gotIndex := make(map[string][]*models.Index)
+					gotIndex := make(map[string][]*SpannerIndex)
 					for _, tbl := range tables {
 						index, err := s.IndexList(tbl)
 						if err != nil {
@@ -396,7 +395,7 @@ func TestFoo(t *testing.T) {
 						t.Errorf("(-got, +want)\n%s", diff)
 					}
 
-					gotIndexColumns := make(map[string][]*models.IndexColumn)
+					gotIndexColumns := make(map[string][]*SpannerIndexColumn)
 					for tbl, indexes := range gotIndex {
 						for _, index := range indexes {
 							columns, err := s.IndexColumnList(tbl, index.IndexName)

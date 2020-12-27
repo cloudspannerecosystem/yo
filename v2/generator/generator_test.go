@@ -27,6 +27,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/v2/internal"
+	"go.mercari.io/yo/v2/models"
 )
 
 type fakeLoader struct{}
@@ -54,13 +55,13 @@ func newTestGenerator(t *testing.T) *Generator {
 func TestGenerator(t *testing.T) {
 	table := []struct {
 		name             string
-		schema           *internal.Schema
+		schema           *models.Schema
 		expectedFilesDir string
 		compareBaseFile  bool
 	}{
 		{
 			name:             "BaseOnly",
-			schema:           &internal.Schema{},
+			schema:           &models.Schema{},
 			expectedFilesDir: "testdata/empty",
 			compareBaseFile:  true,
 		},

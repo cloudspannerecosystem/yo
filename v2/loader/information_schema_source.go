@@ -23,7 +23,6 @@ import (
 	"context"
 
 	"cloud.google.com/go/spanner"
-	"go.mercari.io/yo/v2/models"
 	"google.golang.org/api/iterator"
 )
 
@@ -37,7 +36,7 @@ type informationSchemaSource struct {
 	client *spanner.Client
 }
 
-func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
+func (s *informationSchemaSource) TableList() ([]*SpannerTable, error) {
 	ctx := context.Background()
 
 	const sqlstr = `SELECT ` +
@@ -50,7 +49,7 @@ func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
 	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	var res []*models.Table
+	var res []*SpannerTable
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -60,7 +59,7 @@ func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
 			return nil, err
 		}
 
-		var t models.Table
+		var t SpannerTable
 		if err := row.ColumnByName("TABLE_NAME", &t.TableName); err != nil {
 			return nil, err
 		}
@@ -77,7 +76,7 @@ func (s *informationSchemaSource) TableList() ([]*models.Table, error) {
 	return res, nil
 }
 
-func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, error) {
+func (s *informationSchemaSource) ColumnList(table string) ([]*SpannerColumn, error) {
 	ctx := context.Background()
 
 	// sql query
@@ -99,7 +98,7 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, er
 	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	var res []*models.Column
+	var res []*SpannerColumn
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -109,7 +108,7 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, er
 			return nil, err
 		}
 
-		var c models.Column
+		var c SpannerColumn
 		var ord int64
 		if err := row.ColumnByName("ORDINAL_POSITION", &ord); err != nil {
 			return nil, err
@@ -138,7 +137,7 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*models.Column, er
 	return res, nil
 }
 
-func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, error) {
+func (s *informationSchemaSource) IndexList(table string) ([]*SpannerIndex, error) {
 	ctx := context.Background()
 
 	// sql query
@@ -156,7 +155,7 @@ func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, erro
 	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	var res []*models.Index
+	var res []*SpannerIndex
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -166,7 +165,7 @@ func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, erro
 			return nil, err
 		}
 
-		var i models.Index
+		var i SpannerIndex
 		if err := row.ColumnByName("INDEX_NAME", &i.IndexName); err != nil {
 			return nil, err
 		}
@@ -180,7 +179,7 @@ func (s *informationSchemaSource) IndexList(table string) ([]*models.Index, erro
 	return res, nil
 }
 
-func (s *informationSchemaSource) IndexColumnList(table string, index string) ([]*models.IndexColumn, error) {
+func (s *informationSchemaSource) IndexColumnList(table string, index string) ([]*SpannerIndexColumn, error) {
 	ctx := context.Background()
 
 	// sql query
@@ -197,7 +196,7 @@ func (s *informationSchemaSource) IndexColumnList(table string, index string) ([
 	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
-	var res []*models.IndexColumn
+	var res []*SpannerIndexColumn
 	for {
 		row, err := iter.Next()
 		if err != nil {
@@ -207,7 +206,7 @@ func (s *informationSchemaSource) IndexColumnList(table string, index string) ([
 			return nil, err
 		}
 
-		var i models.IndexColumn
+		var i SpannerIndexColumn
 		var ord spanner.NullInt64
 		if err := row.ColumnByName("ORDINAL_POSITION", &ord); err != nil {
 			return nil, err

@@ -36,10 +36,10 @@ type Option struct {
 }
 
 type SchemaSource interface {
-	TableList() ([]*models.Table, error)
-	ColumnList(string) ([]*models.Column, error)
-	IndexList(string) ([]*models.Index, error)
-	IndexColumnList(string, string) ([]*models.IndexColumn, error)
+	TableList() ([]*SpannerTable, error)
+	ColumnList(string) ([]*SpannerColumn, error)
+	IndexList(string) ([]*SpannerIndex, error)
+	IndexColumnList(string, string) ([]*SpannerIndexColumn, error)
 }
 
 func NewTypeLoader(source SchemaSource, inflector internal.Inflector, opt Option) *TypeLoader {
@@ -83,7 +83,7 @@ func (tl *TypeLoader) validateCustomType(dataType string, customType string) boo
 }
 
 // LoadSchema loads schema definitions.
-func (tl *TypeLoader) LoadSchema() (*internal.Schema, error) {
+func (tl *TypeLoader) LoadSchema() (*models.Schema, error) {
 	// load tables
 	tableMap, err := tl.LoadTable()
 	if err != nil {
@@ -98,7 +98,7 @@ func (tl *TypeLoader) LoadSchema() (*internal.Schema, error) {
 
 	setIndexesToTables(tableMap, ixMap)
 
-	tables := make([]*internal.Type, 0, len(tableMap))
+	tables := make([]*models.Type, 0, len(tableMap))
 	for _, tbl := range tableMap {
 		tables = append(tables, tbl)
 	}
@@ -107,13 +107,13 @@ func (tl *TypeLoader) LoadSchema() (*internal.Schema, error) {
 		return tables[i].Name < tables[j].Name
 	})
 
-	return &internal.Schema{
+	return &models.Schema{
 		Types: tables,
 	}, nil
 }
 
 // LoadTable loads a schema table/view definition.
-func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
+func (tl *TypeLoader) LoadTable() (map[string]*models.Type, error) {
 	var err error
 
 	// load tables
@@ -123,7 +123,7 @@ func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 	}
 
 	// tables
-	tableMap := make(map[string]*internal.Type)
+	tableMap := make(map[string]*models.Type)
 	for _, ti := range tableList {
 		ignore := false
 
@@ -144,10 +144,11 @@ func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 		}
 
 		// create template
-		typeTpl := &internal.Type{
-			Name:   internal.SingularizeIdentifier(tl.inflector, ti.TableName),
-			Fields: []*internal.Field{},
-			Table:  ti,
+		typeTpl := &models.Type{
+			Name:      internal.SingularizeIdentifier(tl.inflector, ti.TableName),
+			Fields:    []*models.Field{},
+			TableName: ti.TableName,
+			Parent:    nil,
 		}
 
 		// process columns
@@ -167,18 +168,18 @@ func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 }
 
 // loadPrimaryKeys loads primary key fields
-func (tl *TypeLoader) loadPrimaryKeys(typeTpl *internal.Type) error {
+func (tl *TypeLoader) loadPrimaryKeys(typeTpl *models.Type) error {
 	// reorder primary keys
-	indexCols, err := tl.source.IndexColumnList(typeTpl.Table.TableName, "PRIMARY_KEY")
+	indexCols, err := tl.source.IndexColumnList(typeTpl.TableName, "PRIMARY_KEY")
 	if err != nil {
 		return fmt.Errorf("failed to load primary key: %v", err)
 	}
 
-	var fields []*internal.Field
+	var fields []*models.Field
 	for _, idx := range indexCols {
-		var field *internal.Field
+		var field *models.Field
 		for _, f := range typeTpl.Fields {
-			if f.Col.ColumnName == idx.ColumnName {
+			if f.ColumnName == idx.ColumnName {
 				field = f
 				break
 			}
@@ -214,16 +215,16 @@ func (tl *TypeLoader) tableCustomTypes(table string) map[string]string {
 }
 
 // LoadColumns loads schema table/view columns.
-func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
+func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 	var err error
 
 	// load columns
-	columnList, err := tl.source.ColumnList(typeTpl.Table.TableName)
+	columnList, err := tl.source.ColumnList(typeTpl.TableName)
 	if err != nil {
 		return err
 	}
 
-	columnTypes := tl.tableCustomTypes(typeTpl.Table.TableName)
+	columnTypes := tl.tableCustomTypes(typeTpl.TableName)
 	// process columns
 	for _, c := range columnList {
 		ignore := false
@@ -244,21 +245,25 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 			continue
 		}
 
-		len, nilType, typ := parseSpannerType(c.DataType, !c.NotNull)
+		len, nilVal, typ := parseSpannerType(c.DataType, !c.NotNull)
 
 		// set col info
-		f := &internal.Field{
-			Name:    internal.SnakeToCamel(c.ColumnName),
-			Col:     c,
-			Len:     len,
-			NilType: nilType,
-			Type:    typ,
+		f := &models.Field{
+			Name:            internal.SnakeToCamel(c.ColumnName),
+			Len:             len,
+			NullValue:       nilVal,
+			Type:            typ,
+			OriginalType:    typ,
+			ColumnName:      c.ColumnName,
+			SpannerDataType: c.DataType,
+			IsNotNull:       c.NotNull,
+			IsPrimaryKey:    c.IsPrimaryKey,
 		}
 
 		// set custom type
 		customType, ok := columnTypes[c.ColumnName]
 		if ok && tl.validateCustomType(c.DataType, customType) {
-			f.CustomType = customType
+			f.Type = customType
 		}
 
 		// append col to template fields
@@ -269,10 +274,10 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 }
 
 // LoadIndexes loads schema index definitions.
-func (tl *TypeLoader) LoadIndexes(tableMap map[string]*internal.Type) (map[string]*internal.Index, error) {
+func (tl *TypeLoader) LoadIndexes(tableMap map[string]*models.Type) (map[string]*models.Index, error) {
 	var err error
 
-	ixMap := map[string]*internal.Index{}
+	ixMap := map[string]*models.Index{}
 	for _, t := range tableMap {
 		// load table indexes
 		err = tl.LoadTableIndexes(t, ixMap)
@@ -285,12 +290,12 @@ func (tl *TypeLoader) LoadIndexes(tableMap map[string]*internal.Type) (map[strin
 }
 
 // LoadTableIndexes loads schema index definitions per table.
-func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]*internal.Index) error {
+func (tl *TypeLoader) LoadTableIndexes(typeTpl *models.Type, ixMap map[string]*models.Index) error {
 	var err error
 	var priIxLoaded bool
 
 	// load indexes
-	indexList, err := tl.source.IndexList(typeTpl.Table.TableName)
+	indexList, err := tl.source.IndexList(typeTpl.TableName)
 	if err != nil {
 		return err
 	}
@@ -301,11 +306,13 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 		priIxLoaded = priIxLoaded || ix.IsPrimary
 
 		// create index template
-		ixTpl := &internal.Index{
-			Name:   internal.SnakeToCamel(ix.IndexName),
-			Type:   typeTpl,
-			Fields: []*internal.Field{},
-			Index:  ix,
+		ixTpl := &models.Index{
+			Name:      internal.SnakeToCamel(ix.IndexName),
+			Type:      typeTpl,
+			Fields:    []*models.Field{},
+			IndexName: ix.IndexName,
+			IsUnique:  ix.IsUnique,
+			IsPrimary: ix.IsPrimary,
 		}
 
 		// load index columns
@@ -318,16 +325,16 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 		ixTpl.FuncName = tl.buildIndexFuncName(ixTpl)
 		ixTpl.LegacyFuncName = tl.buildLegacyIndexFuncName(ixTpl)
 
-		ixMap[typeTpl.Table.TableName+"_"+ix.IndexName] = ixTpl
+		ixMap[typeTpl.TableName+"_"+ix.IndexName] = ixTpl
 	}
 
 	return nil
 }
 
-func (tl *TypeLoader) buildLegacyIndexFuncName(ixTpl *internal.Index) string {
+func (tl *TypeLoader) buildLegacyIndexFuncName(ixTpl *models.Index) string {
 	// build func name
 	funcName := ixTpl.Type.Name
-	if !ixTpl.Index.IsUnique {
+	if !ixTpl.IsUnique {
 		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
 	}
 	funcName = funcName + "By"
@@ -344,33 +351,33 @@ func (tl *TypeLoader) buildLegacyIndexFuncName(ixTpl *internal.Index) string {
 	return funcName + strings.Join(paramNames, "")
 }
 
-func (tl *TypeLoader) buildIndexFuncName(ixTpl *internal.Index) string {
+func (tl *TypeLoader) buildIndexFuncName(ixTpl *models.Index) string {
 	// build func name
 	funcName := ixTpl.Type.Name
-	if !ixTpl.Index.IsUnique {
+	if !ixTpl.IsUnique {
 		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
 	}
-	return funcName + "By" + internal.SnakeToCamel(ixTpl.Index.IndexName)
+	return funcName + "By" + internal.SnakeToCamel(ixTpl.IndexName)
 }
 
 // LoadIndexColumns loads the index column information.
-func (tl *TypeLoader) LoadIndexColumns(ixTpl *internal.Index) error {
+func (tl *TypeLoader) LoadIndexColumns(ixTpl *models.Index) error {
 	var err error
 
 	// load index columns
-	indexCols, err := tl.source.IndexColumnList(ixTpl.Type.Table.TableName, ixTpl.Index.IndexName)
+	indexCols, err := tl.source.IndexColumnList(ixTpl.Type.TableName, ixTpl.IndexName)
 	if err != nil {
 		return err
 	}
 
 	// process index columns
 	for _, ic := range indexCols {
-		var field *internal.Field
+		var field *models.Field
 
 	fieldLoop:
 		// find field
 		for _, f := range ixTpl.Type.Fields {
-			if f.Col.ColumnName == ic.ColumnName {
+			if f.ColumnName == ic.ColumnName {
 				field = f
 				break fieldLoop
 			}
@@ -386,7 +393,7 @@ func (tl *TypeLoader) LoadIndexColumns(ixTpl *internal.Index) error {
 		} else {
 			ixTpl.Fields = append(ixTpl.Fields, field)
 		}
-		if !field.Col.NotNull {
+		if !field.IsNotNull {
 			ixTpl.NullableFields = append(ixTpl.NullableFields, field)
 		}
 	}
@@ -394,18 +401,18 @@ func (tl *TypeLoader) LoadIndexColumns(ixTpl *internal.Index) error {
 	return nil
 }
 
-func setIndexesToTables(tableMap map[string]*internal.Type, ixMap map[string]*internal.Index) {
-	indexes := make([]*internal.Index, 0, len(ixMap))
+func setIndexesToTables(tableMap map[string]*models.Type, ixMap map[string]*models.Index) {
+	indexes := make([]*models.Index, 0, len(ixMap))
 	for _, ix := range ixMap {
 		indexes = append(indexes, ix)
 	}
 	// sort by index name
 	sort.Slice(indexes, func(i, j int) bool {
-		return indexes[i].Index.IndexName < indexes[j].Index.IndexName
+		return indexes[i].IndexName < indexes[j].IndexName
 	})
 	for tbl, t := range tableMap {
 		for _, ix := range indexes {
-			if ix.Type.Table.TableName == tbl {
+			if ix.Type.TableName == tbl {
 				t.Indexes = append(t.Indexes, ix)
 			}
 		}

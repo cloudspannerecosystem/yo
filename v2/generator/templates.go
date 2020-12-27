@@ -24,7 +24,7 @@ import (
 	"io"
 	"text/template"
 
-	"go.mercari.io/yo/v2/internal"
+	"go.mercari.io/yo/v2/models"
 	"go.mercari.io/yo/v2/module"
 )
 
@@ -89,7 +89,7 @@ var (
 type basicDataSet struct {
 	BuildTag string
 	Package  string
-	Schema   *internal.Schema
+	Schema   *models.Schema
 }
 
 // templateSet is a set of templates.
@@ -102,14 +102,18 @@ type templateSet struct {
 func (ts *templateSet) Execute(w io.Writer, mod module.Module, obj interface{}) error {
 	buf, err := mod.Load()
 	if err != nil {
-		return fmt.Errorf("load error: %v", err)
+		return fmt.Errorf("Load module(%s): %v", mod.Name(), err)
 	}
 
 	// parse template
 	tpl, err := template.New(mod.Name()).Funcs(ts.funcs).Parse(string(buf))
 	if err != nil {
-		return err
+		return fmt.Errorf("Parse module(%s): %v", mod.Name(), err)
 	}
 
-	return tpl.Execute(w, obj)
+	if err := tpl.Execute(w, obj); err != nil {
+		return fmt.Errorf("Execute module(%s): %v", mod.Name(), err)
+	}
+
+	return nil
 }

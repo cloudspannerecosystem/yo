@@ -1,15 +1,13 @@
 {{- $short := (shortname .Name "err" "res" "sqlstr" "db" "YOLog") -}}
-{{- $table := (.Table.TableName) -}}
+{{- $table := (.TableName) -}}
 
 // {{ .Name }} represents a row from '{{ $table }}'.
 type {{ .Name }} struct {
 {{- range .Fields }}
-{{- if eq (.Col.DataType) (.Col.ColumnName) }}
-	{{ .Name }} string `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }} enum
-{{- else if .CustomType }}
-	{{ .Name }} {{ retype .CustomType }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
+{{- if eq (.SpannerDataType) (.ColumnName) }}
+	{{ .Name }} string `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }} enum
 {{- else }}
-	{{ .Name }} {{ .Type }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
+	{{ .Name }} {{ .Type }} `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }}
 {{- end }}
 {{- end }}
 }
@@ -17,7 +15,7 @@ type {{ .Name }} struct {
 func {{ .Name }}PrimaryKeys() []string {
      return []string{
 {{- range .PrimaryKeyFields }}
-		"{{ colname .Col }}",
+		"{{ .ColumnName }}",
 {{- end }}
 	}
 }
@@ -25,7 +23,7 @@ func {{ .Name }}PrimaryKeys() []string {
 func {{ .Name }}Columns() []string {
 	return []string{
 {{- range .Fields }}
-		"{{ colname .Col }}",
+		"{{ .ColumnName }}",
 {{- end }}
 	}
 }
@@ -35,7 +33,7 @@ func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string) ([]interface{}, er
 	for _, col := range cols {
 		switch col {
 {{- range .Fields }}
-		case "{{ colname .Col }}":
+		case "{{ .ColumnName }}":
 			ret = append(ret, yoDecode(&{{ $short }}.{{ .Name }}))
 {{- end }}
 		default:
@@ -50,7 +48,7 @@ func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, 
 	for _, col := range cols {
 		switch col {
 {{- range .Fields }}
-		case "{{ colname .Col }}":
+		case "{{ .ColumnName }}":
 			ret = append(ret, yoEncode({{ $short }}.{{ .Name }}))
 {{- end }}
 		default:

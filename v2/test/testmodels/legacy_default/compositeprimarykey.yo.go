@@ -148,7 +148,7 @@ func (cpk *CompositePrimaryKey) UpdateColumns(ctx context.Context, cols ...strin
 
 // FindCompositePrimaryKey gets a CompositePrimaryKey by primary key
 func FindCompositePrimaryKey(ctx context.Context, db YORODB, pKey1 string, pKey2 int64) (*CompositePrimaryKey, error) {
-	key := spanner.Key{pKey1, pKey2}
+	key := spanner.Key{yoEncode(pKey1), yoEncode(pKey2)}
 	row, err := db.ReadRow(ctx, "CompositePrimaryKeys", key, CompositePrimaryKeyColumns())
 	if err != nil {
 		return nil, newError("FindCompositePrimaryKey", "CompositePrimaryKeys", err)

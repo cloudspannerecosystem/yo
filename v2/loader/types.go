@@ -17,42 +17,33 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package internal
+package loader
 
-import "go.mercari.io/yo/v2/models"
-
-// Schema contains chema information.
-type Schema struct {
-	Types []*Type
+// SpannerTable represents table info.
+type SpannerTable struct {
+	TableName       string // table_name
+	ParentTableName string
 }
 
-// Field contains field information.
-type Field struct {
-	Name       string // Go like (CamelCase) field name
-	Type       string
-	CustomType string
-	NilType    string
-	Len        int
-	Col        *models.Column
+// SpannerColumn represents column info.
+type SpannerColumn struct {
+	FieldOrdinal int    // field_ordinal
+	ColumnName   string // column_name
+	DataType     string // data_type
+	NotNull      bool   // not_null
+	IsPrimaryKey bool   // is_primary_key
 }
 
-// Type is a template item for a type.
-type Type struct {
-	Name             string // Go like (CamelCase) table name
-	PrimaryKeyFields []*Field
-	Fields           []*Field
-	Table            *models.Table
-	Indexes          []*Index
+// SpannerIndex represents an index.
+type SpannerIndex struct {
+	IndexName string // index name
+	IsUnique  bool   // the index is unique ro not
+	IsPrimary bool   // the index is primary key or not
 }
 
-// Index is a template item for a index into a table.
-type Index struct {
-	Name           string // Go like (CamelCase) index name
-	FuncName       string // `By` + Name
-	LegacyFuncName string // `By` + Type name + Field names
-	Type           *Type
-	Fields         []*Field
-	StoringFields  []*Field
-	NullableFields []*Field
-	Index          *models.Index
+// SpannerIndexColumn represents index column info.
+type SpannerIndexColumn struct {
+	SeqNo      int    // seq_no. If is'a Storing Column, this value is 0.
+	ColumnName string // column_name
+	Storing    bool   // storing column or not
 }

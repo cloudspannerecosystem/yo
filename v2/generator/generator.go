@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	"go.mercari.io/yo/v2/internal"
+	"go.mercari.io/yo/v2/models"
 	"go.mercari.io/yo/v2/module"
 )
 
@@ -95,7 +96,7 @@ func (g *Generator) newTemplateSet() *templateSet {
 	}
 }
 
-func (g *Generator) Generate(schema *internal.Schema) error {
+func (g *Generator) Generate(schema *models.Schema) error {
 	tempDir, err := ioutil.TempDir("", "yo_")
 	if err != nil {
 		return fmt.Errorf("failed to create temp dir: %v", err)
@@ -191,7 +192,7 @@ func (g *Generator) ExecuteTemplate(mod module.Module, name string, obj interfac
 
 	// execute template
 	if err := g.newTemplateSet().Execute(tbuf.Buf, mod, obj); err != nil {
-		return fmt.Errorf("template error: %v", err)
+		return fmt.Errorf("error happened while executing template: %v", err)
 	}
 
 	file.Chunks = append(file.Chunks, &tbuf)

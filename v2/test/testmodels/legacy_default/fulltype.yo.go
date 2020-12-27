@@ -282,7 +282,7 @@ func (ft *FullType) UpdateColumns(ctx context.Context, cols ...string) (*spanner
 
 // FindFullType gets a FullType by primary key
 func FindFullType(ctx context.Context, db YORODB, pKey string) (*FullType, error) {
-	key := spanner.Key{pKey}
+	key := spanner.Key{yoEncode(pKey)}
 	row, err := db.ReadRow(ctx, "FullTypes", key, FullTypeColumns())
 	if err != nil {
 		return nil, newError("FindFullType", "FullTypes", err)

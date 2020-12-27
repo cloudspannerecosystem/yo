@@ -116,7 +116,7 @@ func (i *Item) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Muta
 
 // FindItem gets a Item by primary key
 func FindItem(ctx context.Context, db YORODB, id int64) (*Item, error) {
-	key := spanner.Key{id}
+	key := spanner.Key{yoEncode(id)}
 	row, err := db.ReadRow(ctx, "Items", key, ItemColumns())
 	if err != nil {
 		return nil, newError("FindItem", "Items", err)

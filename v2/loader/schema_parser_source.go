@@ -28,7 +28,6 @@ import (
 	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/MakeNowJust/memefish/pkg/parser"
 	"github.com/MakeNowJust/memefish/pkg/token"
-	"go.mercari.io/yo/v2/models"
 )
 
 func NewSchemaParserSource(fpath string) (SchemaSource, error) {
@@ -79,15 +78,15 @@ type schemaParserSource struct {
 	tables map[string]table
 }
 
-func (s *schemaParserSource) TableList() ([]*models.Table, error) {
-	var tables []*models.Table
+func (s *schemaParserSource) TableList() ([]*SpannerTable, error) {
+	var tables []*SpannerTable
 	for _, t := range s.tables {
 		var parent string
 		if t.createTable.Cluster != nil {
 			parent = t.createTable.Cluster.TableName.Name
 		}
 
-		tables = append(tables, &models.Table{
+		tables = append(tables, &SpannerTable{
 			TableName:       t.createTable.Name.Name,
 			ParentTableName: parent,
 		})
@@ -100,8 +99,8 @@ func (s *schemaParserSource) TableList() ([]*models.Table, error) {
 	return tables, nil
 }
 
-func (s *schemaParserSource) ColumnList(name string) ([]*models.Column, error) {
-	var cols []*models.Column
+func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
+	var cols []*SpannerColumn
 	table := s.tables[name].createTable
 
 	check := make(map[string]struct{})
@@ -111,7 +110,7 @@ func (s *schemaParserSource) ColumnList(name string) ([]*models.Column, error) {
 
 	for i, c := range table.Columns {
 		_, pk := check[c.Name.Name]
-		cols = append(cols, &models.Column{
+		cols = append(cols, &SpannerColumn{
 			FieldOrdinal: i + 1,
 			ColumnName:   c.Name.Name,
 			DataType:     c.Type.SQL(),
@@ -123,10 +122,10 @@ func (s *schemaParserSource) ColumnList(name string) ([]*models.Column, error) {
 	return cols, nil
 }
 
-func (s *schemaParserSource) IndexList(name string) ([]*models.Index, error) {
-	var indexes []*models.Index
+func (s *schemaParserSource) IndexList(name string) ([]*SpannerIndex, error) {
+	var indexes []*SpannerIndex
 	for _, index := range s.tables[name].createIndexes {
-		indexes = append(indexes, &models.Index{
+		indexes = append(indexes, &SpannerIndex{
 			IndexName: index.Name.Name,
 			IsUnique:  index.Unique,
 		})
@@ -135,12 +134,12 @@ func (s *schemaParserSource) IndexList(name string) ([]*models.Index, error) {
 	return indexes, nil
 }
 
-func (s *schemaParserSource) IndexColumnList(table, index string) ([]*models.IndexColumn, error) {
+func (s *schemaParserSource) IndexColumnList(table, index string) ([]*SpannerIndexColumn, error) {
 	if index == "PRIMARY_KEY" {
 		return s.primaryKeyColumnList(table)
 	}
 
-	var cols []*models.IndexColumn
+	var cols []*SpannerIndexColumn
 	for _, ix := range s.tables[table].createIndexes {
 		if ix.Name.Name != index {
 			continue
@@ -149,7 +148,7 @@ func (s *schemaParserSource) IndexColumnList(table, index string) ([]*models.Ind
 		// add storing columns first
 		if ix.Storing != nil {
 			for _, c := range ix.Storing.Columns {
-				cols = append(cols, &models.IndexColumn{
+				cols = append(cols, &SpannerIndexColumn{
 					SeqNo:      0,
 					Storing:    true,
 					ColumnName: c.Name,
@@ -158,7 +157,7 @@ func (s *schemaParserSource) IndexColumnList(table, index string) ([]*models.Ind
 		}
 
 		for i, c := range ix.Keys {
-			cols = append(cols, &models.IndexColumn{
+			cols = append(cols, &SpannerIndexColumn{
 				SeqNo:      i + 1,
 				ColumnName: c.Name.Name,
 			})
@@ -169,15 +168,15 @@ func (s *schemaParserSource) IndexColumnList(table, index string) ([]*models.Ind
 	return cols, nil
 }
 
-func (s *schemaParserSource) primaryKeyColumnList(table string) ([]*models.IndexColumn, error) {
+func (s *schemaParserSource) primaryKeyColumnList(table string) ([]*SpannerIndexColumn, error) {
 	tbl, ok := s.tables[table]
 	if !ok {
 		return nil, nil
 	}
 
-	var cols []*models.IndexColumn
+	var cols []*SpannerIndexColumn
 	for i, key := range tbl.createTable.PrimaryKeys {
-		cols = append(cols, &models.IndexColumn{
+		cols = append(cols, &SpannerIndexColumn{
 			SeqNo:      i + 1,
 			ColumnName: key.Name.Name,
 		})

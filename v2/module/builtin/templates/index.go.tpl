@@ -1,11 +1,11 @@
 {{- range .Indexes }}
 {{- $short := (shortname .Type.Name "err" "sqlstr" "db" "q" "res" "YOLog" .Fields) -}}
-{{- $table := (.Type.Table.TableName) -}}
+{{- $table := (.Type.TableName) -}}
 
-{{- if not .Index.IsUnique }}
+{{- if not .IsUnique }}
 // Find{{ .FuncName }} retrieves multiple rows from '{{ $table }}' as a slice of {{ .Type.Name }}.
 //
-// Generated from index '{{ .Index.IndexName }}'.
+// Generated from index '{{ .IndexName }}'.
 func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fields true true }}) ([]*{{ .Type.Name }}, error) {
 {{- else }}
 // Find{{ .FuncName }} retrieves a row from '{{ $table }}' as a {{ .Type.Name }}.
@@ -13,28 +13,28 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 // If no row is present with the given key, then ReadRow returns an error where
 // spanner.ErrCode(err) is codes.NotFound.
 //
-// Generated from unique index '{{ .Index.IndexName }}'.
+// Generated from unique index '{{ .IndexName }}'.
 func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fields true true }}) (*{{ .Type.Name }}, error) {
 {{- end }}
 	{{- if not .NullableFields }}
 	const sqlstr = "SELECT " +
 		"{{ escapedcolnames .Type.Fields }} " +
-		"FROM {{ $table }}@{FORCE_INDEX={{ .Index.IndexName }}} " +
+		"FROM {{ $table }}@{FORCE_INDEX={{ .IndexName }}} " +
 		"WHERE {{ colnamesquery .Fields " AND " }}"
 	{{- else }}
 	var sqlstr = "SELECT " +
 		"{{ escapedcolnames .Type.Fields }} " +
-		"FROM {{ $table }}@{FORCE_INDEX={{ .Index.IndexName }}} "
+		"FROM {{ $table }}@{FORCE_INDEX={{ .IndexName }}} "
 
 	conds := make([]string, {{ columncount .Fields }})
 	{{- range $i, $f := .Fields }}
-	{{- if $f.Col.NotNull }}
-		conds[{{ $i }}] = "{{ escapedcolname $f.Col }} = @param{{ $i }}"
+	{{- if $f.IsNotNull }}
+		conds[{{ $i }}] = "{{ escapedcolname $f.ColumnName }} = @param{{ $i }}"
 	{{- else }}
 	if {{ nullcheck $f }} {
-		conds[{{ $i }}] = "{{ escapedcolname $f.Col }} IS NULL"
+		conds[{{ $i }}] = "{{ escapedcolname $f.ColumnName }} IS NULL"
 	} else {
-		conds[{{ $i }}] = "{{ escapedcolname $f.Col }} = @param{{ $i }}"
+		conds[{{ $i }}] = "{{ escapedcolname $f.ColumnName }} = @param{{ $i }}"
 	}
 	{{- end }}
 	{{- end }}
@@ -51,7 +51,7 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 
 	// run query
 	YOLog(ctx, sqlstr{{ goparamlist .Fields true false }})
-{{- if .Index.IsUnique }}
+{{- if .IsUnique }}
 	iter := db.Query(ctx, stmt)
 	defer iter.Stop()
 
@@ -103,24 +103,24 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fie
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index '{{ .Index.IndexName }}'.
+// Generated from unique index '{{ .IndexName }}'.
 func Read{{ .FuncName }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
 	var res []*{{ .Type.Name }}
     columns := []string{
 {{- range .Type.PrimaryKeyFields }}
-		"{{ colname .Col }}",
+		"{{ .ColumnName }}",
 {{- end }}
 {{- range .Fields }}
-		"{{ colname .Col }}",
+		"{{ .ColumnName }}",
 {{- end }}
 {{- range .StoringFields }}
-		"{{ colname .Col }}",
+		"{{ .ColumnName }}",
 {{- end }}
 }
 
 	decoder := new{{ .Type.Name }}_Decoder(columns)
 
-	rows := db.ReadUsingIndex(ctx, "{{ $table }}", "{{ .Index.IndexName }}", keys, columns)
+	rows := db.ReadUsingIndex(ctx, "{{ $table }}", "{{ .IndexName }}", keys, columns)
 	err := rows.Do(func(row *spanner.Row) error {
 		{{ $short }}, err := decoder(row)
 		if err != nil {

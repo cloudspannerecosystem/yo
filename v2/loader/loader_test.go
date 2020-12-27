@@ -75,58 +75,64 @@ func TestLoader(t *testing.T) {
 		name           string
 		opt            Option
 		schema         string
-		expectedSchema *internal.Schema
+		expectedSchema *models.Schema
 	}{
 		{
 			name:   "Simple",
 			opt:    Option{},
 			schema: simpleSchema,
-			expectedSchema: &internal.Schema{
-				Types: []*internal.Type{
+			expectedSchema: &models.Schema{
+				Types: []*models.Type{
 					{
 						Name: "Simple",
-						PrimaryKeyFields: []*internal.Field{
+						PrimaryKeyFields: []*models.Field{
+							{ColumnName: "Id"},
+						},
+						Fields: []*models.Field{
 							{
-								Name:    "ID",
-								Type:    "int64",
-								NilType: "0",
-								Len:     -1,
+								Name:            "ID",
+								Type:            "int64",
+								OriginalType:    "int64",
+								NullValue:       "0",
+								Len:             -1,
+								ColumnName:      "Id",
+								SpannerDataType: "INT64",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
+							{
+								Name:            "Value",
+								Type:            "string",
+								OriginalType:    "string",
+								NullValue:       `""`,
+								Len:             32,
+								ColumnName:      "Value",
+								SpannerDataType: "STRING(32)",
+								IsNotNull:       true,
+								IsPrimaryKey:    false,
 							},
 						},
-						Fields: []*internal.Field{
-							{
-								Name:    "ID",
-								Type:    "int64",
-								NilType: "0",
-								Len:     -1,
-							},
-							{
-								Name:    "Value",
-								Type:    "string",
-								NilType: `""`,
-								Len:     32,
-							},
-						},
-						Table: &models.Table{TableName: "Simple"},
-						Indexes: []*internal.Index{
+						TableName: "Simple",
+						Indexes: []*models.Index{
 							{
 								Name:           "SimpleIndex",
 								FuncName:       "SimplesBySimpleIndex",
 								LegacyFuncName: "SimplesByValue",
-								Fields: []*internal.Field{
-									{Name: "Value", Type: "string", NilType: `""`, Len: 32},
+								Fields: []*models.Field{
+									{ColumnName: "Value"},
 								},
-								Index: &models.Index{IndexName: "SimpleIndex"},
+								IndexName: "SimpleIndex",
 							},
 							{
 								Name:           "SimpleIndex2",
 								FuncName:       "SimpleBySimpleIndex2",
 								LegacyFuncName: "SimpleByIDValue",
-								Fields: []*internal.Field{
-									{Name: "ID", Type: "int64", NilType: "0", Len: -1},
-									{Name: "Value", Type: "string", NilType: `""`, Len: 32},
+								Fields: []*models.Field{
+									{ColumnName: "Id"},
+									{ColumnName: "Value"},
 								},
-								Index: &models.Index{IndexName: "SimpleIndex2", IsUnique: true},
+								IndexName: "SimpleIndex2",
+								IsUnique:  true,
 							},
 						},
 					},
@@ -137,42 +143,82 @@ func TestLoader(t *testing.T) {
 			name:   "Interleave",
 			opt:    Option{},
 			schema: interleaveSchema,
-			expectedSchema: &internal.Schema{
-				Types: []*internal.Type{
+			expectedSchema: &models.Schema{
+				Types: []*models.Type{
 					{
 						Name: "Interleaved",
-						PrimaryKeyFields: []*internal.Field{
-							{Name: "ID", Type: "int64", NilType: "0", Len: -1},
-							{Name: "InterleavedID", Type: "int64", NilType: "0", Len: -1},
+						PrimaryKeyFields: []*models.Field{
+							{ColumnName: "Id"},
+							{ColumnName: "InterleavedId"},
 						},
-						Fields: []*internal.Field{
-							{Name: "InterleavedID", Type: "int64", NilType: "0", Len: -1},
-							{Name: "ID", Type: "int64", NilType: "0", Len: -1},
-							{Name: "Value", Type: "int64", NilType: "0", Len: -1},
+						Fields: []*models.Field{
+							{
+								Name:            "InterleavedID",
+								Type:            "int64",
+								OriginalType:    "int64",
+								NullValue:       "0",
+								Len:             -1,
+								ColumnName:      "InterleavedId",
+								SpannerDataType: "INT64",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
+							{
+								Name:            "ID",
+								Type:            "int64",
+								OriginalType:    "int64",
+								NullValue:       "0",
+								Len:             -1,
+								ColumnName:      "Id",
+								SpannerDataType: "INT64",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
+							{
+								Name:            "Value",
+								Type:            "int64",
+								OriginalType:    "int64",
+								NullValue:       "0",
+								Len:             -1,
+								ColumnName:      "Value",
+								SpannerDataType: "INT64",
+								IsNotNull:       true,
+								IsPrimaryKey:    false,
+							},
 						},
-						Table: &models.Table{TableName: "Interleaved", ParentTableName: "Parent"},
-						Indexes: []*internal.Index{
+						TableName: "Interleaved",
+						Indexes: []*models.Index{
 							{
 								Name:           "InterleavedKey",
 								FuncName:       "InterleavedsByInterleavedKey",
 								LegacyFuncName: "InterleavedsByIDValue",
-								Fields: []*internal.Field{
-									{Name: "ID", Type: "int64", NilType: "0", Len: -1},
-									{Name: "Value", Type: "int64", NilType: "0", Len: -1},
+								Fields: []*models.Field{
+									{ColumnName: "Id"},
+									{ColumnName: "Value"},
 								},
-								Index: &models.Index{IndexName: "InterleavedKey"},
+								IndexName: "InterleavedKey",
 							},
 						},
 					},
 					{
 						Name: "Parent",
-						PrimaryKeyFields: []*internal.Field{
-							{Name: "ID", Type: "int64", NilType: "0", Len: -1},
+						PrimaryKeyFields: []*models.Field{
+							{ColumnName: "Id"},
 						},
-						Fields: []*internal.Field{
-							{Name: "ID", Type: "int64", NilType: "0", Len: -1},
+						Fields: []*models.Field{
+							{
+								Name:            "ID",
+								Type:            "int64",
+								OriginalType:    "int64",
+								NullValue:       "0",
+								Len:             -1,
+								ColumnName:      "Id",
+								SpannerDataType: "INT64",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
 						},
-						Table: &models.Table{TableName: "Parent"},
+						TableName: "Parent",
 					},
 				},
 			},
@@ -181,21 +227,51 @@ func TestLoader(t *testing.T) {
 			name:   "OutOfOrderPrimaryKey",
 			opt:    Option{},
 			schema: oooSchema,
-			expectedSchema: &internal.Schema{
-				Types: []*internal.Type{
+			expectedSchema: &models.Schema{
+				Types: []*models.Type{
 					{
 						Name: "OutOfOrderPrimaryKey",
-						PrimaryKeyFields: []*internal.Field{
-							{Name: "PKey2", Type: "string", NilType: `""`, Len: 32},
-							{Name: "PKey1", Type: "string", NilType: `""`, Len: 32},
-							{Name: "PKey3", Type: "string", NilType: `""`, Len: 32},
+						PrimaryKeyFields: []*models.Field{
+							{ColumnName: "PKey2"},
+							{ColumnName: "PKey1"},
+							{ColumnName: "PKey3"},
 						},
-						Fields: []*internal.Field{
-							{Name: "PKey1", Type: "string", NilType: `""`, Len: 32},
-							{Name: "PKey2", Type: "string", NilType: `""`, Len: 32},
-							{Name: "PKey3", Type: "string", NilType: `""`, Len: 32},
+						Fields: []*models.Field{
+							{
+								Name:            "PKey1",
+								Type:            "string",
+								OriginalType:    "string",
+								NullValue:       `""`,
+								Len:             32,
+								ColumnName:      "PKey1",
+								SpannerDataType: "STRING(32)",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
+							{
+								Name:            "PKey2",
+								Type:            "string",
+								OriginalType:    "string",
+								NullValue:       `""`,
+								Len:             32,
+								ColumnName:      "PKey2",
+								SpannerDataType: "STRING(32)",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
+							{
+								Name:            "PKey3",
+								Type:            "string",
+								OriginalType:    "string",
+								NullValue:       `""`,
+								Len:             32,
+								ColumnName:      "PKey3",
+								SpannerDataType: "STRING(32)",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
 						},
-						Table: &models.Table{TableName: "OutOfOrderPrimaryKeys"},
+						TableName: "OutOfOrderPrimaryKeys",
 					},
 				},
 			},
@@ -204,18 +280,38 @@ func TestLoader(t *testing.T) {
 			name:   "MaxLength",
 			opt:    Option{},
 			schema: maxLengthSchema,
-			expectedSchema: &internal.Schema{
-				Types: []*internal.Type{
+			expectedSchema: &models.Schema{
+				Types: []*models.Type{
 					{
 						Name: "MaxLength",
-						PrimaryKeyFields: []*internal.Field{
-							{Name: "MaxString", Type: "string", NilType: `""`, Len: -1},
+						PrimaryKeyFields: []*models.Field{
+							{ColumnName: "MaxString"},
 						},
-						Fields: []*internal.Field{
-							{Name: "MaxString", Type: "string", NilType: `""`, Len: -1},
-							{Name: "MaxBytes", Type: "[]byte", NilType: "nil", Len: -1},
+						Fields: []*models.Field{
+							{
+								Name:            "MaxString",
+								Type:            "string",
+								OriginalType:    "string",
+								NullValue:       `""`,
+								Len:             -1,
+								ColumnName:      "MaxString",
+								SpannerDataType: "STRING(MAX)",
+								IsNotNull:       true,
+								IsPrimaryKey:    true,
+							},
+							{
+								Name:            "MaxBytes",
+								Type:            "[]byte",
+								OriginalType:    "[]byte",
+								NullValue:       "nil",
+								Len:             -1,
+								ColumnName:      "MaxBytes",
+								SpannerDataType: "BYTES(MAX)",
+								IsNotNull:       true,
+								IsPrimaryKey:    false,
+							},
 						},
-						Table: &models.Table{TableName: "MaxLengths"},
+						TableName: "MaxLengths",
 					},
 				},
 			},
@@ -249,8 +345,24 @@ func TestLoader(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(schema, tc.expectedSchema,
-				cmpopts.IgnoreFields(internal.Field{}, "Col"),
-				cmpopts.IgnoreFields(internal.Index{}, "Type"),
+				cmp.Transformer("FilterInTypePrimaryKeyFields", func(in *models.Type) *models.Type {
+					if in == nil {
+						return in
+					}
+					for i := range in.PrimaryKeyFields {
+						f := in.PrimaryKeyFields[i]
+						in.PrimaryKeyFields[i] = &models.Field{ColumnName: f.ColumnName}
+					}
+					return in
+				}),
+				cmp.Transformer("FilterInIndexFields", func(in *models.Index) *models.Index {
+					for i := range in.Fields {
+						f := in.Fields[i]
+						in.Fields[i] = &models.Field{ColumnName: f.ColumnName}
+					}
+					return in
+				}),
+				cmpopts.IgnoreFields(models.Index{}, "Type"),
 			); diff != "" {
 				t.Errorf("(-got, +want)\n%s", diff)
 			}
@@ -260,28 +372,28 @@ func TestLoader(t *testing.T) {
 
 func Test_setIndexesToTables(t *testing.T) {
 	tests := []struct {
-		table  map[string]*internal.Type
-		ix     map[string]*internal.Index
+		table  map[string]*models.Type
+		ix     map[string]*models.Index
 		result map[string]int
 	}{
 		{
-			table: map[string]*internal.Type{
-				"TableA": &internal.Type{
-					Indexes: []*internal.Index{},
+			table: map[string]*models.Type{
+				"TableA": &models.Type{
+					Indexes: []*models.Index{},
 				},
 			},
-			ix: map[string]*internal.Index{
-				"TableA_Index1": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableA"},
+			ix: map[string]*models.Index{
+				"TableA_Index1": &models.Index{
+					Type: &models.Type{
+						TableName: "TableA",
 					},
-					Index: &models.Index{IndexName: "Index1"},
+					IndexName: "Index1",
 				},
-				"TableA_Index2": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableA"},
+				"TableA_Index2": &models.Index{
+					Type: &models.Type{
+						TableName: "TableA",
 					},
-					Index: &models.Index{IndexName: "Index2"},
+					IndexName: "Index2",
 				},
 			},
 			result: map[string]int{
@@ -289,26 +401,26 @@ func Test_setIndexesToTables(t *testing.T) {
 			},
 		},
 		{
-			table: map[string]*internal.Type{
-				"TableA": &internal.Type{
-					Indexes: []*internal.Index{},
+			table: map[string]*models.Type{
+				"TableA": &models.Type{
+					Indexes: []*models.Index{},
 				},
-				"TableB": &internal.Type{
-					Indexes: []*internal.Index{},
+				"TableB": &models.Type{
+					Indexes: []*models.Index{},
 				},
 			},
-			ix: map[string]*internal.Index{
-				"TableA_Index1": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableA"},
+			ix: map[string]*models.Index{
+				"TableA_Index1": &models.Index{
+					Type: &models.Type{
+						TableName: "TableA",
 					},
-					Index: &models.Index{IndexName: "Index1"},
+					IndexName: "Index1",
 				},
-				"TableA_Index2": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableA"},
+				"TableA_Index2": &models.Index{
+					Type: &models.Type{
+						TableName: "TableA",
 					},
-					Index: &models.Index{IndexName: "Index2"},
+					IndexName: "Index2",
 				},
 			},
 			result: map[string]int{
@@ -317,38 +429,38 @@ func Test_setIndexesToTables(t *testing.T) {
 			},
 		},
 		{
-			table: map[string]*internal.Type{
-				"TableA": &internal.Type{
-					Indexes: []*internal.Index{},
+			table: map[string]*models.Type{
+				"TableA": &models.Type{
+					Indexes: []*models.Index{},
 				},
-				"TableB": &internal.Type{
-					Indexes: []*internal.Index{},
+				"TableB": &models.Type{
+					Indexes: []*models.Index{},
 				},
 			},
-			ix: map[string]*internal.Index{
-				"TableA_Index1": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableA"},
+			ix: map[string]*models.Index{
+				"TableA_Index1": &models.Index{
+					Type: &models.Type{
+						TableName: "TableA",
 					},
-					Index: &models.Index{IndexName: "Index1"},
+					IndexName: "Index1",
 				},
-				"TableA_Index2": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableA"},
+				"TableA_Index2": &models.Index{
+					Type: &models.Type{
+						TableName: "TableA",
 					},
-					Index: &models.Index{IndexName: "Index2"},
+					IndexName: "Index2",
 				},
-				"TableB_Index1": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableB"},
+				"TableB_Index1": &models.Index{
+					Type: &models.Type{
+						TableName: "TableB",
 					},
-					Index: &models.Index{IndexName: "Index1"},
+					IndexName: "Index1",
 				},
-				"TableB_Index2forTableA_Hoge": &internal.Index{
-					Type: &internal.Type{
-						Table: &models.Table{TableName: "TableB"},
+				"TableB_Index2forTableA_Hoge": &models.Index{
+					Type: &models.Type{
+						TableName: "TableB",
 					},
-					Index: &models.Index{IndexName: "Index2"},
+					IndexName: "Index2",
 				},
 			},
 			result: map[string]int{
