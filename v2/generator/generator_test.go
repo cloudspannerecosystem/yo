@@ -38,17 +38,16 @@ func (*fakeLoader) NthParam(int) string {
 func newTestGenerator(t *testing.T) *Generator {
 	t.Helper()
 
-	inflector, err := internal.NewInflector("")
+	inflector, err := internal.NewInflector(nil)
 	if err != nil {
 		t.Fatalf("failed to create inflector: %v", err)
 	}
 
 	return NewGenerator(&fakeLoader{}, inflector, GeneratorOption{
-		PackageName:       "yotest",
-		Tags:              "",
-		CustomTypePackage: "",
-		FilenameSuffix:    ".yo.go",
-		BaseDir:           t.TempDir(),
+		PackageName:    "yotest",
+		Tags:           "",
+		FilenameSuffix: ".yo.go",
+		BaseDir:        t.TempDir(),
 	})
 }
 

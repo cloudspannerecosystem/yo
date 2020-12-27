@@ -47,22 +47,18 @@ GENERATE_OPT = $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABA
 endif
 
 testdata: ## generate test models
-	$(MAKE) -j4 testdata/default testdata/legacy_default testdata/customtypes testdata/dump_types
+	$(MAKE) -j4 testdata/default testdata/legacy_default testdata/dump_types
 
 testdata-from-ddl: ## generate test models
 	$(MAKE) USE_DDL=true -j4 testdata/default testdata/customtypes testdata/dump_types
 
 testdata/default:
 	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
-	$(YOBIN) generate $(GENERATE_OPT) --package models --out test/testmodels/default/
+	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --package models --out test/testmodels/default/
 
 testdata/legacy_default:
 	rm -rf test/testmodels/legacy_default && mkdir -p test/testmodels/legacy_default
-	$(YOBIN) generate $(GENERATE_OPT) --use-legacy-index-module --package models --out test/testmodels/legacy_default/
-
-testdata/customtypes:
-	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
-	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --out test/testmodels/customtypes/
+	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --use-legacy-index-module --package models --out test/testmodels/legacy_default/
 
 testdata/dump_types:
 	rm -rf test/testmodels/dump_types && mkdir -p test/testmodels/dump_types

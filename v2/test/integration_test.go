@@ -31,8 +31,7 @@ import (
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
 	"github.com/google/go-cmp/cmp"
-	"go.mercari.io/yo/v2/test/testmodels/customtypes"
-	models "go.mercari.io/yo/v2/test/testmodels/default"
+	default_models "go.mercari.io/yo/v2/test/testmodels/default"
 	legacy_models "go.mercari.io/yo/v2/test/testmodels/legacy_default"
 	"go.mercari.io/yo/v2/test/testutil"
 	"google.golang.org/api/option"
@@ -157,7 +156,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 		t.Fatalf("failed to clear data: %v", err)
 	}
 
-	cpk := &models.CompositePrimaryKey{
+	cpk := &default_models.CompositePrimaryKey{
 		ID:    200,
 		PKey1: "x200",
 		PKey2: 200,
@@ -172,7 +171,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	}
 
 	t.Run("FindByPrimaryKey", func(t *testing.T) {
-		got, err := models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
+		got, err := default_models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -183,7 +182,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByPrimaryKey", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x200", 200})
+		got, err := default_models.ReadCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x200", 200})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -198,7 +197,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		_, err := models.FindCompositePrimaryKey(ctx, client.Single(), "default", 100)
+		_, err := default_models.FindCompositePrimaryKey(ctx, client.Single(), "default", 100)
 		if err == nil {
 			t.Fatal("unexpected success")
 		}
@@ -209,7 +208,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("FindByError", func(t *testing.T) {
-		got, err := models.FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		got, err := default_models.FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -224,7 +223,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := default_models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -233,7 +232,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
 		}
 
-		expected := &models.CompositePrimaryKey{
+		expected := &default_models.CompositePrimaryKey{
 			PKey1: cpk.PKey1,
 			PKey2: cpk.PKey2,
 			Error: cpk.Error,
@@ -244,7 +243,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError2", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError2(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := default_models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError2(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -253,7 +252,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
 		}
 
-		expected := &models.CompositePrimaryKey{
+		expected := &default_models.CompositePrimaryKey{
 			PKey1: cpk.PKey1,
 			PKey2: cpk.PKey2,
 			Error: cpk.Error,
@@ -265,7 +264,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError3", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError3(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := default_models.ReadCompositePrimaryKeysByCompositePrimaryKeysByError3(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -274,7 +273,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
 		}
 
-		expected := &models.CompositePrimaryKey{
+		expected := &default_models.CompositePrimaryKey{
 			PKey1: cpk.PKey1,
 			PKey2: cpk.PKey2,
 			Error: cpk.Error,
@@ -301,10 +300,10 @@ func TestDefaultFullType(t *testing.T) {
 	nextdate := civil.DateOf(tomorrow)
 
 	table := map[string]struct {
-		ft *models.FullType
+		ft *default_models.FullType
 	}{
 		"case1": {
-			ft: &models.FullType{
+			ft: &default_models.FullType{
 				PKey:     "pkey1",
 				FTString: "xxx1",
 				FTStringNull: spanner.NullString{
@@ -355,7 +354,7 @@ func TestDefaultFullType(t *testing.T) {
 			},
 		},
 		"case2": {
-			ft: &models.FullType{
+			ft: &default_models.FullType{
 				PKey:                 "pkey2",
 				FTString:             "xxx2",
 				FTStringNull:         spanner.NullString{},
@@ -388,7 +387,7 @@ func TestDefaultFullType(t *testing.T) {
 			},
 		},
 		"case3": {
-			ft: &models.FullType{
+			ft: &default_models.FullType{
 				PKey:                 "pkey3",
 				FTString:             "xxx3",
 				FTStringNull:         spanner.NullString{},
@@ -428,7 +427,7 @@ func TestDefaultFullType(t *testing.T) {
 				t.Fatalf("Apply failed: %v", err)
 			}
 
-			got, err := models.FindFullType(ctx, client.Single(), tt.ft.PKey)
+			got, err := default_models.FindFullType(ctx, client.Single(), tt.ft.PKey)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -440,7 +439,7 @@ func TestDefaultFullType(t *testing.T) {
 	}
 
 	t.Run("FindWithNonNull", func(t *testing.T) {
-		fts, err := models.FindFullTypesByFullTypesByInTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+		fts, err := default_models.FindFullTypesByFullTypesByInTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
 			Time:  now,
 			Valid: true,
 		})
@@ -460,7 +459,7 @@ func TestDefaultFullType(t *testing.T) {
 	})
 
 	t.Run("FindWithNull", func(t *testing.T) {
-		fts, err := models.FindFullTypesByFullTypesByInTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
+		fts, err := default_models.FindFullTypesByFullTypesByInTimestampNull(ctx, client.Single(), 101, spanner.NullTime{
 			Valid: false,
 		})
 		if err != nil {
@@ -817,7 +816,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 		t.Fatalf("failed to clear data: %v", err)
 	}
 
-	cpk := &customtypes.CustomCompositePrimaryKey{
+	cpk := &default_models.CustomCompositePrimaryKey{
 		ID:    300,
 		PKey1: "x300",
 		PKey2: 300,
@@ -832,7 +831,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	}
 
 	t.Run("FindByPrimaryKey", func(t *testing.T) {
-		got, err := customtypes.FindCustomCompositePrimaryKey(ctx, client.Single(), "x300", 300)
+		got, err := default_models.FindCustomCompositePrimaryKey(ctx, client.Single(), "x300", 300)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -843,7 +842,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByPrimaryKey", func(t *testing.T) {
-		got, err := customtypes.ReadCustomCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x300", 300})
+		got, err := default_models.ReadCustomCompositePrimaryKey(ctx, client.Single(), spanner.Key{"x300", 300})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -858,7 +857,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		_, err := customtypes.FindCustomCompositePrimaryKey(ctx, client.Single(), "custom", 100)
+		_, err := default_models.FindCustomCompositePrimaryKey(ctx, client.Single(), "custom", 100)
 		if err == nil {
 			t.Fatal("unexpected success")
 		}
@@ -869,7 +868,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("FindByError", func(t *testing.T) {
-		got, err := customtypes.FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
+		got, err := default_models.FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx, client.Single(), cpk.Error)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -884,7 +883,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError", func(t *testing.T) {
-		got, err := customtypes.ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := default_models.ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -893,7 +892,7 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
 		}
 
-		expected := &customtypes.CustomCompositePrimaryKey{
+		expected := &default_models.CustomCompositePrimaryKey{
 			PKey1: cpk.PKey1,
 			PKey2: cpk.PKey2,
 			Error: cpk.Error,
@@ -912,7 +911,7 @@ func TestCustomPrimitiveTypes(t *testing.T) {
 		t.Fatalf("failed to clear data: %v", err)
 	}
 
-	cpk := &customtypes.CustomPrimitiveType{
+	cpk := &default_models.CustomPrimitiveType{
 		PKey:              "pkey1",
 		FTInt64:           1,
 		FTInt64null:       1,
@@ -953,7 +952,7 @@ func TestCustomPrimitiveTypes(t *testing.T) {
 	}
 
 	t.Run("FindByPrimaryKey", func(t *testing.T) {
-		got, err := customtypes.FindCustomPrimitiveType(ctx, client.Single(), "pkey1")
+		got, err := default_models.FindCustomPrimitiveType(ctx, client.Single(), "pkey1")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -996,7 +995,7 @@ func TestSessionNotFound(t *testing.T) {
 	}
 
 	t.Run("ConvertToSpannerError", func(t *testing.T) {
-		_, err = models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
+		_, err = default_models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
 		var se *spanner.Error
 		if !errors.As(err, &se) {
 			t.Fatalf("the error returned by yo can be spanner.Error: %T", err)
@@ -1016,7 +1015,7 @@ func TestSessionNotFound(t *testing.T) {
 	})
 
 	t.Run("ConvertToStatus", func(t *testing.T) {
-		_, err = models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
+		_, err = default_models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
 		st := status.Convert(err)
 		ri := extractResourceInfo(st)
 
