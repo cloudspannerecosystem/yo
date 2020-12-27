@@ -17,51 +17,26 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package internal
+package config
 
-import (
-	"github.com/gedex/inflector"
-	"github.com/jinzhu/inflection"
-	"go.mercari.io/yo/v2/config"
-)
-
-type Inflector interface {
-	Singularize(string) string
-	Pluralize(string) string
+type Config struct {
+	Tables      []Table      `yaml:"tables"`
+	Inflections []Inflection `yaml:"inflections"`
 }
 
-type DefaultInflector struct{}
-type RuleInflector struct{}
-
-func (i *DefaultInflector) Singularize(s string) string {
-	return inflector.Singularize(s)
-}
-func (i *DefaultInflector) Pluralize(s string) string {
-	return inflector.Pluralize(s)
+// Table represents custom type definitions
+type Table struct {
+	Name    string   `yaml:"name"`
+	Columns []Column `yaml:"columns"`
 }
 
-func (i *RuleInflector) Singularize(s string) string {
-	return inflection.Singular(s)
-}
-func (i *RuleInflector) Pluralize(s string) string {
-	return inflection.Plural(s)
-}
-
-func NewInflector(rules []config.Inflection) (Inflector, error) {
-	if len(rules) == 0 {
-		return &DefaultInflector{}, nil
-	}
-
-	if err := registerRule(rules); err != nil {
-		return nil, err
-	}
-	return &RuleInflector{}, nil
+// Column represents custom type definitions
+type Column struct {
+	Name       string `yaml:"name"`
+	CustomType string `yaml:"customType"`
 }
 
-func registerRule(rules []config.Inflection) error {
-	for _, rule := range rules {
-		inflection.AddIrregular(rule.Singular, rule.Plural)
-	}
-
-	return nil
+type Inflection struct {
+	Singular string `yaml:"singular"`
+	Plural   string `yaml:"plural"`
 }

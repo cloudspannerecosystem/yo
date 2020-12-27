@@ -39,12 +39,11 @@ type Loader interface {
 }
 
 type GeneratorOption struct {
-	PackageName       string
-	Tags              string
-	CustomTypePackage string
-	FilenameSuffix    string
-	BaseDir           string
-	DisableFormat     bool
+	PackageName    string
+	Tags           string
+	FilenameSuffix string
+	BaseDir        string
+	DisableFormat  bool
 
 	HeaderModule  module.Module
 	GlobalModules []module.Module
@@ -53,14 +52,13 @@ type GeneratorOption struct {
 
 func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOption) *Generator {
 	return &Generator{
-		loader:            loader,
-		inflector:         inflector,
-		packageName:       opt.PackageName,
-		tags:              opt.Tags,
-		customTypePackage: opt.CustomTypePackage,
-		filenameSuffix:    opt.FilenameSuffix,
-		baseDir:           opt.BaseDir,
-		disableFormat:     opt.DisableFormat,
+		loader:         loader,
+		inflector:      inflector,
+		packageName:    opt.PackageName,
+		tags:           opt.Tags,
+		filenameSuffix: opt.FilenameSuffix,
+		baseDir:        opt.BaseDir,
+		disableFormat:  opt.DisableFormat,
 
 		headerModule:  opt.HeaderModule,
 		globalModules: opt.GlobalModules,

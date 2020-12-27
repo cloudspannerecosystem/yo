@@ -47,11 +47,3 @@ type IndexColumn struct {
 	ColumnName string // column_name
 	Storing    bool   // storing column or not
 }
-
-// CustomTypes represents custom type definitions
-type CustomTypes struct {
-	Tables []struct {
-		Name    string            `yaml:"name"`
-		Columns map[string]string `yaml:"columns"`
-	}
-}

@@ -123,8 +123,3 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 
 	return length, nilVal, typ
 }
-
-func validateCustomType(dataType string, customType string) bool {
-	// No custom type validation now
-	return true
-}

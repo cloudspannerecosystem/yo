@@ -210,6 +210,8 @@ See https://github.com/jinzhu/inflection#register-rules for details.
 * Remove `PrimaryKey` field from `internal.Type` struct
 * `--template-path` option is deprecated
    * Use module system instead (TODO)
+* `--custom-types-file` and `--inflection-rule-file` options are deprecated
+   * Use `--config` option instead
 
 ## Contributions
 

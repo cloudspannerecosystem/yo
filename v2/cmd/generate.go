@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"go.mercari.io/yo/v2/config"
 	"go.mercari.io/yo/v2/generator"
 	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/loader"
@@ -64,9 +65,6 @@ type generateCmdOption struct {
 	// the name of the output directory will be used instead.
 	Package string
 
-	// CustomTypePackage is the Go package name to use for unknown types.
-	CustomTypePackage string
-
 	// Tags is the list of build tags to add to generated Go files.
 	Tags string
 
@@ -84,11 +82,8 @@ type generateCmdOption struct {
 	// handled by yo in the generated code.
 	IgnoreTables []string
 
-	// InflectionRuleFile is custom inflection rule file.
-	InflectionRuleFile string
-
-	// CustomTypesFile is the path for custom table field type definition file (xx.yml)
-	CustomTypesFile string
+	// Path to config file
+	ConfigFile string
 
 	// DisableDefaultModules disable to use the default modules for code generation
 	DisableDefaultModules bool
@@ -133,11 +128,16 @@ var (
 			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 			defer cancel()
 
+			cfg, err := config.Load(generateCmdOpts.ConfigFile)
+			if err != nil {
+				return err
+			}
+
 			if err := processGenerateCmdOption(&generateCmdOpts, args); err != nil {
 				return err
 			}
 
-			inflector, err := internal.NewInflector(generateCmdOpts.InflectionRuleFile)
+			inflector, err := internal.NewInflector(cfg.Inflections)
 			if err != nil {
 				return fmt.Errorf("load inflection rule failed: %v", err)
 			}
@@ -160,16 +160,10 @@ var (
 			}
 
 			typeLoader := loader.NewTypeLoader(source, inflector, loader.Option{
+				Config:       cfg,
 				IgnoreTables: generateCmdOpts.IgnoreTables,
 				IgnoreFields: generateCmdOpts.IgnoreFields,
 			})
-
-			// load custom type definitions
-			if generateCmdOpts.CustomTypesFile != "" {
-				if err := typeLoader.LoadCustomTypes(generateCmdOpts.CustomTypesFile); err != nil {
-					return fmt.Errorf("load custom types file failed: %v", err)
-				}
-			}
 
 			// load defs into type map
 			schema, err := typeLoader.LoadSchema()
@@ -180,12 +174,11 @@ var (
 			headerModule, globalModules, typeModules := decideModules(&generateCmdOpts)
 
 			g := generator.NewGenerator(typeLoader, inflector, generator.GeneratorOption{
-				PackageName:       generateCmdOpts.Package,
-				Tags:              generateCmdOpts.Tags,
-				CustomTypePackage: generateCmdOpts.CustomTypePackage,
-				FilenameSuffix:    generateCmdOpts.Suffix,
-				BaseDir:           generateCmdOpts.baseDir,
-				DisableFormat:     generateCmdOpts.DisableFormat,
+				PackageName:    generateCmdOpts.Package,
+				Tags:           generateCmdOpts.Tags,
+				FilenameSuffix: generateCmdOpts.Suffix,
+				BaseDir:        generateCmdOpts.baseDir,
+				DisableFormat:  generateCmdOpts.DisableFormat,
 
 				HeaderModule:  headerModule,
 				GlobalModules: globalModules,
@@ -201,16 +194,14 @@ var (
 )
 
 func init() {
+	generateCmd.Flags().StringVarP(&generateCmdOpts.ConfigFile, "config", "c", "", "path to Yo config file")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.FromDDL, "from-ddl", false, "toggle using ddl file")
-	generateCmd.Flags().StringVar(&generateCmdOpts.CustomTypesFile, "custom-types-file", "", "custom table field type definition file")
 	generateCmd.Flags().StringVarP(&generateCmdOpts.Out, "out", "o", "", "output path or file name")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Suffix, "suffix", defaultSuffix, "output file suffix")
 	generateCmd.Flags().StringVarP(&generateCmdOpts.Package, "package", "p", "", "package name used in generated Go code")
-	generateCmd.Flags().StringVar(&generateCmdOpts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
-	generateCmd.Flags().StringVar(&generateCmdOpts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableDefaultModules, "disable-default-modules", false, "disable the default modules for code generation")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableFormat, "disable-format", false, "disable to apply gofmt to generated files")
 	generateCmd.Flags().StringVar(&generateCmdOpts.HeaderModule, "header-module", "", "replace the default header module by user defined module")

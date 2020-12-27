@@ -17,51 +17,29 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package internal
+package config
 
 import (
-	"github.com/gedex/inflector"
-	"github.com/jinzhu/inflection"
-	"go.mercari.io/yo/v2/config"
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
-type Inflector interface {
-	Singularize(string) string
-	Pluralize(string) string
-}
+func Load(path string) (*Config, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &Config{}, nil
+		}
+		return nil, fmt.Errorf("failed to read config file: %v", err)
+	}
+	defer file.Close()
 
-type DefaultInflector struct{}
-type RuleInflector struct{}
-
-func (i *DefaultInflector) Singularize(s string) string {
-	return inflector.Singularize(s)
-}
-func (i *DefaultInflector) Pluralize(s string) string {
-	return inflector.Pluralize(s)
-}
-
-func (i *RuleInflector) Singularize(s string) string {
-	return inflection.Singular(s)
-}
-func (i *RuleInflector) Pluralize(s string) string {
-	return inflection.Plural(s)
-}
-
-func NewInflector(rules []config.Inflection) (Inflector, error) {
-	if len(rules) == 0 {
-		return &DefaultInflector{}, nil
+	var cfg Config
+	if err := yaml.NewDecoder(file).Decode(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to decode config file: %v", err)
 	}
 
-	if err := registerRule(rules); err != nil {
-		return nil, err
-	}
-	return &RuleInflector{}, nil
-}
-
-func registerRule(rules []config.Inflection) error {
-	for _, rule := range rules {
-		inflection.AddIrregular(rule.Singular, rule.Plural)
-	}
-
-	return nil
+	return &cfg, nil
 }

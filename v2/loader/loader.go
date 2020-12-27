@@ -21,16 +21,16 @@ package loader
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
+	"go.mercari.io/yo/v2/config"
 	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/models"
-	"gopkg.in/yaml.v2"
 )
 
 type Option struct {
+	Config       *config.Config
 	IgnoreFields []string
 	IgnoreTables []string
 }
@@ -46,6 +46,7 @@ func NewTypeLoader(source SchemaSource, inflector internal.Inflector, opt Option
 	return &TypeLoader{
 		source:       source,
 		inflector:    inflector,
+		config:       opt.Config,
 		ignoreFields: opt.IgnoreFields,
 		ignoreTables: opt.IgnoreTables,
 	}
@@ -54,10 +55,10 @@ func NewTypeLoader(source SchemaSource, inflector internal.Inflector, opt Option
 // TypeLoader provides a common Loader implementation used by the built in
 // schema/query loaders.
 type TypeLoader struct {
-	CustomTypes *models.CustomTypes
-	source      SchemaSource
-	inflector   internal.Inflector
+	source    SchemaSource
+	inflector internal.Inflector
 
+	config       *config.Config
 	ignoreFields []string
 	ignoreTables []string
 }
@@ -72,8 +73,8 @@ func (tl *TypeLoader) Mask() string {
 	return "?"
 }
 
-func (tl *TypeLoader) ValidCustomType(dataType string, customType string) bool {
-	return validateCustomType(dataType, customType)
+func (tl *TypeLoader) validateCustomType(dataType string, customType string) bool {
+	return true
 }
 
 // LoadSchema loads schema definitions.
@@ -193,14 +194,16 @@ func (tl *TypeLoader) loadPrimaryKeys(typeTpl *internal.Type) error {
 
 // tableCustomTypes find custom type definitions of the table
 func (tl *TypeLoader) tableCustomTypes(table string) map[string]string {
-	var columnTypes map[string]string
-	if tl.CustomTypes != nil {
-		for _, v := range tl.CustomTypes.Tables {
-			if v.Name == table {
-				columnTypes = v.Columns
-				break
-			}
+	columnTypes := make(map[string]string)
+	for _, tbl := range tl.config.Tables {
+		if tbl.Name != table {
+			continue
 		}
+
+		for _, col := range tbl.Columns {
+			columnTypes[col.Name] = col.CustomType
+		}
+		break
 	}
 
 	return columnTypes
@@ -249,10 +252,9 @@ func (tl *TypeLoader) LoadColumns(typeTpl *internal.Type) error {
 		}
 
 		// set custom type
-		if columnTypes != nil {
-			if t, ok := columnTypes[c.ColumnName]; ok && tl.ValidCustomType(c.DataType, t) {
-				f.CustomType = t
-			}
+		customType, ok := columnTypes[c.ColumnName]
+		if ok && tl.validateCustomType(c.DataType, customType) {
+			f.CustomType = customType
 		}
 
 		// append col to template fields
@@ -385,23 +387,6 @@ func (tl *TypeLoader) LoadIndexColumns(ixTpl *internal.Index) error {
 			ixTpl.NullableFields = append(ixTpl.NullableFields, field)
 		}
 	}
-
-	return nil
-}
-
-// LoadCustomTypes loads custom type definition from yml file
-func (tl *TypeLoader) LoadCustomTypes(path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-
-	var ctypes models.CustomTypes
-	if err := yaml.NewDecoder(file).Decode(&ctypes); err != nil {
-		return err
-	}
-
-	tl.CustomTypes = &ctypes
 
 	return nil
 }

@@ -20,40 +20,43 @@
 tables:
   - name: "CustomCompositePrimaryKeys"
     columns:
-      Id: "uint64"
-      PKey2: "uint32"
-      Error: "int8"
+      - name: Id
+        customType: "uint64"
+      - name: PKey2
+        customType: "uint32"
+      - name: Error
+        customType: "int8"
   - name: "CustomPrimitiveTypes"
     columns:
-      FTInt64: "int64"
-      FTInt64Null: "int64"
-      FTInt32: "int32"
-      FTInt32Null: "int32"
-      FTInt16: "int16"
-      FTInt16Null: "int16"
-      FTInt8: "int8"
-      FTInt8Null: "int8"
-      FTUInt64: "uint64"
-      FTUInt64Null: "uint64"
-      FTUInt32: "uint32"
-      FTUInt32Null: "uint32"
-      FTUInt16: "uint16"
-      FTUInt16Null: "uint16"
-      FTUInt8: "uint8"
-      FTUInt8Null: "uint8"
-      # FTArrayInt64: "[]int64"
-      # FTArrayInt64Null: "[]int64"
-      # FTArrayInt32: "[]int32"
-      # FTArrayInt32Null: "[]int32"
-      # FTArrayInt16: "[]int16"
-      # FTArrayInt16Null: "[]int16"
-      # FTArrayInt8: "[]int8"
-      # FTArrayInt8Null: "[]int8"
-      # FTArrayUInt64: "[]uint64"
-      # FTArrayUInt64Null: "[]uint64"
-      # FTArrayUInt32: "[]uint32"
-      # FTArrayUInt32Null: "[]uint32"
-      # FTArrayUInt16: "[]uint16"
-      # FTArrayUInt16Null: "[]uint16"
-      # FTArrayUInt8: "[]uint8"
-      # FTArrayUInt8Null: "[]uint8"
+      - name: FTInt64
+        customType: "int64"
+      - name: FTInt64Null
+        customType: "int64"
+      - name: FTInt32
+        customType: "int32"
+      - name: FTInt32Null
+        customType: "int32"
+      - name: FTInt16
+        customType: "int16"
+      - name: FTInt16Null
+        customType: "int16"
+      - name: FTInt8
+        customType: "int8"
+      - name: FTInt8Null
+        customType: "int8"
+      - name: FTUInt64
+        customType: "uint64"
+      - name: FTUInt64Null
+        customType: "uint64"
+      - name: FTUInt32
+        customType: "uint32"
+      - name: FTUInt32Null
+        customType: "uint32"
+      - name: FTUInt16
+        customType: "uint16"
+      - name: FTUInt16Null
+        customType: "uint16"
+      - name: FTUInt8
+        customType: "uint8"
+      - name: FTUInt8Null
+        customType: "uint8"

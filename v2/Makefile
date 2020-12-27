@@ -62,7 +62,7 @@ testdata/legacy_default:
 
 testdata/customtypes:
 	rm -rf test/testmodels/customtypes && mkdir -p test/testmodels/customtypes
-	$(YOBIN) generate $(GENERATE_OPT) --custom-types-file test/testdata/custom_column_types.yml --out test/testmodels/customtypes/
+	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --out test/testmodels/customtypes/
 
 testdata/dump_types:
 	rm -rf test/testmodels/dump_types && mkdir -p test/testmodels/dump_types
