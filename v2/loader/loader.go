@@ -43,10 +43,15 @@ type SchemaSource interface {
 }
 
 func NewTypeLoader(source SchemaSource, inflector internal.Inflector, opt Option) *TypeLoader {
+	cfg := opt.Config
+	if cfg == nil {
+		cfg = &config.Config{}
+	}
+
 	return &TypeLoader{
 		source:       source,
 		inflector:    inflector,
-		config:       opt.Config,
+		config:       cfg,
 		ignoreFields: opt.IgnoreFields,
 		ignoreTables: opt.IgnoreTables,
 	}
@@ -141,7 +146,6 @@ func (tl *TypeLoader) LoadTable() (map[string]*internal.Type, error) {
 		// create template
 		typeTpl := &internal.Type{
 			Name:   internal.SingularizeIdentifier(tl.inflector, ti.TableName),
-			Schema: "",
 			Fields: []*internal.Field{},
 			Table:  ti,
 		}
@@ -167,7 +171,7 @@ func (tl *TypeLoader) loadPrimaryKeys(typeTpl *internal.Type) error {
 	// reorder primary keys
 	indexCols, err := tl.source.IndexColumnList(typeTpl.Table.TableName, "PRIMARY_KEY")
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to load primary key: %v", err)
 	}
 
 	var fields []*internal.Field
@@ -299,7 +303,6 @@ func (tl *TypeLoader) LoadTableIndexes(typeTpl *internal.Type, ixMap map[string]
 		// create index template
 		ixTpl := &internal.Index{
 			Name:   internal.SnakeToCamel(ix.IndexName),
-			Schema: "",
 			Type:   typeTpl,
 			Fields: []*internal.Field{},
 			Index:  ix,

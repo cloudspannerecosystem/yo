@@ -39,7 +39,6 @@ type Field struct {
 // Type is a template item for a type.
 type Type struct {
 	Name             string // Go like (CamelCase) table name
-	Schema           string
 	PrimaryKeyFields []*Field
 	Fields           []*Field
 	Table            *models.Table
@@ -51,7 +50,6 @@ type Index struct {
 	Name           string // Go like (CamelCase) index name
 	FuncName       string // `By` + Name
 	LegacyFuncName string // `By` + Type name + Field names
-	Schema         string
 	Type           *Type
 	Fields         []*Field
 	StoringFields  []*Field
