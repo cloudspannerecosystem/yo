@@ -1,12 +1,12 @@
 {{- range .Indexes }}
-{{- $short := (shortname .Type.Name "err" "sqlstr" "db" "q" "res" "YOLog" .Fields) -}}
+{{- $short := (shortName .Type.Name "err" "sqlstr" "db" "q" "res" "YOLog" .Fields) -}}
 {{- $table := (.Type.TableName) -}}
 
 {{- if not .IsUnique }}
 // Find{{ .LegacyFuncName }} retrieves multiple rows from '{{ $table }}' as a slice of {{ .Type.Name }}.
 //
 // Generated from index '{{ .IndexName }}'.
-func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fields true true }}) ([]*{{ .Type.Name }}, error) {
+func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true true }}) ([]*{{ .Type.Name }}, error) {
 {{- else }}
 // Find{{ .LegacyFuncName }} retrieves a row from '{{ $table }}' as a {{ .Type.Name }}.
 //
@@ -14,27 +14,27 @@ func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ gocustomparamlis
 // spanner.ErrCode(err) is codes.NotFound.
 //
 // Generated from unique index '{{ .IndexName }}'.
-func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ gocustomparamlist .Fields true true }}) (*{{ .Type.Name }}, error) {
+func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true true }}) (*{{ .Type.Name }}, error) {
 {{- end }}
 	{{- if not .NullableFields }}
 	const sqlstr = "SELECT " +
-		"{{ escapedcolnames .Type.Fields }} " +
+		"{{ columnNames .Type.Fields }} " +
 		"FROM {{ $table }}@{FORCE_INDEX={{ .IndexName }}} " +
-		"WHERE {{ colnamesquery .Fields " AND " }}"
+		"WHERE {{ columnNamesQuery .Fields " AND " }}"
 	{{- else }}
 	var sqlstr = "SELECT " +
-		"{{ escapedcolnames .Type.Fields }} " +
+		"{{ columnNames .Type.Fields }} " +
 		"FROM {{ $table }}@{FORCE_INDEX={{ .IndexName }}} "
 
-	conds := make([]string, {{ columncount .Fields }})
+	conds := make([]string, {{ len .Fields }})
 	{{- range $i, $f := .Fields }}
 	{{- if $f.IsNotNull }}
-		conds[{{ $i }}] = "{{ escapedcolname $f.ColumnName }} = @param{{ $i }}"
+		conds[{{ $i }}] = "{{ escape $f.ColumnName }} = @param{{ $i }}"
 	{{- else }}
 	if {{ nullcheck $f }} {
-		conds[{{ $i }}] = "{{ escapedcolname $f.ColumnName }} IS NULL"
+		conds[{{ $i }}] = "{{ escape $f.ColumnName }} IS NULL"
 	} else {
-		conds[{{ $i }}] = "{{ escapedcolname $f.ColumnName }} = @param{{ $i }}"
+		conds[{{ $i }}] = "{{ escape $f.ColumnName }} = @param{{ $i }}"
 	}
 	{{- end }}
 	{{- end }}
@@ -43,14 +43,14 @@ func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ gocustomparamlis
 
 	stmt := spanner.NewStatement(sqlstr)
 	{{- range $i, $f := .Fields }}
-		stmt.Params["param{{ $i }}"] = yoEncode({{ goparamname $f.Name }})
+		stmt.Params["param{{ $i }}"] = {{ goEncodedParam $f.Name }}
 	{{- end}}
 
 
 	decoder := new{{ .Type.Name }}_Decoder({{ .Type.Name }}Columns())
 
 	// run query
-	YOLog(ctx, sqlstr{{ goparamlist .Fields true false }})
+	YOLog(ctx, sqlstr{{ goParams .Fields true false }})
 {{- if .IsUnique }}
 	iter := db.Query(ctx, stmt)
 	defer iter.Stop()

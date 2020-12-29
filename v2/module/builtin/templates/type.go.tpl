@@ -1,4 +1,4 @@
-{{- $short := (shortname .Name "err" "res" "sqlstr" "db" "YOLog") -}}
+{{- $short := (shortName .Name "err" "res" "sqlstr" "db" "YOLog") -}}
 {{- $table := (.TableName) -}}
 
 // {{ .Name }} represents a row from '{{ $table }}'.

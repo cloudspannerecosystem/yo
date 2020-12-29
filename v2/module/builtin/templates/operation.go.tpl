@@ -1,4 +1,4 @@
-{{- $short := (shortname .Name "err" "res" "sqlstr" "db" "YOLog") -}}
+{{- $short := (shortName .Name "err" "res" "sqlstr" "db" "YOLog") -}}
 {{- $table := (.TableName) -}}
 
 // Insert returns a Mutation to insert a row into a table. If the row already
@@ -8,7 +8,7 @@ func ({{ $short }} *{{ .Name }}) Insert(ctx context.Context) *spanner.Mutation {
 	return spanner.Insert("{{ $table }}", {{ .Name }}Columns(), values)
 }
 
-{{ if ne (fieldnames .Fields $short .PrimaryKeyFields) "" }}
+{{ if ne (len .Fields) (len .PrimaryKeyFields) }}
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func ({{ $short }} *{{ .Name }}) Update(ctx context.Context) *spanner.Mutation {
@@ -38,7 +38,7 @@ func ({{ $short }} *{{ .Name }}) UpdateColumns(ctx context.Context, cols ...stri
 }
 
 // Find{{ .Name }} gets a {{ .Name }} by primary key
-func Find{{ .Name }}(ctx context.Context, db YORODB{{ gocustomparamlist .PrimaryKeyFields true true }}) (*{{ .Name }}, error) {
+func Find{{ .Name }}(ctx context.Context, db YORODB{{ goParams .PrimaryKeyFields true true }}) (*{{ .Name }}, error) {
 	key := spanner.Key{ {{ goEncodedParams .PrimaryKeyFields false }} }
 	row, err := db.ReadRow(ctx, "{{ $table }}", key, {{ .Name }}Columns())
 	if err != nil {
