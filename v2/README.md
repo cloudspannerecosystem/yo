@@ -202,6 +202,14 @@ See https://github.com/jinzhu/inflection#register-rules for details.
 
 ## Changes from V1
 
+### Changes
+
+* Function names for index are changed to names based on the index name instead of index column names
+   * The original function name based on index column names is ambiguous if there are multiple index that use the same index columns
+   * The naming rule for the new function names is `Find` + _TABLE_NAME_ + _INDEX_NAME
+   * Use `--use-legacy-index-module` option if you still want to use function names based on index column names
+* Generated filenames become snake_case names
+
 ### Deprecations
 
 * `--single-file` option is deprecated
@@ -212,6 +220,26 @@ See https://github.com/jinzhu/inflection#register-rules for details.
    * Use module system instead (TODO)
 * `--custom-types-file` and `--inflection-rule-file` options are deprecated
    * Use `--config` option instead
+* `YORODB` interface is deprecated.
+   * Use `YODB` instead.
+
+### Changes in teamplate functions
+
+* rename to lowerCamelName functions basically
+* `colcount` and `columncount` are depreacated
+    * use `len` instead
+* `colnames`, `colnamesquery`, `colprefixname` renamed to `columnNames`, `columnNamesQuery`, `columnPrefixNames`
+* `colvals` is deprecated
+* `escapedcolnames` is deprecated
+   * `columnNames`, `columnNamesQuery`, `columnPrefixNames` return escaped column names by default
+* `escapedcolname` is deprecated
+   * use `escape` instead
+* `goconvert`, `retype`, `reniltype` are deprecated
+   * no expected usecase
+* `gocustomparamlist`, `customtypeparam` are deprecated
+   * use `goEncodedParam` or `goEncodedParams` instead
+* `ignoreNames` for omitting field names as variadic arguments is deprecated
+   * use `filterFields` function
 
 ## Contributions
 
