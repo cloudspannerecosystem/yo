@@ -234,6 +234,7 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 	if err != nil {
 		return fmt.Errorf("scheme file cannot open: %v", err)
 	}
+	defer file.Close()
 
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
