@@ -106,6 +106,14 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 			typ = "spanner.NullDate"
 		}
 
+	case "NUMERIC":
+		nilVal = "big.Rat{}"
+		typ = "big.Rat"
+		if nullable {
+			nilVal = "spanner.NullNumeric{}"
+			typ = "spanner.NullNumeric"
+		}
+
 	default:
 		if strings.HasPrefix(dt, "ARRAY<") {
 			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")

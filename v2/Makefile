@@ -50,7 +50,7 @@ testdata: ## generate test models
 	$(MAKE) -j4 testdata/default testdata/legacy_default testdata/dump_types
 
 testdata-from-ddl: ## generate test models
-	$(MAKE) USE_DDL=true -j4 testdata/default testdata/customtypes testdata/dump_types
+	$(MAKE) USE_DDL=true testdata
 
 testdata/default:
 	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
