@@ -101,6 +101,14 @@ func (i *Item) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
 	return spanner.InsertOrUpdate("Items", ItemColumns(), values)
 }
 
+// Replace returns a Mutation to insert a row into a table, deleting any
+// existing row. Unlike InsertOrUpdate, this means any values not explicitly
+// written become NULL.
+func (i *Item) Replace(ctx context.Context) *spanner.Mutation {
+	values, _ := i.columnsToValues(ItemColumns())
+	return spanner.Replace("Items", ItemColumns(), values)
+}
+
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
 func (i *Item) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
 	// add primary keys to columns to update by primary keys

@@ -101,6 +101,14 @@ func (ml *MaxLength) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
 	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), values)
 }
 
+// Replace returns a Mutation to insert a row into a table, deleting any
+// existing row. Unlike InsertOrUpdate, this means any values not explicitly
+// written become NULL.
+func (ml *MaxLength) Replace(ctx context.Context) *spanner.Mutation {
+	values, _ := ml.columnsToValues(MaxLengthColumns())
+	return spanner.Replace("MaxLengths", MaxLengthColumns(), values)
+}
+
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
 func (ml *MaxLength) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
 	// add primary keys to columns to update by primary keys

@@ -24,6 +24,14 @@ func ({{ $short }} *{{ .Name }}) InsertOrUpdate(ctx context.Context) *spanner.Mu
 	return spanner.InsertOrUpdate("{{ $table }}", {{ .Name }}Columns(), values)
 }
 
+// Replace returns a Mutation to insert a row into a table, deleting any
+// existing row. Unlike InsertOrUpdate, this means any values not explicitly
+// written become NULL.
+func ({{ $short }} *{{ .Name }}) Replace(ctx context.Context) *spanner.Mutation {
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
+	return spanner.Replace("{{ $table }}", {{ .Name }}Columns(), values)
+}
+
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
 func ({{ $short }} *{{ .Name }}) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
 	// add primary keys to columns to update by primary keys

@@ -133,6 +133,14 @@ func (cpk *CompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mut
 	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyColumns(), values)
 }
 
+// Replace returns a Mutation to insert a row into a table, deleting any
+// existing row. Unlike InsertOrUpdate, this means any values not explicitly
+// written become NULL.
+func (cpk *CompositePrimaryKey) Replace(ctx context.Context) *spanner.Mutation {
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyColumns())
+	return spanner.Replace("CompositePrimaryKeys", CompositePrimaryKeyColumns(), values)
+}
+
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
 func (cpk *CompositePrimaryKey) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
 	// add primary keys to columns to update by primary keys
