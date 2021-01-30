@@ -25,7 +25,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 
 	"go.mercari.io/yo/v2/internal"
 	"go.mercari.io/yo/v2/models"
@@ -136,7 +135,7 @@ func (g *Generator) Generate(schema *models.Schema) error {
 }
 
 func (g *Generator) getFile(name string) *FileBuffer {
-	var filename = strings.ToLower(name) + g.filenameSuffix
+	var filename = internal.CamelToScake(name) + g.filenameSuffix
 	filename = path.Join(g.baseDir, filename)
 
 	f, ok := g.files[filename]

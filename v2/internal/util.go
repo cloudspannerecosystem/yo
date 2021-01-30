@@ -59,6 +59,11 @@ func SnakeToCamel(s string) string {
 	return snaker.ForceCamelIdentifier(s)
 }
 
+// CamelToSnake converts the string to snake_case
+func CamelToScake(s string) string {
+	return snaker.CamelToSnakeIdentifier(s)
+}
+
 // EscapeColumnName will escape a column name if using reserved keyword as column name, returning it in
 // surrounded backquotes.
 func EscapeColumnName(s string) string {
