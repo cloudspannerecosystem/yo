@@ -25,9 +25,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/MakeNowJust/memefish/pkg/ast"
-	"github.com/MakeNowJust/memefish/pkg/parser"
-	"github.com/MakeNowJust/memefish/pkg/token"
+	"cloud.google.com/go/spanner/spansql"
 )
 
 func NewSchemaParserSource(fpath string) (SchemaSource, error) {
@@ -43,26 +41,25 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 		if stmt == "" {
 			continue
 		}
-		ddl, err := (&parser.Parser{
-			Lexer: &parser.Lexer{
-				File: &token.File{FilePath: fpath, Buffer: stmt},
-			},
-		}).ParseDDL()
+
+		ddlstmt, err := spansql.ParseDDLStmt(stmt)
 		if err != nil {
 			return nil, err
 		}
 
-		switch val := ddl.(type) {
-		case *ast.CreateTable:
-			v := tables[val.Name.Name]
+		switch val := ddlstmt.(type) {
+		case *spansql.CreateTable:
+			tableName := string(val.Name)
+			v := tables[tableName]
 			v.createTable = val
-			tables[val.Name.Name] = v
-		case *ast.CreateIndex:
-			v := tables[val.TableName.Name]
+			tables[tableName] = v
+		case *spansql.CreateIndex:
+			tableName := string(val.Table)
+			v := tables[tableName]
 			v.createIndexes = append(v.createIndexes, val)
-			tables[val.TableName.Name] = v
+			tables[tableName] = v
 		default:
-			return nil, fmt.Errorf("stmt should be CreateTable or CreateIndex, but got '%s'", ddl.SQL())
+			return nil, fmt.Errorf("stmt should be CreateTable or CreateIndex, but got '%s'", ddlstmt.SQL())
 		}
 	}
 
@@ -70,8 +67,8 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 }
 
 type table struct {
-	createTable   *ast.CreateTable
-	createIndexes []*ast.CreateIndex
+	createTable   *spansql.CreateTable
+	createIndexes []*spansql.CreateIndex
 }
 
 type schemaParserSource struct {
@@ -82,12 +79,12 @@ func (s *schemaParserSource) TableList() ([]*SpannerTable, error) {
 	var tables []*SpannerTable
 	for _, t := range s.tables {
 		var parent string
-		if t.createTable.Cluster != nil {
-			parent = t.createTable.Cluster.TableName.Name
+		if t.createTable.Interleave != nil {
+			parent = string(t.createTable.Interleave.Parent)
 		}
 
 		tables = append(tables, &SpannerTable{
-			TableName:       t.createTable.Name.Name,
+			TableName:       string(t.createTable.Name),
 			ParentTableName: parent,
 		})
 	}
@@ -104,15 +101,15 @@ func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
 	table := s.tables[name].createTable
 
 	check := make(map[string]struct{})
-	for _, pk := range table.PrimaryKeys {
-		check[pk.Name.Name] = struct{}{}
+	for _, pk := range table.PrimaryKey {
+		check[string(pk.Column)] = struct{}{}
 	}
 
 	for i, c := range table.Columns {
-		_, pk := check[c.Name.Name]
+		_, pk := check[string(c.Name)]
 		cols = append(cols, &SpannerColumn{
 			FieldOrdinal: i + 1,
-			ColumnName:   c.Name.Name,
+			ColumnName:   string(c.Name),
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
@@ -126,7 +123,7 @@ func (s *schemaParserSource) IndexList(name string) ([]*SpannerIndex, error) {
 	var indexes []*SpannerIndex
 	for _, index := range s.tables[name].createIndexes {
 		indexes = append(indexes, &SpannerIndex{
-			IndexName: index.Name.Name,
+			IndexName: string(index.Name),
 			IsUnique:  index.Unique,
 		})
 	}
@@ -141,25 +138,23 @@ func (s *schemaParserSource) IndexColumnList(table, index string) ([]*SpannerInd
 
 	var cols []*SpannerIndexColumn
 	for _, ix := range s.tables[table].createIndexes {
-		if ix.Name.Name != index {
+		if string(ix.Name) != index {
 			continue
 		}
 
 		// add storing columns first
-		if ix.Storing != nil {
-			for _, c := range ix.Storing.Columns {
-				cols = append(cols, &SpannerIndexColumn{
-					SeqNo:      0,
-					Storing:    true,
-					ColumnName: c.Name,
-				})
-			}
+		for _, storing := range ix.Storing {
+			cols = append(cols, &SpannerIndexColumn{
+				SeqNo:      0,
+				Storing:    true,
+				ColumnName: string(storing),
+			})
 		}
 
-		for i, c := range ix.Keys {
+		for i, c := range ix.Columns {
 			cols = append(cols, &SpannerIndexColumn{
 				SeqNo:      i + 1,
-				ColumnName: c.Name.Name,
+				ColumnName: string(c.Column),
 			})
 		}
 		break
@@ -175,10 +170,10 @@ func (s *schemaParserSource) primaryKeyColumnList(table string) ([]*SpannerIndex
 	}
 
 	var cols []*SpannerIndexColumn
-	for i, key := range tbl.createTable.PrimaryKeys {
+	for i, key := range tbl.createTable.PrimaryKey {
 		cols = append(cols, &SpannerIndexColumn{
 			SeqNo:      i + 1,
-			ColumnName: key.Name.Name,
+			ColumnName: string(key.Column),
 		})
 	}
 

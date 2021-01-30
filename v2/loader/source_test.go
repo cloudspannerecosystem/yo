@@ -342,6 +342,7 @@ func TestFoo(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to create client: %v", err)
 			}
+			defer client.Close()
 
 			informationSchemaSource, err := NewInformationSchemaSource(client)
 			if err != nil {
