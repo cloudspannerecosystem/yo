@@ -121,7 +121,7 @@ func (fi *FereignItem) UpdateColumns(ctx context.Context, cols ...string) (*span
 }
 
 // FindFereignItem gets a FereignItem by primary key
-func FindFereignItem(ctx context.Context, db YORODB, id int64) (*FereignItem, error) {
+func FindFereignItem(ctx context.Context, db YODB, id int64) (*FereignItem, error) {
 	key := spanner.Key{yoEncode(id)}
 	row, err := db.ReadRow(ctx, "FereignItems", key, FereignItemColumns())
 	if err != nil {
@@ -138,7 +138,7 @@ func FindFereignItem(ctx context.Context, db YORODB, id int64) (*FereignItem, er
 }
 
 // ReadFereignItem retrieves multiples rows from FereignItem by KeySet as a slice.
-func ReadFereignItem(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FereignItem, error) {
+func ReadFereignItem(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FereignItem, error) {
 	var res []*FereignItem
 
 	decoder := newFereignItem_Decoder(FereignItemColumns())

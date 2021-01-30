@@ -122,7 +122,7 @@ func (sc *SnakeCase) UpdateColumns(ctx context.Context, cols ...string) (*spanne
 }
 
 // FindSnakeCase gets a SnakeCase by primary key
-func FindSnakeCase(ctx context.Context, db YORODB, id int64) (*SnakeCase, error) {
+func FindSnakeCase(ctx context.Context, db YODB, id int64) (*SnakeCase, error) {
 	key := spanner.Key{yoEncode(id)}
 	row, err := db.ReadRow(ctx, "snake_cases", key, SnakeCaseColumns())
 	if err != nil {
@@ -139,7 +139,7 @@ func FindSnakeCase(ctx context.Context, db YORODB, id int64) (*SnakeCase, error)
 }
 
 // ReadSnakeCase retrieves multiples rows from SnakeCase by KeySet as a slice.
-func ReadSnakeCase(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+func ReadSnakeCase(ctx context.Context, db YODB, keys spanner.KeySet) ([]*SnakeCase, error) {
 	var res []*SnakeCase
 
 	decoder := newSnakeCase_Decoder(SnakeCaseColumns())
@@ -170,7 +170,7 @@ func (sc *SnakeCase) Delete(ctx context.Context) *spanner.Mutation {
 // FindSnakeCasesByStringIDFooBarBaz retrieves multiple rows from 'snake_cases' as a slice of SnakeCase.
 //
 // Generated from index 'snake_cases_by_string_id'.
-func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
+func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YODB, stringID string, fooBarBaz int64) ([]*SnakeCase, error) {
 	const sqlstr = "SELECT " +
 		"id, string_id, foo_bar_baz " +
 		"FROM snake_cases@{FORCE_INDEX=snake_cases_by_string_id} " +
@@ -216,7 +216,7 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'snake_cases_by_string_id'.
-func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
+func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YODB, keys spanner.KeySet) ([]*SnakeCase, error) {
 	var res []*SnakeCase
 	columns := []string{
 		"id",

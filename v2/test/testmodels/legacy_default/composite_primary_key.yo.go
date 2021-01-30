@@ -147,7 +147,7 @@ func (cpk *CompositePrimaryKey) UpdateColumns(ctx context.Context, cols ...strin
 }
 
 // FindCompositePrimaryKey gets a CompositePrimaryKey by primary key
-func FindCompositePrimaryKey(ctx context.Context, db YORODB, pKey1 string, pKey2 int64) (*CompositePrimaryKey, error) {
+func FindCompositePrimaryKey(ctx context.Context, db YODB, pKey1 string, pKey2 int64) (*CompositePrimaryKey, error) {
 	key := spanner.Key{yoEncode(pKey1), yoEncode(pKey2)}
 	row, err := db.ReadRow(ctx, "CompositePrimaryKeys", key, CompositePrimaryKeyColumns())
 	if err != nil {
@@ -164,7 +164,7 @@ func FindCompositePrimaryKey(ctx context.Context, db YORODB, pKey1 string, pKey2
 }
 
 // ReadCompositePrimaryKey retrieves multiples rows from CompositePrimaryKey by KeySet as a slice.
-func ReadCompositePrimaryKey(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+func ReadCompositePrimaryKey(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 
 	decoder := newCompositePrimaryKey_Decoder(CompositePrimaryKeyColumns())
@@ -195,7 +195,7 @@ func (cpk *CompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
 // FindCompositePrimaryKeysByError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError'.
-func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
+func FindCompositePrimaryKeysByError(ctx context.Context, db YODB, e int64) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
 		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError} " +
@@ -240,7 +240,7 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'CompositePrimaryKeysByError'.
-func ReadCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+func ReadCompositePrimaryKeysByError(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
 		"PKey1",
@@ -270,7 +270,7 @@ func ReadCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanne
 // FindCompositePrimaryKeysByZError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError2'.
-func FindCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
+func FindCompositePrimaryKeysByZError(ctx context.Context, db YODB, e int64) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
 		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError2} " +
@@ -315,7 +315,7 @@ func FindCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) (
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'CompositePrimaryKeysByError2'.
-func ReadCompositePrimaryKeysByZError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+func ReadCompositePrimaryKeysByZError(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
 		"PKey1",
@@ -346,7 +346,7 @@ func ReadCompositePrimaryKeysByZError(ctx context.Context, db YORODB, keys spann
 // FindCompositePrimaryKeysByZYError retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByError3'.
-func FindCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, e int64) ([]*CompositePrimaryKey, error) {
+func FindCompositePrimaryKeysByZYError(ctx context.Context, db YODB, e int64) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
 		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByError3} " +
@@ -391,7 +391,7 @@ func FindCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, e int64) 
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'CompositePrimaryKeysByError3'.
-func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
 		"PKey1",
@@ -423,7 +423,7 @@ func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys span
 // FindCompositePrimaryKeysByXY retrieves multiple rows from 'CompositePrimaryKeys' as a slice of CompositePrimaryKey.
 //
 // Generated from index 'CompositePrimaryKeysByXY'.
-func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CompositePrimaryKey, error) {
+func FindCompositePrimaryKeysByXY(ctx context.Context, db YODB, x string, y string) ([]*CompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
 		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CompositePrimaryKeys@{FORCE_INDEX=CompositePrimaryKeysByXY} " +
@@ -469,7 +469,7 @@ func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y st
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'CompositePrimaryKeysByXY'.
-func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
+func ReadCompositePrimaryKeysByXY(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
 		"PKey1",

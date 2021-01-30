@@ -6,7 +6,7 @@
 // Find{{ .FuncName }} retrieves multiple rows from '{{ $table }}' as a slice of {{ .Type.Name }}.
 //
 // Generated from index '{{ .IndexName }}'.
-func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true true }}) ([]*{{ .Type.Name }}, error) {
+func Find{{ .FuncName }}(ctx context.Context, db YODB{{ goParams .Fields true true }}) ([]*{{ .Type.Name }}, error) {
 {{- else }}
 // Find{{ .FuncName }} retrieves a row from '{{ $table }}' as a {{ .Type.Name }}.
 //
@@ -14,7 +14,7 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true 
 // spanner.ErrCode(err) is codes.NotFound.
 //
 // Generated from unique index '{{ .IndexName }}'.
-func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true true }}) (*{{ .Type.Name }}, error) {
+func Find{{ .FuncName }}(ctx context.Context, db YODB{{ goParams .Fields true true }}) (*{{ .Type.Name }}, error) {
 {{- end }}
 	{{- if not .NullableFields }}
 	const sqlstr = "SELECT " +
@@ -104,7 +104,7 @@ func Find{{ .FuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true 
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index '{{ .IndexName }}'.
-func Read{{ .FuncName }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
+func Read{{ .FuncName }}(ctx context.Context, db YODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
 	var res []*{{ .Type.Name }}
     columns := []string{
 {{- range .Type.PrimaryKeyFields }}

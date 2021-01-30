@@ -6,7 +6,7 @@
 // Find{{ .LegacyFuncName }} retrieves multiple rows from '{{ $table }}' as a slice of {{ .Type.Name }}.
 //
 // Generated from index '{{ .IndexName }}'.
-func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true true }}) ([]*{{ .Type.Name }}, error) {
+func Find{{ .LegacyFuncName }}(ctx context.Context, db YODB{{ goParams .Fields true true }}) ([]*{{ .Type.Name }}, error) {
 {{- else }}
 // Find{{ .LegacyFuncName }} retrieves a row from '{{ $table }}' as a {{ .Type.Name }}.
 //
@@ -14,7 +14,7 @@ func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ goParams .Fields
 // spanner.ErrCode(err) is codes.NotFound.
 //
 // Generated from unique index '{{ .IndexName }}'.
-func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ goParams .Fields true true }}) (*{{ .Type.Name }}, error) {
+func Find{{ .LegacyFuncName }}(ctx context.Context, db YODB{{ goParams .Fields true true }}) (*{{ .Type.Name }}, error) {
 {{- end }}
 	{{- if not .NullableFields }}
 	const sqlstr = "SELECT " +
@@ -104,7 +104,7 @@ func Find{{ .LegacyFuncName }}(ctx context.Context, db YORODB{{ goParams .Fields
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index '{{ .IndexName }}'.
-func Read{{ .LegacyFuncName }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
+func Read{{ .LegacyFuncName }}(ctx context.Context, db YODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
 	var res []*{{ .Type.Name }}
     columns := []string{
 {{- range .Type.PrimaryKeyFields }}

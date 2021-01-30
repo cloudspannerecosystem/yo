@@ -281,7 +281,7 @@ func (ft *FullType) UpdateColumns(ctx context.Context, cols ...string) (*spanner
 }
 
 // FindFullType gets a FullType by primary key
-func FindFullType(ctx context.Context, db YORODB, pKey string) (*FullType, error) {
+func FindFullType(ctx context.Context, db YODB, pKey string) (*FullType, error) {
 	key := spanner.Key{yoEncode(pKey)}
 	row, err := db.ReadRow(ctx, "FullTypes", key, FullTypeColumns())
 	if err != nil {
@@ -298,7 +298,7 @@ func FindFullType(ctx context.Context, db YORODB, pKey string) (*FullType, error
 }
 
 // ReadFullType retrieves multiples rows from FullType by KeySet as a slice.
-func ReadFullType(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullType(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 
 	decoder := newFullType_Decoder(FullTypeColumns())
@@ -332,7 +332,7 @@ func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 // spanner.ErrCode(err) is codes.NotFound.
 //
 // Generated from unique index 'FullTypesByFTString'.
-func FindFullTypeByFullTypesByFTString(ctx context.Context, db YORODB, fTString string) (*FullType, error) {
+func FindFullTypeByFullTypesByFTString(ctx context.Context, db YODB, fTString string) (*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByFTString} " +
@@ -371,7 +371,7 @@ func FindFullTypeByFullTypesByFTString(ctx context.Context, db YORODB, fTString 
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'FullTypesByFTString'.
-func ReadFullTypeByFullTypesByFTString(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullTypeByFullTypesByFTString(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
 		"PKey",
@@ -400,7 +400,7 @@ func ReadFullTypeByFullTypesByFTString(ctx context.Context, db YORODB, keys span
 // FindFullTypesByFullTypesByInTimestampNull retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByInTimestampNull'.
-func FindFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, fTInt int64, fTTimestampNull spanner.NullTime) ([]*FullType, error) {
+func FindFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YODB, fTInt int64, fTTimestampNull spanner.NullTime) ([]*FullType, error) {
 	var sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByInTimestampNull} "
@@ -454,7 +454,7 @@ func FindFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, f
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'FullTypesByInTimestampNull'.
-func ReadFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
 		"PKey",
@@ -484,7 +484,7 @@ func ReadFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YORODB, k
 // FindFullTypesByFullTypesByIntDate retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByIntDate'.
-func FindFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, fTInt int64, fTDate civil.Date) ([]*FullType, error) {
+func FindFullTypesByFullTypesByIntDate(ctx context.Context, db YODB, fTInt int64, fTDate civil.Date) ([]*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntDate} " +
@@ -530,7 +530,7 @@ func FindFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, fTInt int
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'FullTypesByIntDate'.
-func ReadFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullTypesByFullTypesByIntDate(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
 		"PKey",
@@ -560,7 +560,7 @@ func ReadFullTypesByFullTypesByIntDate(ctx context.Context, db YORODB, keys span
 // FindFullTypesByFullTypesByIntTimestamp retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByIntTimestamp'.
-func FindFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YORODB, fTInt int64, fTTimestamp time.Time) ([]*FullType, error) {
+func FindFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YODB, fTInt int64, fTTimestamp time.Time) ([]*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByIntTimestamp} " +
@@ -606,7 +606,7 @@ func FindFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YORODB, fTIn
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'FullTypesByIntTimestamp'.
-func ReadFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
 		"PKey",
@@ -636,7 +636,7 @@ func ReadFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YORODB, keys
 // FindFullTypesByFullTypesByTimestamp retrieves multiple rows from 'FullTypes' as a slice of FullType.
 //
 // Generated from index 'FullTypesByTimestamp'.
-func FindFullTypesByFullTypesByTimestamp(ctx context.Context, db YORODB, fTTimestamp time.Time) ([]*FullType, error) {
+func FindFullTypesByFullTypesByTimestamp(ctx context.Context, db YODB, fTTimestamp time.Time) ([]*FullType, error) {
 	const sqlstr = "SELECT " +
 		"PKey, FTString, FTStringNull, FTBool, FTBoolNull, FTBytes, FTBytesNull, FTTimestamp, FTTimestampNull, FTInt, FTIntNull, FTFloat, FTFloatNull, FTDate, FTDateNull, FTArrayStringNull, FTArrayString, FTArrayBoolNull, FTArrayBool, FTArrayBytesNull, FTArrayBytes, FTArrayTimestampNull, FTArrayTimestamp, FTArrayIntNull, FTArrayInt, FTArrayFloatNull, FTArrayFloat, FTArrayDateNull, FTArrayDate " +
 		"FROM FullTypes@{FORCE_INDEX=FullTypesByTimestamp} " +
@@ -681,7 +681,7 @@ func FindFullTypesByFullTypesByTimestamp(ctx context.Context, db YORODB, fTTimes
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'FullTypesByTimestamp'.
-func ReadFullTypesByFullTypesByTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
+func ReadFullTypesByFullTypesByTimestamp(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
 		"PKey",

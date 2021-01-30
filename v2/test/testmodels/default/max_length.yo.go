@@ -115,7 +115,7 @@ func (ml *MaxLength) UpdateColumns(ctx context.Context, cols ...string) (*spanne
 }
 
 // FindMaxLength gets a MaxLength by primary key
-func FindMaxLength(ctx context.Context, db YORODB, maxString string) (*MaxLength, error) {
+func FindMaxLength(ctx context.Context, db YODB, maxString string) (*MaxLength, error) {
 	key := spanner.Key{yoEncode(maxString)}
 	row, err := db.ReadRow(ctx, "MaxLengths", key, MaxLengthColumns())
 	if err != nil {
@@ -132,7 +132,7 @@ func FindMaxLength(ctx context.Context, db YORODB, maxString string) (*MaxLength
 }
 
 // ReadMaxLength retrieves multiples rows from MaxLength by KeySet as a slice.
-func ReadMaxLength(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*MaxLength, error) {
+func ReadMaxLength(ctx context.Context, db YODB, keys spanner.KeySet) ([]*MaxLength, error) {
 	var res []*MaxLength
 
 	decoder := newMaxLength_Decoder(MaxLengthColumns())

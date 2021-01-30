@@ -38,7 +38,7 @@ func ({{ $short }} *{{ .Name }}) UpdateColumns(ctx context.Context, cols ...stri
 }
 
 // Find{{ .Name }} gets a {{ .Name }} by primary key
-func Find{{ .Name }}(ctx context.Context, db YORODB{{ goParams .PrimaryKeyFields true true }}) (*{{ .Name }}, error) {
+func Find{{ .Name }}(ctx context.Context, db YODB{{ goParams .PrimaryKeyFields true true }}) (*{{ .Name }}, error) {
 	key := spanner.Key{ {{ goEncodedParams .PrimaryKeyFields false }} }
 	row, err := db.ReadRow(ctx, "{{ $table }}", key, {{ .Name }}Columns())
 	if err != nil {
@@ -55,7 +55,7 @@ func Find{{ .Name }}(ctx context.Context, db YORODB{{ goParams .PrimaryKeyFields
 }
 
 // Read{{ .Name }} retrieves multiples rows from {{ .Name }} by KeySet as a slice.
-func Read{{ .Name }}(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*{{ .Name }}, error) {
+func Read{{ .Name }}(ctx context.Context, db YODB, keys spanner.KeySet) ([]*{{ .Name }}, error) {
 	var res []*{{ .Name }}
 
 	decoder := new{{ .Name }}_Decoder({{ .Name}}Columns())

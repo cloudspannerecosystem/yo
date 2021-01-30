@@ -301,7 +301,7 @@ func (cpt *CustomPrimitiveType) UpdateColumns(ctx context.Context, cols ...strin
 }
 
 // FindCustomPrimitiveType gets a CustomPrimitiveType by primary key
-func FindCustomPrimitiveType(ctx context.Context, db YORODB, pKey string) (*CustomPrimitiveType, error) {
+func FindCustomPrimitiveType(ctx context.Context, db YODB, pKey string) (*CustomPrimitiveType, error) {
 	key := spanner.Key{yoEncode(pKey)}
 	row, err := db.ReadRow(ctx, "CustomPrimitiveTypes", key, CustomPrimitiveTypeColumns())
 	if err != nil {
@@ -318,7 +318,7 @@ func FindCustomPrimitiveType(ctx context.Context, db YORODB, pKey string) (*Cust
 }
 
 // ReadCustomPrimitiveType retrieves multiples rows from CustomPrimitiveType by KeySet as a slice.
-func ReadCustomPrimitiveType(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomPrimitiveType, error) {
+func ReadCustomPrimitiveType(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomPrimitiveType, error) {
 	var res []*CustomPrimitiveType
 
 	decoder := newCustomPrimitiveType_Decoder(CustomPrimitiveTypeColumns())

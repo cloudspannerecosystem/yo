@@ -115,7 +115,7 @@ func (i *Item) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Muta
 }
 
 // FindItem gets a Item by primary key
-func FindItem(ctx context.Context, db YORODB, id int64) (*Item, error) {
+func FindItem(ctx context.Context, db YODB, id int64) (*Item, error) {
 	key := spanner.Key{yoEncode(id)}
 	row, err := db.ReadRow(ctx, "Items", key, ItemColumns())
 	if err != nil {
@@ -132,7 +132,7 @@ func FindItem(ctx context.Context, db YORODB, id int64) (*Item, error) {
 }
 
 // ReadItem retrieves multiples rows from Item by KeySet as a slice.
-func ReadItem(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*Item, error) {
+func ReadItem(ctx context.Context, db YODB, keys spanner.KeySet) ([]*Item, error) {
 	var res []*Item
 
 	decoder := newItem_Decoder(ItemColumns())
