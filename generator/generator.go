@@ -167,15 +167,10 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	// default open mode
 	mode := os.O_RDWR | os.O_CREATE | os.O_TRUNC
 
-	// stat file to determine if file already exists
+	// stat file to determine if file is a directory.
 	fi, err := os.Stat(filename)
 	if err == nil && fi.IsDir() {
 		return nil, errors.New("filename cannot be directory")
-	}
-
-	// skip
-	if t.TemplateType == YOTemplate && fi != nil {
-		return nil, nil
 	}
 
 	// open file
@@ -229,11 +224,6 @@ func (g *Generator) writeTypes(ds *basicDataSet) error {
 		f, err = g.getFile(ds, &t)
 		if err != nil {
 			return err
-		}
-
-		// should only be nil when type == yo
-		if f == nil {
-			continue
 		}
 
 		// write segment
