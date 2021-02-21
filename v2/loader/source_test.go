@@ -106,7 +106,7 @@ CREATE INDEX InterleavedKey ON Interleaved(Id, Value), INTERLEAVE IN Parent
 `
 )
 
-func TestFoo(t *testing.T) {
+func TestSource(t *testing.T) {
 	dir := t.TempDir()
 
 	table := []struct {
@@ -334,11 +334,11 @@ func TestFoo(t *testing.T) {
 				t.Fatalf("failed to create schema parser source: %v", err)
 			}
 
-			if err := testutil.SetupDatabase(ctx, "yo_test", "yo_test", "source_test", tc.schema); err != nil {
+			if err := testutil.SetupDatabase(ctx, "yo-test", "yo-loader-test", "source-test", tc.schema); err != nil {
 				t.Fatalf("failed to setup database: %v", err)
 			}
 
-			client, err := testutil.TestClient(ctx, "yo_test", "yo_test", "source_test")
+			client, err := testutil.TestClient(ctx, "yo-test", "yo-loader-test", "source-test")
 			if err != nil {
 				t.Fatalf("failed to create client: %v", err)
 			}
