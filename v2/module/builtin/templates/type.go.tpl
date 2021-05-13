@@ -28,6 +28,16 @@ func {{ .Name }}Columns() []string {
 	}
 }
 
+func {{ .Name }}WritableColumns() []string {
+	return []string{
+{{- range .Fields }}
+	{{- if not .IsGenerated }}
+		"{{ .ColumnName }}",
+	{{- end }}
+{{- end }}
+	}
+}
+
 func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {

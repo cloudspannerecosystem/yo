@@ -87,7 +87,8 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*SpannerColumn, er
 		`  WHERE ic.TABLE_SCHEMA = "" and ic.TABLE_NAME = c.TABLE_NAME ` +
 		`  AND ic.COLUMN_NAME = c.COLUMN_NAME` +
 		`  AND ic.INDEX_NAME = "PRIMARY_KEY" ` +
-		`) IS_PRIMARY_KEY ` +
+		`) IS_PRIMARY_KEY, ` +
+		`IS_GENERATED = "ALWAYS" AS IS_GENERATED ` +
 		`FROM INFORMATION_SCHEMA.COLUMNS c ` +
 		`WHERE c.TABLE_SCHEMA = "" AND c.TABLE_NAME = @table ` +
 		`ORDER BY c.ORDINAL_POSITION`
@@ -128,6 +129,9 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*SpannerColumn, er
 			return nil, err
 		}
 		if err := row.ColumnByName("IS_PRIMARY_KEY", &c.IsPrimaryKey); err != nil {
+			return nil, err
+		}
+		if err := row.ColumnByName("IS_GENERATED", &c.IsGenerated); err != nil {
 			return nil, err
 		}
 

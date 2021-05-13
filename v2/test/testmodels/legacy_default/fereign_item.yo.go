@@ -32,6 +32,14 @@ func FereignItemColumns() []string {
 	}
 }
 
+func FereignItemWritableColumns() []string {
+	return []string{
+		"ID",
+		"ItemID",
+		"Category",
+	}
+}
+
 func (fi *FereignItem) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -88,31 +96,31 @@ func newFereignItem_Decoder(cols []string) func(*spanner.Row) (*FereignItem, err
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (fi *FereignItem) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := fi.columnsToValues(FereignItemColumns())
-	return spanner.Insert("FereignItems", FereignItemColumns(), values)
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.Insert("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (fi *FereignItem) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := fi.columnsToValues(FereignItemColumns())
-	return spanner.Update("FereignItems", FereignItemColumns(), values)
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.Update("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (fi *FereignItem) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := fi.columnsToValues(FereignItemColumns())
-	return spanner.InsertOrUpdate("FereignItems", FereignItemColumns(), values)
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.InsertOrUpdate("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (fi *FereignItem) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := fi.columnsToValues(FereignItemColumns())
-	return spanner.Replace("FereignItems", FereignItemColumns(), values)
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.Replace("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
