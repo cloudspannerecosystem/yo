@@ -963,6 +963,123 @@ func TestCustomPrimitiveTypes(t *testing.T) {
 	})
 }
 
+func TestGeneratedColumn(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
+
+	gc := &default_models.GeneratedColumn{
+		ID:        300,
+		FirstName: "John",
+		LastName:  "Doe",
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	t.Run("Insert", func(t *testing.T) {
+		got, err := default_models.FindGeneratedColumn(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "John",
+			LastName:  "Doe",
+			FullName:  "John Doe",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("Update", func(t *testing.T) {
+		gc := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "Jane",
+			LastName:  "Doe",
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := default_models.FindGeneratedColumn(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "Jane",
+			LastName:  "Doe",
+			FullName:  "Jane Doe",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("InsertOrUpdate", func(t *testing.T) {
+		gc := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "Paul",
+			LastName:  "Doe",
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.InsertOrUpdate(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := default_models.FindGeneratedColumn(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "Paul",
+			LastName:  "Doe",
+			FullName:  "Paul Doe",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("Replace", func(t *testing.T) {
+		gc := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "George",
+			LastName:  "Doe",
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Replace(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := default_models.FindGeneratedColumn(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &default_models.GeneratedColumn{
+			ID:        300,
+			FirstName: "George",
+			LastName:  "Doe",
+			FullName:  "George Doe",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
 func TestSessionNotFound(t *testing.T) {
 	dbName := testutil.DatabaseName(spannerProjectName, spannerInstanceName, spannerDatabaseName)
 

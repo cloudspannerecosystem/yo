@@ -1,0 +1,13 @@
+# Field list of GeneratedColumn
+
+* ID INT64 int64
+* FirstName STRING(50) string
+* LastName STRING(50) string
+* FullName STRING(100) string
+
+# Primary Key
+
+* ID INT64 int64
+
+# Index list of GeneratedColumn
+

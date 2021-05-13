@@ -73,6 +73,7 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 		"snake_cases",
 		"Items",
 		"FereignItems",
+		"GeneratedColumns",
 	}
 	var muts []*spanner.Mutation
 	for _, table := range tables {
