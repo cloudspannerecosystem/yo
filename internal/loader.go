@@ -202,7 +202,12 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 		ignore := false
 
 		for _, ignoreField := range args.IgnoreFields {
-			if ignoreField == c.ColumnName {
+			if strings.Contains(ignoreField, ".") {
+				s := strings.Split(ignoreField, ".")
+				if s[0] == typeTpl.Table.TableName && s[1] == c.ColumnName {
+					ignore = true
+				}
+			} else if ignoreField == c.ColumnName {
 				// Skip adding this field if user has specified they are not
 				// interested.
 				//
