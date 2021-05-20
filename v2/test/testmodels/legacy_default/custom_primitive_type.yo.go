@@ -92,6 +92,44 @@ func CustomPrimitiveTypeColumns() []string {
 	}
 }
 
+func CustomPrimitiveTypeWritableColumns() []string {
+	return []string{
+		"PKey",
+		"FTInt64",
+		"FTInt64Null",
+		"FTInt32",
+		"FTInt32Null",
+		"FTInt16",
+		"FTInt16Null",
+		"FTInt8",
+		"FTInt8Null",
+		"FTUInt64",
+		"FTUInt64Null",
+		"FTUInt32",
+		"FTUInt32Null",
+		"FTUInt16",
+		"FTUInt16Null",
+		"FTUInt8",
+		"FTUInt8Null",
+		"FTArrayInt64",
+		"FTArrayInt64Null",
+		"FTArrayInt32",
+		"FTArrayInt32Null",
+		"FTArrayInt16",
+		"FTArrayInt16Null",
+		"FTArrayInt8",
+		"FTArrayInt8Null",
+		"FTArrayUInt64",
+		"FTArrayUInt64Null",
+		"FTArrayUInt32",
+		"FTArrayUInt32Null",
+		"FTArrayUInt16",
+		"FTArrayUInt16Null",
+		"FTArrayUInt8",
+		"FTArrayUInt8Null",
+	}
+}
+
 func (cpt *CustomPrimitiveType) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -268,31 +306,31 @@ func newCustomPrimitiveType_Decoder(cols []string) func(*spanner.Row) (*CustomPr
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (cpt *CustomPrimitiveType) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := cpt.columnsToValues(CustomPrimitiveTypeColumns())
-	return spanner.Insert("CustomPrimitiveTypes", CustomPrimitiveTypeColumns(), values)
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.Insert("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (cpt *CustomPrimitiveType) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := cpt.columnsToValues(CustomPrimitiveTypeColumns())
-	return spanner.Update("CustomPrimitiveTypes", CustomPrimitiveTypeColumns(), values)
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.Update("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (cpt *CustomPrimitiveType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := cpt.columnsToValues(CustomPrimitiveTypeColumns())
-	return spanner.InsertOrUpdate("CustomPrimitiveTypes", CustomPrimitiveTypeColumns(), values)
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.InsertOrUpdate("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (cpt *CustomPrimitiveType) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := cpt.columnsToValues(CustomPrimitiveTypeColumns())
-	return spanner.Replace("CustomPrimitiveTypes", CustomPrimitiveTypeColumns(), values)
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.Replace("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

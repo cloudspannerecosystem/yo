@@ -30,6 +30,13 @@ func MaxLengthColumns() []string {
 	}
 }
 
+func MaxLengthWritableColumns() []string {
+	return []string{
+		"MaxString",
+		"MaxBytes",
+	}
+}
+
 func (ml *MaxLength) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -82,31 +89,31 @@ func newMaxLength_Decoder(cols []string) func(*spanner.Row) (*MaxLength, error) 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ml *MaxLength) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := ml.columnsToValues(MaxLengthColumns())
-	return spanner.Insert("MaxLengths", MaxLengthColumns(), values)
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.Insert("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ml *MaxLength) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := ml.columnsToValues(MaxLengthColumns())
-	return spanner.Update("MaxLengths", MaxLengthColumns(), values)
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.Update("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ml *MaxLength) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := ml.columnsToValues(MaxLengthColumns())
-	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), values)
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.InsertOrUpdate("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (ml *MaxLength) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := ml.columnsToValues(MaxLengthColumns())
-	return spanner.Replace("MaxLengths", MaxLengthColumns(), values)
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.Replace("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

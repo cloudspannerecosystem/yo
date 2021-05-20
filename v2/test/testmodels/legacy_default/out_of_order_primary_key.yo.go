@@ -33,6 +33,14 @@ func OutOfOrderPrimaryKeyColumns() []string {
 	}
 }
 
+func OutOfOrderPrimaryKeyWritableColumns() []string {
+	return []string{
+		"PKey1",
+		"PKey2",
+		"PKey3",
+	}
+}
+
 func (ooopk *OutOfOrderPrimaryKey) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -89,8 +97,8 @@ func newOutOfOrderPrimaryKey_Decoder(cols []string) func(*spanner.Row) (*OutOfOr
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ooopk *OutOfOrderPrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := ooopk.columnsToValues(OutOfOrderPrimaryKeyColumns())
-	return spanner.Insert("OutOfOrderPrimaryKeys", OutOfOrderPrimaryKeyColumns(), values)
+	values, _ := ooopk.columnsToValues(OutOfOrderPrimaryKeyWritableColumns())
+	return spanner.Insert("OutOfOrderPrimaryKeys", OutOfOrderPrimaryKeyWritableColumns(), values)
 }
 
 // Delete deletes the OutOfOrderPrimaryKey from the database.

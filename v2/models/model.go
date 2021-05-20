@@ -45,6 +45,7 @@ type Field struct {
 	SpannerDataType string // data_type
 	IsNotNull       bool   // not_null
 	IsPrimaryKey    bool   // is_primary_key
+	IsGenerated     bool   // is_generated
 }
 
 // Index is a template item for a index into a table.

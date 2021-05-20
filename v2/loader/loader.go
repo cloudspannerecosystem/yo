@@ -258,6 +258,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 			SpannerDataType: c.DataType,
 			IsNotNull:       c.NotNull,
 			IsPrimaryKey:    c.IsPrimaryKey,
+			IsGenerated:     c.IsGenerated,
 		}
 
 		// set custom type

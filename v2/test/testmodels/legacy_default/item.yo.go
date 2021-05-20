@@ -30,6 +30,13 @@ func ItemColumns() []string {
 	}
 }
 
+func ItemWritableColumns() []string {
+	return []string{
+		"ID",
+		"Price",
+	}
+}
+
 func (i *Item) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -82,31 +89,31 @@ func newItem_Decoder(cols []string) func(*spanner.Row) (*Item, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (i *Item) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := i.columnsToValues(ItemColumns())
-	return spanner.Insert("Items", ItemColumns(), values)
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.Insert("Items", ItemWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (i *Item) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := i.columnsToValues(ItemColumns())
-	return spanner.Update("Items", ItemColumns(), values)
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.Update("Items", ItemWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (i *Item) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := i.columnsToValues(ItemColumns())
-	return spanner.InsertOrUpdate("Items", ItemColumns(), values)
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.InsertOrUpdate("Items", ItemWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (i *Item) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := i.columnsToValues(ItemColumns())
-	return spanner.Replace("Items", ItemColumns(), values)
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.Replace("Items", ItemWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

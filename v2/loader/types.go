@@ -32,6 +32,7 @@ type SpannerColumn struct {
 	DataType     string // data_type
 	NotNull      bool   // not_null
 	IsPrimaryKey bool   // is_primary_key
+	IsGenerated  bool   // is_generated
 }
 
 // SpannerIndex represents an index.

@@ -113,6 +113,7 @@ func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
+			IsGenerated:  c.Generated != nil,
 		})
 	}
 

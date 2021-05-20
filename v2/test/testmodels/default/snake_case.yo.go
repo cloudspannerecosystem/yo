@@ -33,6 +33,14 @@ func SnakeCaseColumns() []string {
 	}
 }
 
+func SnakeCaseWritableColumns() []string {
+	return []string{
+		"id",
+		"string_id",
+		"foo_bar_baz",
+	}
+}
+
 func (sc *SnakeCase) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -89,31 +97,31 @@ func newSnakeCase_Decoder(cols []string) func(*spanner.Row) (*SnakeCase, error) 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (sc *SnakeCase) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := sc.columnsToValues(SnakeCaseColumns())
-	return spanner.Insert("snake_cases", SnakeCaseColumns(), values)
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.Insert("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (sc *SnakeCase) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := sc.columnsToValues(SnakeCaseColumns())
-	return spanner.Update("snake_cases", SnakeCaseColumns(), values)
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.Update("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (sc *SnakeCase) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := sc.columnsToValues(SnakeCaseColumns())
-	return spanner.InsertOrUpdate("snake_cases", SnakeCaseColumns(), values)
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.InsertOrUpdate("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (sc *SnakeCase) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := sc.columnsToValues(SnakeCaseColumns())
-	return spanner.Replace("snake_cases", SnakeCaseColumns(), values)
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.Replace("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

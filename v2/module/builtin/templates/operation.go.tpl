@@ -4,32 +4,32 @@
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func ({{ $short }} *{{ .Name }}) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
-	return spanner.Insert("{{ $table }}", {{ .Name }}Columns(), values)
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}WritableColumns())
+	return spanner.Insert("{{ $table }}", {{ .Name }}WritableColumns(), values)
 }
 
 {{ if ne (len .Fields) (len .PrimaryKeyFields) }}
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func ({{ $short }} *{{ .Name }}) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
-	return spanner.Update("{{ $table }}", {{ .Name }}Columns(), values)
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}WritableColumns())
+	return spanner.Update("{{ $table }}", {{ .Name }}WritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func ({{ $short }} *{{ .Name }}) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
-	return spanner.InsertOrUpdate("{{ $table }}", {{ .Name }}Columns(), values)
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}WritableColumns())
+	return spanner.InsertOrUpdate("{{ $table }}", {{ .Name }}WritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func ({{ $short }} *{{ .Name }}) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := {{ $short }}.columnsToValues({{ .Name }}Columns())
-	return spanner.Replace("{{ $table }}", {{ .Name }}Columns(), values)
+	values, _ := {{ $short }}.columnsToValues({{ .Name }}WritableColumns())
+	return spanner.Replace("{{ $table }}", {{ .Name }}WritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

@@ -88,6 +88,40 @@ func FullTypeColumns() []string {
 	}
 }
 
+func FullTypeWritableColumns() []string {
+	return []string{
+		"PKey",
+		"FTString",
+		"FTStringNull",
+		"FTBool",
+		"FTBoolNull",
+		"FTBytes",
+		"FTBytesNull",
+		"FTTimestamp",
+		"FTTimestampNull",
+		"FTInt",
+		"FTIntNull",
+		"FTFloat",
+		"FTFloatNull",
+		"FTDate",
+		"FTDateNull",
+		"FTArrayStringNull",
+		"FTArrayString",
+		"FTArrayBoolNull",
+		"FTArrayBool",
+		"FTArrayBytesNull",
+		"FTArrayBytes",
+		"FTArrayTimestampNull",
+		"FTArrayTimestamp",
+		"FTArrayIntNull",
+		"FTArrayInt",
+		"FTArrayFloatNull",
+		"FTArrayFloat",
+		"FTArrayDateNull",
+		"FTArrayDate",
+	}
+}
+
 func (ft *FullType) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -248,31 +282,31 @@ func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ft *FullType) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := ft.columnsToValues(FullTypeColumns())
-	return spanner.Insert("FullTypes", FullTypeColumns(), values)
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Insert("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ft *FullType) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := ft.columnsToValues(FullTypeColumns())
-	return spanner.Update("FullTypes", FullTypeColumns(), values)
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Update("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ft *FullType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := ft.columnsToValues(FullTypeColumns())
-	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), values)
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.InsertOrUpdate("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (ft *FullType) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := ft.columnsToValues(FullTypeColumns())
-	return spanner.Replace("FullTypes", FullTypeColumns(), values)
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Replace("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

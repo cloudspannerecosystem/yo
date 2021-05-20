@@ -42,6 +42,18 @@ func CustomCompositePrimaryKeyColumns() []string {
 	}
 }
 
+func CustomCompositePrimaryKeyWritableColumns() []string {
+	return []string{
+		"Id",
+		"PKey1",
+		"PKey2",
+		"Error",
+		"X",
+		"Y",
+		"Z",
+	}
+}
+
 func (ccpk *CustomCompositePrimaryKey) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -114,31 +126,31 @@ func newCustomCompositePrimaryKey_Decoder(cols []string) func(*spanner.Row) (*Cu
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ccpk *CustomCompositePrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyColumns())
-	return spanner.Insert("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyColumns(), values)
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.Insert("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ccpk *CustomCompositePrimaryKey) Update(ctx context.Context) *spanner.Mutation {
-	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyColumns())
-	return spanner.Update("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyColumns(), values)
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.Update("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ccpk *CustomCompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyColumns())
-	return spanner.InsertOrUpdate("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyColumns(), values)
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.InsertOrUpdate("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
 }
 
 // Replace returns a Mutation to insert a row into a table, deleting any
 // existing row. Unlike InsertOrUpdate, this means any values not explicitly
 // written become NULL.
 func (ccpk *CustomCompositePrimaryKey) Replace(ctx context.Context) *spanner.Mutation {
-	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyColumns())
-	return spanner.Replace("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyColumns(), values)
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.Replace("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
