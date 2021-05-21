@@ -87,6 +87,40 @@ func FullTypeColumns() []string {
 	}
 }
 
+func FullTypeWritableColumns() []string {
+	return []string{
+		"PKey",
+		"FTString",
+		"FTStringNull",
+		"FTBool",
+		"FTBoolNull",
+		"FTBytes",
+		"FTBytesNull",
+		"FTTimestamp",
+		"FTTimestampNull",
+		"FTInt",
+		"FTIntNull",
+		"FTFloat",
+		"FTFloatNull",
+		"FTDate",
+		"FTDateNull",
+		"FTArrayStringNull",
+		"FTArrayString",
+		"FTArrayBoolNull",
+		"FTArrayBool",
+		"FTArrayBytesNull",
+		"FTArrayBytes",
+		"FTArrayTimestampNull",
+		"FTArrayTimestamp",
+		"FTArrayIntNull",
+		"FTArrayInt",
+		"FTArrayFloatNull",
+		"FTArrayFloat",
+		"FTArrayDateNull",
+		"FTArrayDate",
+	}
+}
+
 func (ft *FullType) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -261,26 +295,23 @@ func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ft *FullType) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, int64(ft.FTInt), ft.FTIntNull, float64(ft.FTFloat), ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Insert("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ft *FullType) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, int64(ft.FTInt), ft.FTIntNull, float64(ft.FTFloat), ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Update("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ft *FullType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, int64(ft.FTInt), ft.FTIntNull, float64(ft.FTFloat), ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.InsertOrUpdate("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

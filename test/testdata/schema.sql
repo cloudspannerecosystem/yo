@@ -105,3 +105,10 @@ CREATE TABLE FereignItems (
   Category INT64 NOT NULL,
   CONSTRAINT FK_ItemID_ForeignItems FOREIGN KEY (ItemID) REFERENCES Items (ID)
 ) PRIMARY KEY (ID);
+
+CREATE TABLE GeneratedColumns (
+  ID INT64 NOT NULL,
+  FirstName STRING(50) NOT NULL,
+  LastName STRING(50) NOT NULL,
+  FullName STRING(100) NOT NULL AS (ARRAY_TO_STRING([FirstName, LastName], " ")) STORED,
+) PRIMARY KEY (ID);

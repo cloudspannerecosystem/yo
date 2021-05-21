@@ -33,6 +33,7 @@ type Column struct {
 	DataType     string // data_type
 	NotNull      bool   // not_null
 	IsPrimaryKey bool   // is_primary_key
+	IsGenerated  bool   // is_generated
 }
 
 // Index represents an index.

@@ -46,6 +46,18 @@ func CompositePrimaryKeyColumns() []string {
 	}
 }
 
+func CompositePrimaryKeyWritableColumns() []string {
+	return []string{
+		"Id",
+		"PKey1",
+		"PKey2",
+		"Error",
+		"X",
+		"Y",
+		"Z",
+	}
+}
+
 func (cpk *CompositePrimaryKey) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -125,26 +137,23 @@ func newCompositePrimaryKey_Decoder(cols []string) func(*spanner.Row) (*Composit
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyWritableColumns())
+	return spanner.Insert("CompositePrimaryKeys", CompositePrimaryKeyWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyWritableColumns())
+	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (cpk *CompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		cpk.ID, cpk.PKey1, cpk.PKey2, cpk.Error, cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyWritableColumns())
+	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -227,6 +236,14 @@ func FereignItemColumns() []string {
 	}
 }
 
+func FereignItemWritableColumns() []string {
+	return []string{
+		"ID",
+		"ItemID",
+		"Category",
+	}
+}
+
 func (fi *FereignItem) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -290,26 +307,23 @@ func newFereignItem_Decoder(cols []string) func(*spanner.Row) (*FereignItem, err
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (fi *FereignItem) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("FereignItems", FereignItemColumns(), []interface{}{
-		fi.ID, fi.ItemID, fi.Category,
-	})
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.Insert("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (fi *FereignItem) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("FereignItems", FereignItemColumns(), []interface{}{
-		fi.ID, fi.ItemID, fi.Category,
-	})
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.Update("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (fi *FereignItem) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("FereignItems", FereignItemColumns(), []interface{}{
-		fi.ID, fi.ItemID, fi.Category,
-	})
+	values, _ := fi.columnsToValues(FereignItemWritableColumns())
+	return spanner.InsertOrUpdate("FereignItems", FereignItemWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -411,6 +425,40 @@ func FullTypePrimaryKeys() []string {
 }
 
 func FullTypeColumns() []string {
+	return []string{
+		"PKey",
+		"FTString",
+		"FTStringNull",
+		"FTBool",
+		"FTBoolNull",
+		"FTBytes",
+		"FTBytesNull",
+		"FTTimestamp",
+		"FTTimestampNull",
+		"FTInt",
+		"FTIntNull",
+		"FTFloat",
+		"FTFloatNull",
+		"FTDate",
+		"FTDateNull",
+		"FTArrayStringNull",
+		"FTArrayString",
+		"FTArrayBoolNull",
+		"FTArrayBool",
+		"FTArrayBytesNull",
+		"FTArrayBytes",
+		"FTArrayTimestampNull",
+		"FTArrayTimestamp",
+		"FTArrayIntNull",
+		"FTArrayInt",
+		"FTArrayFloatNull",
+		"FTArrayFloat",
+		"FTArrayDateNull",
+		"FTArrayDate",
+	}
+}
+
+func FullTypeWritableColumns() []string {
 	return []string{
 		"PKey",
 		"FTString",
@@ -611,26 +659,23 @@ func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ft *FullType) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Insert("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ft *FullType) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.Update("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ft *FullType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("FullTypes", FullTypeColumns(), []interface{}{
-		ft.PKey, ft.FTString, ft.FTStringNull, ft.FTBool, ft.FTBoolNull, ft.FTBytes, ft.FTBytesNull, ft.FTTimestamp, ft.FTTimestampNull, ft.FTInt, ft.FTIntNull, ft.FTFloat, ft.FTFloatNull, ft.FTDate, ft.FTDateNull, ft.FTArrayStringNull, ft.FTArrayString, ft.FTArrayBoolNull, ft.FTArrayBool, ft.FTArrayBytesNull, ft.FTArrayBytes, ft.FTArrayTimestampNull, ft.FTArrayTimestamp, ft.FTArrayIntNull, ft.FTArrayInt, ft.FTArrayFloatNull, ft.FTArrayFloat, ft.FTArrayDateNull, ft.FTArrayDate,
-	})
+	values, _ := ft.columnsToValues(FullTypeWritableColumns())
+	return spanner.InsertOrUpdate("FullTypes", FullTypeWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -692,6 +737,182 @@ func (ft *FullType) Delete(ctx context.Context) *spanner.Mutation {
 	return spanner.Delete("FullTypes", spanner.Key(values))
 }
 
+// GeneratedColumn represents a row from 'GeneratedColumns'.
+type GeneratedColumn struct {
+	ID        int64  `spanner:"ID" json:"ID"`               // ID
+	FirstName string `spanner:"FirstName" json:"FirstName"` // FirstName
+	LastName  string `spanner:"LastName" json:"LastName"`   // LastName
+	FullName  string `spanner:"FullName" json:"FullName"`   // FullName
+}
+
+func GeneratedColumnPrimaryKeys() []string {
+	return []string{
+		"ID",
+	}
+}
+
+func GeneratedColumnColumns() []string {
+	return []string{
+		"ID",
+		"FirstName",
+		"LastName",
+		"FullName",
+	}
+}
+
+func GeneratedColumnWritableColumns() []string {
+	return []string{
+		"ID",
+		"FirstName",
+		"LastName",
+	}
+}
+
+func (gc *GeneratedColumn) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "ID":
+			ret = append(ret, &gc.ID)
+		case "FirstName":
+			ret = append(ret, &gc.FirstName)
+		case "LastName":
+			ret = append(ret, &gc.LastName)
+		case "FullName":
+			ret = append(ret, &gc.FullName)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (gc *GeneratedColumn) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "ID":
+			ret = append(ret, gc.ID)
+		case "FirstName":
+			ret = append(ret, gc.FirstName)
+		case "LastName":
+			ret = append(ret, gc.LastName)
+		case "FullName":
+			ret = append(ret, gc.FullName)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newGeneratedColumn_Decoder returns a decoder which reads a row from *spanner.Row
+// into GeneratedColumn. The decoder is not goroutine-safe. Don't use it concurrently.
+func newGeneratedColumn_Decoder(cols []string) func(*spanner.Row) (*GeneratedColumn, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*GeneratedColumn, error) {
+		var gc GeneratedColumn
+		ptrs, err := gc.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &gc, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (gc *GeneratedColumn) Insert(ctx context.Context) *spanner.Mutation {
+	values, _ := gc.columnsToValues(GeneratedColumnWritableColumns())
+	return spanner.Insert("GeneratedColumns", GeneratedColumnWritableColumns(), values)
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (gc *GeneratedColumn) Update(ctx context.Context) *spanner.Mutation {
+	values, _ := gc.columnsToValues(GeneratedColumnWritableColumns())
+	return spanner.Update("GeneratedColumns", GeneratedColumnWritableColumns(), values)
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (gc *GeneratedColumn) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	values, _ := gc.columnsToValues(GeneratedColumnWritableColumns())
+	return spanner.InsertOrUpdate("GeneratedColumns", GeneratedColumnWritableColumns(), values)
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (gc *GeneratedColumn) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, GeneratedColumnPrimaryKeys()...)
+
+	values, err := gc.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "GeneratedColumn.UpdateColumns", "GeneratedColumns", err)
+	}
+
+	return spanner.Update("GeneratedColumns", colsWithPKeys, values), nil
+}
+
+// FindGeneratedColumn gets a GeneratedColumn by primary key
+func FindGeneratedColumn(ctx context.Context, db YORODB, id int64) (*GeneratedColumn, error) {
+	key := spanner.Key{id}
+	row, err := db.ReadRow(ctx, "GeneratedColumns", key, GeneratedColumnColumns())
+	if err != nil {
+		return nil, newError("FindGeneratedColumn", "GeneratedColumns", err)
+	}
+
+	decoder := newGeneratedColumn_Decoder(GeneratedColumnColumns())
+	gc, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindGeneratedColumn", "GeneratedColumns", err)
+	}
+
+	return gc, nil
+}
+
+// ReadGeneratedColumn retrieves multiples rows from GeneratedColumn by KeySet as a slice.
+func ReadGeneratedColumn(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*GeneratedColumn, error) {
+	var res []*GeneratedColumn
+
+	decoder := newGeneratedColumn_Decoder(GeneratedColumnColumns())
+
+	rows := db.Read(ctx, "GeneratedColumns", keys, GeneratedColumnColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		gc, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, gc)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadGeneratedColumn", "GeneratedColumns", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the GeneratedColumn from the database.
+func (gc *GeneratedColumn) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := gc.columnsToValues(GeneratedColumnPrimaryKeys())
+	return spanner.Delete("GeneratedColumns", spanner.Key(values))
+}
+
 // Item represents a row from 'Items'.
 type Item struct {
 	ID    int64 `spanner:"ID" json:"ID"`       // ID
@@ -705,6 +926,13 @@ func ItemPrimaryKeys() []string {
 }
 
 func ItemColumns() []string {
+	return []string{
+		"ID",
+		"Price",
+	}
+}
+
+func ItemWritableColumns() []string {
 	return []string{
 		"ID",
 		"Price",
@@ -770,26 +998,23 @@ func newItem_Decoder(cols []string) func(*spanner.Row) (*Item, error) {
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (i *Item) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("Items", ItemColumns(), []interface{}{
-		i.ID, i.Price,
-	})
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.Insert("Items", ItemWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (i *Item) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("Items", ItemColumns(), []interface{}{
-		i.ID, i.Price,
-	})
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.Update("Items", ItemWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (i *Item) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("Items", ItemColumns(), []interface{}{
-		i.ID, i.Price,
-	})
+	values, _ := i.columnsToValues(ItemWritableColumns())
+	return spanner.InsertOrUpdate("Items", ItemWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -870,6 +1095,13 @@ func MaxLengthColumns() []string {
 	}
 }
 
+func MaxLengthWritableColumns() []string {
+	return []string{
+		"MaxString",
+		"MaxBytes",
+	}
+}
+
 func (ml *MaxLength) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -929,26 +1161,23 @@ func newMaxLength_Decoder(cols []string) func(*spanner.Row) (*MaxLength, error) 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ml *MaxLength) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("MaxLengths", MaxLengthColumns(), []interface{}{
-		ml.MaxString, ml.MaxBytes,
-	})
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.Insert("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (ml *MaxLength) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("MaxLengths", MaxLengthColumns(), []interface{}{
-		ml.MaxString, ml.MaxBytes,
-	})
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.Update("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (ml *MaxLength) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("MaxLengths", MaxLengthColumns(), []interface{}{
-		ml.MaxString, ml.MaxBytes,
-	})
+	values, _ := ml.columnsToValues(MaxLengthWritableColumns())
+	return spanner.InsertOrUpdate("MaxLengths", MaxLengthWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
@@ -1033,6 +1262,14 @@ func OutOfOrderPrimaryKeyColumns() []string {
 	}
 }
 
+func OutOfOrderPrimaryKeyWritableColumns() []string {
+	return []string{
+		"PKey1",
+		"PKey2",
+		"PKey3",
+	}
+}
+
 func (ooopk *OutOfOrderPrimaryKey) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -1096,9 +1333,8 @@ func newOutOfOrderPrimaryKey_Decoder(cols []string) func(*spanner.Row) (*OutOfOr
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (ooopk *OutOfOrderPrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("OutOfOrderPrimaryKeys", OutOfOrderPrimaryKeyColumns(), []interface{}{
-		ooopk.PKey1, ooopk.PKey2, ooopk.PKey3,
-	})
+	values, _ := ooopk.columnsToValues(OutOfOrderPrimaryKeyWritableColumns())
+	return spanner.Insert("OutOfOrderPrimaryKeys", OutOfOrderPrimaryKeyWritableColumns(), values)
 }
 
 // Delete deletes the OutOfOrderPrimaryKey from the database.
@@ -1121,6 +1357,14 @@ func SnakeCasePrimaryKeys() []string {
 }
 
 func SnakeCaseColumns() []string {
+	return []string{
+		"id",
+		"string_id",
+		"foo_bar_baz",
+	}
+}
+
+func SnakeCaseWritableColumns() []string {
 	return []string{
 		"id",
 		"string_id",
@@ -1191,26 +1435,23 @@ func newSnakeCase_Decoder(cols []string) func(*spanner.Row) (*SnakeCase, error) 
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (sc *SnakeCase) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("snake_cases", SnakeCaseColumns(), []interface{}{
-		sc.ID, sc.StringID, sc.FooBarBaz,
-	})
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.Insert("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (sc *SnakeCase) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("snake_cases", SnakeCaseColumns(), []interface{}{
-		sc.ID, sc.StringID, sc.FooBarBaz,
-	})
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.Update("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (sc *SnakeCase) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("snake_cases", SnakeCaseColumns(), []interface{}{
-		sc.ID, sc.StringID, sc.FooBarBaz,
-	})
+	values, _ := sc.columnsToValues(SnakeCaseWritableColumns())
+	return spanner.InsertOrUpdate("snake_cases", SnakeCaseWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.
