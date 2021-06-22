@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 	"testing"
+
+	"go.mercari.io/yo/models"
 )
 
 func Test_setIndexesToTables(t *testing.T) {
@@ -18,8 +20,20 @@ func Test_setIndexesToTables(t *testing.T) {
 				},
 			},
 			ix: map[string]*Index{
-				"TableA_Index1": &Index{},
-				"TableA_Index2": &Index{},
+				"TableA_Index1": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableA",
+						},
+					},
+				},
+				"TableA_Index2": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableA",
+						},
+					},
+				},
 			},
 			result: map[string]int{
 				"TableA": 2,
@@ -35,8 +49,20 @@ func Test_setIndexesToTables(t *testing.T) {
 				},
 			},
 			ix: map[string]*Index{
-				"TableA_Index1": &Index{},
-				"TableA_Index2": &Index{},
+				"TableA_Index1": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableA",
+						},
+					},
+				},
+				"TableA_Index2": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableA",
+						},
+					},
+				},
 			},
 			result: map[string]int{
 				"TableA": 2,
@@ -53,10 +79,34 @@ func Test_setIndexesToTables(t *testing.T) {
 				},
 			},
 			ix: map[string]*Index{
-				"TableA_Index1":               &Index{},
-				"TableA_Index2":               &Index{},
-				"TableB_Index1":               &Index{},
-				"TableB_Index2forTableA_Hoge": &Index{},
+				"TableA_Index1": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableA",
+						},
+					},
+				},
+				"TableA_Index2": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableA",
+						},
+					},
+				},
+				"TableB_Index1": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableB",
+						},
+					},
+				},
+				"TableB_Index2forTableA_Hoge": &Index{
+					Type: &Type{
+						Table: &models.Table{
+							TableName: "TableB",
+						},
+					},
+				},
 			},
 			result: map[string]int{
 				"TableA": 2,
