@@ -22,7 +22,6 @@ package loaders
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/MakeNowJust/memefish/pkg/parser"
@@ -37,21 +36,15 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 	}
 
 	tables := make(map[string]table)
-	stmts := strings.Split(string(b), ";")
-	for _, stmt := range stmts {
-		stmt := strings.TrimSpace(stmt)
-		if stmt == "" {
-			continue
-		}
-		ddl, err := (&parser.Parser{
-			Lexer: &parser.Lexer{
-				File: &token.File{FilePath: fpath, Buffer: stmt},
-			},
-		}).ParseDDL()
-		if err != nil {
-			return nil, err
-		}
-
+	ddls, err := (&parser.Parser{
+		Lexer: &parser.Lexer{
+			File: &token.File{FilePath: fpath, Buffer: string(b)},
+		},
+	}).ParseDDLs()
+	if err != nil {
+		return nil, err
+	}
+	for _, ddl := range ddls {
 		switch val := ddl.(type) {
 		case *ast.CreateTable:
 			v := tables[val.Name.Name]
