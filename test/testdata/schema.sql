@@ -31,6 +31,7 @@ CREATE INDEX CompositePrimaryKeysByXY     ON CompositePrimaryKeys(X, Y);
 CREATE INDEX CompositePrimaryKeysByError  ON CompositePrimaryKeys(Error);
 CREATE INDEX CompositePrimaryKeysByError2 ON CompositePrimaryKeys(Error) STORING(Z);
 CREATE INDEX CompositePrimaryKeysByError3 ON CompositePrimaryKeys(Error) STORING(Z, Y);
+-- CREATE INDEX ForTestCommentIndex     ON CompositePrimaryKeys(X, Y, Z);
 
 CREATE TABLE OutOfOrderPrimaryKeys (
   PKey1 STRING(32) NOT NULL,

@@ -25,12 +25,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/spanner"
 	dbadmin "cloud.google.com/go/spanner/admin/database/apiv1"
 	insadmin "cloud.google.com/go/spanner/admin/instance/apiv1"
+	"github.com/MakeNowJust/memefish/pkg/parser"
+	mtoken "github.com/MakeNowJust/memefish/pkg/token"
 	dbadminpb "google.golang.org/genproto/googleapis/spanner/admin/database/v1"
 	instancepb "google.golang.org/genproto/googleapis/spanner/admin/instance/v1"
 	"google.golang.org/grpc/codes"
@@ -97,7 +98,7 @@ func SetupDatabase(ctx context.Context, projectName, instanceName, dbName string
 
 	dbAdminCli, err := dbadmin.NewDatabaseAdminClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create database admin client: %v")
+		return fmt.Errorf("failed to create database admin client: %v", err)
 	}
 	defer dbAdminCli.Close()
 
@@ -220,7 +221,8 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 	dir := findProjectRootDir()
 
 	// Open test schema
-	file, err := os.Open(filepath.Join(dir, "./test/testdata/schema.sql"))
+	fpath := filepath.Join(dir, "./test/testdata/schema.sql")
+	file, err := os.Open(fpath)
 	if err != nil {
 		return fmt.Errorf("scheme file cannot open: %v", err)
 	}
@@ -233,19 +235,19 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 
 	// find the first DDL to skip comments.
 	contents := string(b)
-	if pos := strings.Index(contents, "CREATE "); pos >= 0 {
-		contents = contents[pos:]
+	ddls, err := (&parser.Parser{
+		Lexer: &parser.Lexer{
+			File: &mtoken.File{FilePath: fpath, Buffer: contents},
+		},
+	}).ParseDDLs()
+	if err != nil {
+		return fmt.Errorf("parse error: %v", err)
 	}
-
 	// Split scheme definition to DDL statements.
 	// This assuemes there is no comments and each statement is separated by semi-colon
 	var statements []string
-	for _, s := range strings.Split(contents, ";") {
-		s = strings.TrimSpace(s)
-		if len(s) == 0 {
-			continue
-		}
-		statements = append(statements, s)
+	for _, ddl := range ddls {
+		statements = append(statements, ddl.SQL())
 	}
 
 	// Apply DDL statements to create tables
