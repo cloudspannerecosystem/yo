@@ -30,7 +30,6 @@ import (
 
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/go-cmp/cmp"
 	"go.mercari.io/yo/test/testmodels/customtypes"
 	models "go.mercari.io/yo/test/testmodels/default"
@@ -40,6 +39,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var (
@@ -107,7 +108,7 @@ func newSessionNotFoundError(name string) error {
 func newAbortedWithRetryInfo() error {
 	s := status.New(codes.Aborted, "")
 	s, err := s.WithDetails(&errdetails.RetryInfo{
-		RetryDelay: ptypes.DurationProto(100 * time.Millisecond),
+		RetryDelay: durationpb.New(100 * time.Millisecond),
 	})
 	if err != nil {
 		panic(fmt.Sprintf("with details failed: %v", err))
@@ -606,7 +607,7 @@ func TestSessionNotFound(t *testing.T) {
 			ResourceName: "xxx",
 		}
 
-		if diff := cmp.Diff(expectedResourceInfo, ri); diff != "" {
+		if diff := cmp.Diff(expectedResourceInfo, ri, protocmp.Transform()); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})
@@ -621,7 +622,7 @@ func TestSessionNotFound(t *testing.T) {
 			ResourceName: "xxx",
 		}
 
-		if diff := cmp.Diff(expectedResourceInfo, ri); diff != "" {
+		if diff := cmp.Diff(expectedResourceInfo, ri, protocmp.Transform()); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})
