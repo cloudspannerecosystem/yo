@@ -66,6 +66,15 @@ CREATE TABLE MaxLengths (
   MaxBytes BYTES(MAX) NOT NULL,
 ) PRIMARY KEY(MaxString);
 `
+
+	alterTableAddFKSchema = `
+ALTER TABLE Foo ADD FOREIGN KEY (CustomerID) REFERENCES Customers (CustomerID)
+
+`
+
+	alterTableAddConstraintFKSchema = `
+ALTER TABLE Foo ADD CONSTRAINT FK_CustomerOrder FOREIGN KEY (CustomerID) REFERENCES Customers (CustomerID)
+`
 )
 
 func TestLoader(t *testing.T) {
@@ -314,6 +323,22 @@ func TestLoader(t *testing.T) {
 						TableName: "MaxLengths",
 					},
 				},
+			},
+		},
+		{
+			name:   "AlterTableAddFK",
+			opt:    Option{},
+			schema: alterTableAddFKSchema,
+			expectedSchema: &models.Schema{
+				Types: []*models.Type{},
+			},
+		},
+		{
+			name:   "AlterTableAddConstraintFK",
+			opt:    Option{},
+			schema: alterTableAddConstraintFKSchema,
+			expectedSchema: &models.Schema{
+				Types: []*models.Type{},
 			},
 		},
 	}

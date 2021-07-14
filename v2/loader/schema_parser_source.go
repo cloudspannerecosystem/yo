@@ -58,12 +58,26 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 			v := tables[tableName]
 			v.createIndexes = append(v.createIndexes, val)
 			tables[tableName] = v
+		case *spansql.AlterTable:
+			if isAlterTableAddFK(val) {
+				continue
+			}
+			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		default:
-			return nil, fmt.Errorf("stmt should be CreateTable or CreateIndex, but got '%s'", ddlstmt.SQL())
+			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		}
 	}
 
 	return &schemaParserSource{tables: tables}, nil
+}
+
+func isAlterTableAddFK(at *spansql.AlterTable) bool {
+	ac, ok := at.Alteration.(spansql.AddConstraint)
+	if !ok {
+		return false
+	}
+	_, ok = ac.Constraint.Constraint.(spansql.ForeignKey)
+	return ok
 }
 
 type table struct {
