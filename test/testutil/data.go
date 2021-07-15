@@ -69,7 +69,6 @@ func DeleteAllData(ctx context.Context, client *spanner.Client) error {
 		"FullTypes",
 		"MaxLengths",
 		"snake_cases",
-		"Tests",
 		"GeneratedColumns",
 	}
 	var muts []*spanner.Mutation
