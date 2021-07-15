@@ -54,8 +54,13 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 			v := tables[val.TableName.Name]
 			v.createIndexes = append(v.createIndexes, val)
 			tables[val.TableName.Name] = v
+		case *ast.AlterTable:
+			if _, ok := val.TableAlternation.(*ast.AddForeignKey); ok {
+				continue
+			}
+			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddl.SQL())
 		default:
-			return nil, fmt.Errorf("stmt should be CreateTable or CreateIndex, but got '%s'", ddl.SQL())
+			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddl.SQL())
 		}
 	}
 
