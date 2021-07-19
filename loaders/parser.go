@@ -51,7 +51,10 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 			v.createTable = val
 			tables[val.Name.Name] = v
 		case *ast.CreateIndex:
-			v := tables[val.TableName.Name]
+			v, ok := tables[val.TableName.Name]
+			if !ok {
+				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", val.TableName.Name, ddl.SQL())
+			}
 			v.createIndexes = append(v.createIndexes, val)
 			tables[val.TableName.Name] = v
 		default:
