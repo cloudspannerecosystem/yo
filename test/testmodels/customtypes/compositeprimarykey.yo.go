@@ -41,6 +41,18 @@ func CompositePrimaryKeyColumns() []string {
 	}
 }
 
+func CompositePrimaryKeyWritableColumns() []string {
+	return []string{
+		"Id",
+		"PKey1",
+		"PKey2",
+		"Error",
+		"X",
+		"Y",
+		"Z",
+	}
+}
+
 func (cpk *CompositePrimaryKey) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
@@ -130,26 +142,23 @@ func newCompositePrimaryKey_Decoder(cols []string) func(*spanner.Row) (*Composit
 // Insert returns a Mutation to insert a row into a table. If the row already
 // exists, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
-	return spanner.Insert("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		int64(cpk.ID), cpk.PKey1, int64(cpk.PKey2), int64(cpk.Error), cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyWritableColumns())
+	return spanner.Insert("CompositePrimaryKeys", CompositePrimaryKeyWritableColumns(), values)
 }
 
 // Update returns a Mutation to update a row in a table. If the row does not
 // already exist, the write or transaction fails.
 func (cpk *CompositePrimaryKey) Update(ctx context.Context) *spanner.Mutation {
-	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		int64(cpk.ID), cpk.PKey1, int64(cpk.PKey2), int64(cpk.Error), cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyWritableColumns())
+	return spanner.Update("CompositePrimaryKeys", CompositePrimaryKeyWritableColumns(), values)
 }
 
 // InsertOrUpdate returns a Mutation to insert a row into a table. If the row
 // already exists, it updates it instead. Any column values not explicitly
 // written are preserved.
 func (cpk *CompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
-	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyColumns(), []interface{}{
-		int64(cpk.ID), cpk.PKey1, int64(cpk.PKey2), int64(cpk.Error), cpk.X, cpk.Y, cpk.Z,
-	})
+	values, _ := cpk.columnsToValues(CompositePrimaryKeyWritableColumns())
+	return spanner.InsertOrUpdate("CompositePrimaryKeys", CompositePrimaryKeyWritableColumns(), values)
 }
 
 // UpdateColumns returns a Mutation to update specified columns of a row in a table.

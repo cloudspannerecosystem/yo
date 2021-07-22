@@ -124,6 +124,7 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
+			IsGenerated:  c.GeneratedExpr != nil,
 		})
 	}
 
