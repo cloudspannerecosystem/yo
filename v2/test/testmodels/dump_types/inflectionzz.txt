@@ -1,0 +1,11 @@
+# Field list of Inflectionzz
+
+* X STRING(32) string
+* Y STRING(32) string
+
+# Primary Key
+
+* X STRING(32) string
+
+# Index list of Inflectionzz
+

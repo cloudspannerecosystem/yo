@@ -5,7 +5,6 @@ go 1.15
 require (
 	cloud.google.com/go v0.81.0
 	cloud.google.com/go/spanner v1.18.0
-	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-cmp v0.5.5
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15

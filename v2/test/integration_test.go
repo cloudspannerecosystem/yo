@@ -1205,3 +1205,47 @@ func extractResourceInfo(st *status.Status) *errdetails.ResourceInfo {
 	}
 	return nil
 }
+
+func TestInflectionzz(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := testutil.DeleteAllData(ctx, client); err != nil {
+		t.Fatalf("failed to clear data: %v", err)
+	}
+
+	cpk := &default_models.Inflection{
+		X: "x",
+		Y: "y",
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{cpk.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	t.Run("FindByPrimaryKey", func(t *testing.T) {
+		got, err := default_models.FindInflection(ctx, client.Single(), "x")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if diff := cmp.Diff(cpk, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("ReadByPrimaryKey", func(t *testing.T) {
+		got, err := default_models.ReadInflection(ctx, client.Single(), spanner.Key{"x"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expect the number of rows %v, but got %v", 1, len(got))
+		}
+
+		if diff := cmp.Diff(cpk, got[0]); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
