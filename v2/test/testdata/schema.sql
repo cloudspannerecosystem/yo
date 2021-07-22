@@ -162,3 +162,8 @@ CREATE TABLE GeneratedColumns (
   LastName STRING(50) NOT NULL,
   FullName STRING(100) NOT NULL AS (ARRAY_TO_STRING([FirstName, LastName], " ")) STORED,
 ) PRIMARY KEY (ID);
+
+CREATE TABLE Inflectionzz (
+  X STRING(32) NOT NULL,
+  Y STRING(32) NOT NULL,
+) PRIMARY KEY(X);

@@ -186,19 +186,19 @@ templates in the `yo` source tree for use within your own project.
 
 `yo` provides some helper functions which can be used in templates. Those are defined in [`generator/funcs.go`](generator/funcs.go). Those are not well documented and are likely to change.
 
-### Custom inflection rule file
+## Configuration
 
-`yo` use inflection to convert singular or plural name each other.
-If you want to add own rule, add `--inflection-rule-file` option with rule yaml file.
-rule yaml file sample is
-```
-- singular: person
-  plural: people
-- singular: live
-  plural: lives
-```
+### Custom inflection rules
 
-See https://github.com/jinzhu/inflection#register-rules for details.
+`yo` uses inflection to convert singular or plural name each other. You can add inflection rules with config file.
+
+```
+inflections:
+  - singular: person
+    plural: people
+  - singular: live
+    plural: lives
+```
 
 ## Changes from V1
 

@@ -20,7 +20,6 @@
 package internal
 
 import (
-	"github.com/gedex/inflector"
 	"github.com/jinzhu/inflection"
 	"go.mercari.io/yo/v2/config"
 )
@@ -30,37 +29,35 @@ type Inflector interface {
 	Pluralize(string) string
 }
 
-type DefaultInflector struct{}
-type RuleInflector struct{}
+type inflector struct{}
 
-func (i *DefaultInflector) Singularize(s string) string {
-	return inflector.Singularize(s)
-}
-func (i *DefaultInflector) Pluralize(s string) string {
-	return inflector.Pluralize(s)
-}
-
-func (i *RuleInflector) Singularize(s string) string {
+func (i *inflector) Singularize(s string) string {
 	return inflection.Singular(s)
 }
-func (i *RuleInflector) Pluralize(s string) string {
+func (i *inflector) Pluralize(s string) string {
 	return inflection.Plural(s)
 }
 
 func NewInflector(rules []config.Inflection) (Inflector, error) {
-	if len(rules) == 0 {
-		return &DefaultInflector{}, nil
-	}
-
 	if err := registerRule(rules); err != nil {
 		return nil, err
 	}
-	return &RuleInflector{}, nil
+	return &inflector{}, nil
 }
 
 func registerRule(rules []config.Inflection) error {
 	for _, rule := range rules {
 		inflection.AddIrregular(rule.Singular, rule.Plural)
+	}
+
+	for _, rule := range defaultSingularInflections {
+		inflection.AddSingular(rule.find, rule.replace)
+	}
+	for _, rule := range defaultPluralInflections {
+		inflection.AddPlural(rule.find, rule.replace)
+	}
+	for _, rule := range defaultIrregularRules {
+		inflection.AddIrregular(rule.singlar, rule.plural)
 	}
 
 	return nil
