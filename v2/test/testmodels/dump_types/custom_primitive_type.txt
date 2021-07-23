@@ -1,0 +1,42 @@
+# Field list of CustomPrimitiveType
+
+* PKey STRING(32) string
+* FTInt64 INT64 int64
+* FTInt64null INT64 spanner.NullInt64
+* FTInt32 INT64 int64
+* FTInt32null INT64 spanner.NullInt64
+* FTInt16 INT64 int64
+* FTInt16null INT64 spanner.NullInt64
+* FTInt8 INT64 int64
+* FTInt8null INT64 spanner.NullInt64
+* FTUInt64 INT64 int64
+* FTUInt64null INT64 spanner.NullInt64
+* FTUInt32 INT64 int64
+* FTUInt32null INT64 spanner.NullInt64
+* FTUInt16 INT64 int64
+* FTUInt16null INT64 spanner.NullInt64
+* FTUInt8 INT64 int64
+* FTUInt8null INT64 spanner.NullInt64
+* FTArrayInt64 ARRAY<INT64> []int64
+* FTArrayInt64null ARRAY<INT64> []int64
+* FTArrayInt32 ARRAY<INT64> []int64
+* FTArrayInt32null ARRAY<INT64> []int64
+* FTArrayInt16 ARRAY<INT64> []int64
+* FTArrayInt16null ARRAY<INT64> []int64
+* FTArrayInt8 ARRAY<INT64> []int64
+* FTArrayInt8null ARRAY<INT64> []int64
+* FTArrayUINt64 ARRAY<INT64> []int64
+* FTArrayUINt64null ARRAY<INT64> []int64
+* FTArrayUINt32 ARRAY<INT64> []int64
+* FTArrayUINt32null ARRAY<INT64> []int64
+* FTArrayUINt16 ARRAY<INT64> []int64
+* FTArrayUINt16null ARRAY<INT64> []int64
+* FTArrayUINt8 ARRAY<INT64> []int64
+* FTArrayUINt8null ARRAY<INT64> []int64
+
+# Primary Key
+
+* PKey STRING(32) string
+
+# Index list of CustomPrimitiveType
+

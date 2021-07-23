@@ -1,0 +1,11 @@
+# Field list of Item
+
+* ID INT64 int64
+* Price INT64 int64
+
+# Primary Key
+
+* ID INT64 int64
+
+# Index list of Item
+

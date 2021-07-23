@@ -1,0 +1,12 @@
+# Field list of FereignItem
+
+* ID INT64 int64
+* ItemID INT64 int64
+* Category INT64 int64
+
+# Primary Key
+
+* ID INT64 int64
+
+# Index list of FereignItem
+

@@ -1,0 +1,11 @@
+# Field list of MaxLength
+
+* MaxString STRING(MAX) string
+* MaxBytes BYTES(MAX) []byte
+
+# Primary Key
+
+* MaxString STRING(MAX) string
+
+# Index list of MaxLength
+
