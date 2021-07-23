@@ -20,18 +20,19 @@
 package generator
 
 import (
-	"io"
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"go.mercari.io/yo/v2/module/builtin/tplbin"
+	"go.mercari.io/yo/v2/module/builtin"
 )
 
 // CopyDefaultTemplates copies default templete files to dir.
 func CopyDefaultTemplates(dir string) error {
-	for _, tf := range tplbin.Assets.Files {
+	for _, m := range builtin.All {
 		if err := func() (err error) {
-			file, err := os.OpenFile(filepath.Join(dir, tf.Name()), os.O_RDWR|os.O_CREATE, 0666)
+			filename := fmt.Sprintf("%s.go.tpl", m.Name())
+			file, err := os.OpenFile(filepath.Join(dir, filename), os.O_RDWR|os.O_CREATE, 0666)
 			if err != nil {
 				return err
 			}
@@ -41,7 +42,12 @@ func CopyDefaultTemplates(dir string) error {
 				}
 			}()
 
-			_, err = io.Copy(file, tf)
+			b, err := m.Load()
+			if err != nil {
+				return fmt.Errorf("failed to load builtin module %q: %v", m.Name(), err)
+			}
+
+			_, err = file.Write(b)
 			return
 		}(); err != nil {
 			return err

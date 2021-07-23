@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Mercari, Inc.
+// Copyright (c) 2021 Mercari, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -17,4 +17,42 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package tplbin // import "go.mercari.io/yo/v2/module/builtin/tplbin"
+package builtin
+
+import (
+	"testing"
+
+	"go.mercari.io/yo/v2/module"
+)
+
+func TestBuiltin(t *testing.T) {
+	for _, m := range All {
+		b, err := m.Load()
+		if err != nil {
+			t.Fatalf("failed to load module %q: %v", m.Name(), err)
+		}
+
+		if len(b) == 0 {
+			t.Errorf("there is no contents in module %q", m.Name())
+		}
+	}
+}
+
+func TestNullModule(t *testing.T) {
+	nullModules := []module.Module{
+		NullHeader,
+		NullGlobal,
+		NullType,
+	}
+
+	for _, m := range nullModules {
+		b, err := m.Load()
+		if err != nil {
+			t.Fatalf("failed to load module %q: %v", m.Name(), err)
+		}
+
+		if len(b) != 0 {
+			t.Errorf("null module must have no contents %q: %s", m.Type(), b)
+		}
+	}
+}
