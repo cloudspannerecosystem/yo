@@ -14,21 +14,11 @@ help: ## show this help message.
 
 all: build
 
-build: regen ## build yo command and regenerate template bin
+build: ## build yo command and regenerate template bin
 	go build
 
-regen: module/builtin/tplbin/templates.go ## regenerate template bin
-
 deps:
-	go get -u github.com/jessevdk/go-assets-builder
-
-module/builtin/tplbin/templates.go: $(wildcard module/builtin/templates/*.tpl)
-	mkdir -p module/builtin/tplbin
-	go-assets-builder \
-		--package=tplbin \
-		--strip-prefix="/module/builtin/templates/" \
-		--output module/builtin/tplbin/templates.go \
-		module/builtin/templates/*.tpl
+	go mod download
 
 .PHONY: test
 test: ## run test

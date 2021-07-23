@@ -20,12 +20,15 @@
 package builtin
 
 import (
+	"embed"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"go.mercari.io/yo/v2/module"
-	templates "go.mercari.io/yo/v2/module/builtin/tplbin"
 )
+
+//go:embed templates/*.tpl
+var templates embed.FS
 
 type builtinMod struct {
 	typ  module.ModuleType
@@ -48,12 +51,14 @@ func (m *builtinMod) Type() module.ModuleType {
 }
 
 func (m *builtinMod) Load() ([]byte, error) {
-	f, err := templates.Assets.Open(fmt.Sprintf("%s.go.tpl", m.name))
+	f, err := templates.Open(fmt.Sprintf("templates/%s.go.tpl", m.name))
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", m.name, err)
 	}
 
-	b, err := ioutil.ReadAll(f)
+	defer f.Close()
+
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file from assets: %w", err)
 	}

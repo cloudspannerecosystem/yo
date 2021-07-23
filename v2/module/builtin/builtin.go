@@ -32,6 +32,15 @@ var (
 	Interface   = newBuiltin(module.GlobalModule, "yo_db")
 )
 
+var All = []module.Module{
+	Header,
+	Type,
+	Operation,
+	Index,
+	LegacyIndex,
+	Interface,
+}
+
 var (
 	NullHeader = newNullModule(module.HeaderModule)
 	NullGlobal = newNullModule(module.GlobalModule)
