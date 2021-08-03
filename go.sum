@@ -45,8 +45,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/MakeNowJust/heredoc/v2 v2.0.1 h1:rlCHh70XXXv7toz95ajQWOWQnN4WNLt0TdpZYIR/J6A=
 github.com/MakeNowJust/heredoc/v2 v2.0.1/go.mod h1:6/2Abh5s+hc3g9nbWLe9ObDIOhaRrqsyY9MWy+4JdRM=
-github.com/MakeNowJust/memefish v0.0.0-20210715063601-e74e2f88cc91 h1:Byz/+yIOGJddGWjP7WuCgYa1r9ggSHeyHXG7blf/1hQ=
-github.com/MakeNowJust/memefish v0.0.0-20210715063601-e74e2f88cc91/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
+github.com/MakeNowJust/memefish v0.0.0-20210803005546-e411e939b85c h1:EgsDVfhpOePUwfPj/M6UGHlkOIHuVsZWVM/MFo+SW4Q=
+github.com/MakeNowJust/memefish v0.0.0-20210803005546-e411e939b85c/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
