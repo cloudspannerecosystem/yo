@@ -5,7 +5,7 @@ go 1.15
 require (
 	cloud.google.com/go v0.81.0
 	cloud.google.com/go/spanner v1.5.1
-	github.com/MakeNowJust/memefish v0.0.0-20210715063601-e74e2f88cc91
+	github.com/MakeNowJust/memefish v0.0.0-20210803005546-e411e939b85c
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/google/go-cmp v0.5.5
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
