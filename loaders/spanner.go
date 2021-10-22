@@ -171,6 +171,47 @@ func SpanParseType(dt string, nullable bool) (int, string, string) {
 			typ = "spanner.NullDate"
 		}
 
+	case "JSON":
+		nilVal = `spanner.GenericColumnValue{
+			Type: &sppb.Type{Code: sppb.TypeCode_JSON},
+			Value: &structpb.Value{
+				Kind: &structpb.Value_StringValue{StringValue: "{}"},
+			},
+		}`
+		typ = "spanner.GenericColumnValue"
+		if nullable {
+			nilVal = `spanner.GenericColumnValue{
+				Type: &sppb.Type{Code: sppb.TypeCode_JSON},
+				Value: &structpb.Value{
+					Kind: &structpb.Value_NullValue{},
+				},
+			}`
+		}
+	case "ARRAY<JSON>":
+		typ = "spanner.GenericColumnValue"
+		nilVal = `spanner.GenericColumnValue{
+			Type: &sppb.Type{
+				Code:             sppb.TypeCode_ARRAY,
+				ArrayElementType: &sppb.Type{Code: sppb.TypeCode_JSON},
+			},
+			Value: &structpb.Value{
+				Kind: &structpb.Value_NullValue{},
+			},
+		}`
+		if !nullable {
+			nilVal = `spanner.GenericColumnValue{
+				Type: &sppb.Type{
+					Code:             sppb.TypeCode_ARRAY,
+					ArrayElementType: &sppb.Type{Code: sppb.TypeCode_JSON},
+				},
+				Value: &structpb.Value{
+					Kind: &structpb.Value_ListValue{
+						ListValue: &structpb.ListValue{Values: []*structpb.Value{}},
+					},
+				},
+			}`
+		}
+
 	default:
 		if strings.HasPrefix(dt, "ARRAY<") {
 			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
