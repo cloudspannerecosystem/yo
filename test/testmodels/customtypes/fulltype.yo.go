@@ -26,7 +26,7 @@ type FullType struct {
 	FTTimestamp          time.Time           `spanner:"FTTimestamp" json:"FTTimestamp"`                   // FTTimestamp
 	FTTimestampNull      spanner.NullTime    `spanner:"FTTimestampNull" json:"FTTimestampNull"`           // FTTimestampNull
 	FTInt                int32               `spanner:"FTInt" json:"FTInt"`                               // FTInt
-	FTIntNull            spanner.NullInt64   `spanner:"FTIntNull" json:"FTIntNull"`                       // FTIntNull
+	FTIntNull            uint64              `spanner:"FTIntNull" json:"FTIntNull"`                       // FTIntNull
 	FTFloat              float32             `spanner:"FTFloat" json:"FTFloat"`                           // FTFloat
 	FTFloatNull          spanner.NullFloat64 `spanner:"FTFloatNull" json:"FTFloatNull"`                   // FTFloatNull
 	FTDate               civil.Date          `spanner:"FTDate" json:"FTDate"`                             // FTDate
@@ -220,7 +220,7 @@ func (ft *FullType) columnsToValues(cols []string) ([]interface{}, error) {
 		case "FTInt":
 			ret = append(ret, int64(ft.FTInt))
 		case "FTIntNull":
-			ret = append(ret, ft.FTIntNull)
+			ret = append(ret, spanner.NullInt64(ft.FTIntNull))
 		case "FTFloat":
 			ret = append(ret, float64(ft.FTFloat))
 		case "FTFloatNull":
@@ -269,10 +269,12 @@ func (ft *FullType) columnsToValues(cols []string) ([]interface{}, error) {
 // into FullType. The decoder is not goroutine-safe. Don't use it concurrently.
 func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
 	var cFTInt int64
+	var cFTIntNull spanner.NullInt64
 	var cFTFloat float64
 	customPtrs := map[string]interface{}{
-		"FTInt":   &cFTInt,
-		"FTFloat": &cFTFloat,
+		"FTInt":     &cFTInt,
+		"FTIntNull": &cFTIntNull,
+		"FTFloat":   &cFTFloat,
 	}
 
 	return func(row *spanner.Row) (*FullType, error) {
@@ -286,6 +288,7 @@ func newFullType_Decoder(cols []string) func(*spanner.Row) (*FullType, error) {
 			return nil, err
 		}
 		ft.FTInt = int32(cFTInt)
+		ft.FTIntNull = uint64(cFTIntNull)
 		ft.FTFloat = float32(cFTFloat)
 
 		return &ft, nil
