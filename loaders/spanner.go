@@ -178,6 +178,14 @@ func SpanParseType(dt string, nullable bool) (int, string, string) {
 			nilVal = `spanner.NullJSON{}`
 		}
 
+	case "NUMERIC":
+		nilVal = "big.Rat{}"
+		typ = "big.Rat"
+		if nullable {
+			nilVal = "spanner.NullNumeric{}"
+			typ = "spanner.NullNumeric"
+		}
+
 	default:
 		if strings.HasPrefix(dt, "ARRAY<") {
 			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
