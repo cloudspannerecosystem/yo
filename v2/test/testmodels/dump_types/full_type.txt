@@ -15,6 +15,8 @@
 * FTFloatNull FLOAT64 spanner.NullFloat64
 * FTDate DATE civil.Date
 * FTDateNull DATE spanner.NullDate
+* FTJSON JSON spanner.NullJSON
+* FTJSONNull JSON spanner.NullJSON
 * FTArrayStringNull ARRAY<STRING(32)> []string
 * FTArrayString ARRAY<STRING(32)> []string
 * FTArrayBoolNull ARRAY<BOOL> []bool
@@ -29,6 +31,8 @@
 * FTArrayFloat ARRAY<FLOAT64> []float64
 * FTArrayDateNull ARRAY<DATE> []civil.Date
 * FTArrayDate ARRAY<DATE> []civil.Date
+* FTArrayJSONNull ARRAY<JSON> []spanner.NullJSON
+* FTArrayJSON ARRAY<JSON> []spanner.NullJSON
 
 # Primary Key
 

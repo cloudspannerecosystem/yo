@@ -298,6 +298,11 @@ func TestDefaultFullType(t *testing.T) {
 	date := civil.DateOf(now)
 	tomorrow := now.AddDate(0, 0, 1)
 	nextdate := civil.DateOf(tomorrow)
+	json := spanner.NullJSON{
+		Valid: true,
+		Value: `{"a": "b"}`,
+	}
+	jsonNull := spanner.NullJSON{}
 
 	table := map[string]struct {
 		ft *default_models.FullType
@@ -337,6 +342,8 @@ func TestDefaultFullType(t *testing.T) {
 					Date:  date,
 					Valid: true,
 				},
+				FTJSON:               json,
+				FTJSONNull:           json,
 				FTArrayStringNull:    []string{"xxx1", "yyy1"},
 				FTArrayString:        []string{"xxx1", "yyy1"},
 				FTArrayBoolNull:      []bool{true, false},
@@ -351,6 +358,8 @@ func TestDefaultFullType(t *testing.T) {
 				FTArrayFloat:         []float64{0.111, 0.222},
 				FTArrayDateNull:      []civil.Date{date, nextdate},
 				FTArrayDate:          []civil.Date{date, nextdate},
+				FTArrayJSONNull:      []spanner.NullJSON{json, jsonNull},
+				FTArrayJSON:          []spanner.NullJSON{json, jsonNull},
 			},
 		},
 		"case2": {
@@ -372,6 +381,8 @@ func TestDefaultFullType(t *testing.T) {
 				FTDateNull:           spanner.NullDate{},
 				FTArrayStringNull:    []string{"xxx2", "yyy2"},
 				FTArrayString:        []string{"xxx2", "yyy2"},
+				FTJSON:               json,
+				FTJSONNull:           jsonNull,
 				FTArrayBoolNull:      nil,
 				FTArrayBool:          []bool{true, false},
 				FTArrayBytesNull:     nil,
@@ -384,6 +395,8 @@ func TestDefaultFullType(t *testing.T) {
 				FTArrayFloat:         []float64{0.111, 0.222},
 				FTArrayDateNull:      nil,
 				FTArrayDate:          []civil.Date{date, nextdate},
+				FTArrayJSONNull:      nil,
+				FTArrayJSON:          []spanner.NullJSON{json, jsonNull},
 			},
 		},
 		"case3": {
@@ -403,6 +416,8 @@ func TestDefaultFullType(t *testing.T) {
 				FTFloatNull:          spanner.NullFloat64{},
 				FTDate:               date,
 				FTDateNull:           spanner.NullDate{},
+				FTJSON:               json,
+				FTJSONNull:           jsonNull,
 				FTArrayStringNull:    []string{},
 				FTArrayString:        []string{},
 				FTArrayBoolNull:      []bool{},
@@ -417,6 +432,8 @@ func TestDefaultFullType(t *testing.T) {
 				FTArrayFloat:         []float64{},
 				FTArrayDateNull:      []civil.Date{},
 				FTArrayDate:          []civil.Date{},
+				FTArrayJSONNull:      []spanner.NullJSON{},
+				FTArrayJSON:          []spanner.NullJSON{},
 			},
 		},
 	}
@@ -628,6 +645,11 @@ func TestLegacyDefaultFullType(t *testing.T) {
 	date := civil.DateOf(now)
 	tomorrow := now.AddDate(0, 0, 1)
 	nextdate := civil.DateOf(tomorrow)
+	json := spanner.NullJSON{
+		Valid: true,
+		Value: `{"a": "b"}`,
+	}
+	jsonNull := spanner.NullJSON{}
 
 	table := map[string]struct {
 		ft *legacy_models.FullType
@@ -667,6 +689,8 @@ func TestLegacyDefaultFullType(t *testing.T) {
 					Date:  date,
 					Valid: true,
 				},
+				FTJSON:               json,
+				FTJSONNull:           json,
 				FTArrayStringNull:    []string{"xxx1", "yyy1"},
 				FTArrayString:        []string{"xxx1", "yyy1"},
 				FTArrayBoolNull:      []bool{true, false},
@@ -681,6 +705,8 @@ func TestLegacyDefaultFullType(t *testing.T) {
 				FTArrayFloat:         []float64{0.111, 0.222},
 				FTArrayDateNull:      []civil.Date{date, nextdate},
 				FTArrayDate:          []civil.Date{date, nextdate},
+				FTArrayJSONNull:      []spanner.NullJSON{json, jsonNull},
+				FTArrayJSON:          []spanner.NullJSON{json, jsonNull},
 			},
 		},
 		"case2": {
@@ -700,6 +726,8 @@ func TestLegacyDefaultFullType(t *testing.T) {
 				FTFloatNull:          spanner.NullFloat64{},
 				FTDate:               date,
 				FTDateNull:           spanner.NullDate{},
+				FTJSON:               json,
+				FTJSONNull:           jsonNull,
 				FTArrayStringNull:    []string{"xxx2", "yyy2"},
 				FTArrayString:        []string{"xxx2", "yyy2"},
 				FTArrayBoolNull:      nil,
@@ -714,6 +742,8 @@ func TestLegacyDefaultFullType(t *testing.T) {
 				FTArrayFloat:         []float64{0.111, 0.222},
 				FTArrayDateNull:      nil,
 				FTArrayDate:          []civil.Date{date, nextdate},
+				FTArrayJSONNull:      nil,
+				FTArrayJSON:          []spanner.NullJSON{json, jsonNull},
 			},
 		},
 		"case3": {
@@ -733,6 +763,8 @@ func TestLegacyDefaultFullType(t *testing.T) {
 				FTFloatNull:          spanner.NullFloat64{},
 				FTDate:               date,
 				FTDateNull:           spanner.NullDate{},
+				FTJSON:               json,
+				FTJSONNull:           jsonNull,
 				FTArrayStringNull:    []string{},
 				FTArrayString:        []string{},
 				FTArrayBoolNull:      []bool{},
@@ -747,6 +779,8 @@ func TestLegacyDefaultFullType(t *testing.T) {
 				FTArrayFloat:         []float64{},
 				FTArrayDateNull:      []civil.Date{},
 				FTArrayDate:          []civil.Date{},
+				FTArrayJSONNull:      []spanner.NullJSON{},
+				FTArrayJSON:          []spanner.NullJSON{},
 			},
 		},
 	}

@@ -69,6 +69,8 @@ CREATE TABLE FullTypes (
   FTFloatNull FLOAT64,
   FTDate DATE NOT NULL,
   FTDateNull DATE,
+  FTJson JSON NOT NULL,
+  FTJsonNull JSON,
   FTArrayStringNull ARRAY<STRING(32)>,
   FTArrayString ARRAY<STRING(32)> NOT NULL,
   FTArrayBoolNull ARRAY<BOOL>,
@@ -83,6 +85,8 @@ CREATE TABLE FullTypes (
   FTArrayFloat ARRAY<FLOAT64> NOT NULL,
   FTArrayDateNull ARRAY<DATE>,
   FTArrayDate ARRAY<DATE> NOT NULL,
+  FTArrayJsonNull ARRAY<JSON>,
+  FTArrayJson ARRAY<JSON> NOT NULL,
 ) PRIMARY KEY(PKey);
 
 CREATE UNIQUE INDEX FullTypesByFTString ON FullTypes(FTString);
