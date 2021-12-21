@@ -210,9 +210,9 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 
 	// validate custom type columns
 	if columnTypes != nil {
-		columnSet := map[string]bool{}
+		columnSet := map[string]struct{}{}
 		for _, column := range columnList {
-			columnSet[column.ColumnName] = true
+			columnSet[column.ColumnName] = struct{}{}
 		}
 
 		for k, _ := range columnTypes {
