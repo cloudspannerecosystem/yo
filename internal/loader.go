@@ -137,6 +137,16 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 		tableMap[ti.TableName] = typeTpl
 	}
 
+	// validate custom type tables
+	if tl.CustomTypes != nil {
+		for _, customTable := range tl.CustomTypes.Tables {
+			_, ok := tableMap[customTable.Name]
+			if !ok {
+				return nil, fmt.Errorf("unknown custom type table: %s", customTable.Name)
+			}
+		}
+	}
+
 	return tableMap, nil
 }
 
@@ -197,6 +207,21 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 	}
 
 	columnTypes := tl.tableCustomTypes(typeTpl.Table.TableName)
+
+	// validate custom type columns
+	if columnTypes != nil {
+		columnSet := map[string]struct{}{}
+		for _, column := range columnList {
+			columnSet[column.ColumnName] = struct{}{}
+		}
+
+		for k, _ := range columnTypes {
+			if _, ok := columnSet[k]; !ok {
+				return fmt.Errorf("unknown custom type column %s in the table %s", k, typeTpl.Table.TableName)
+			}
+		}
+	}
+
 	// process columns
 	for _, c := range columnList {
 		ignore := false

@@ -26,5 +26,4 @@ tables:
   - name: "FullTypes"
     columns:
       FTInt: "int32"
-      FTInitNull: "uint64"
       FTFloat: "float32"
