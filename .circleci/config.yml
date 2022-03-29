@@ -55,7 +55,7 @@ jobs:
 
   v2test:
     docker:
-      - image: golang:1.16-buster
+      - image: golang:1.18-bullseye
         environment:
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_EMULATOR_HOST_REST: localhost:9020
