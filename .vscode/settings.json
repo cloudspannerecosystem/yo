@@ -1,0 +1,14 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "Google Cloud Spanner Driver",
+            "name": "yo-test",
+            "group": "yo-test",
+            "project": "yo-test",
+            "instance": "yo-test",
+            "database": "yo-test",
+            "connectToEmulator": true
+        }
+    ]
+}

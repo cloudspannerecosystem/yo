@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
+	"github.com/googleapis/gax-go/v2/apierror"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -213,6 +214,585 @@ func ReadCompositePrimaryKey(ctx context.Context, db YORODB, keys spanner.KeySet
 func (cpk *CompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := cpk.columnsToValues(CompositePrimaryKeyPrimaryKeys())
 	return spanner.Delete("CompositePrimaryKeys", spanner.Key(values))
+}
+
+// CustomCompositePrimaryKey represents a row from 'CustomCompositePrimaryKeys'.
+type CustomCompositePrimaryKey struct {
+	ID    int64  `spanner:"Id" json:"Id"`       // Id
+	PKey1 string `spanner:"PKey1" json:"PKey1"` // PKey1
+	PKey2 int64  `spanner:"PKey2" json:"PKey2"` // PKey2
+	Error int64  `spanner:"Error" json:"Error"` // Error
+	X     string `spanner:"X" json:"X"`         // X
+	Y     string `spanner:"Y" json:"Y"`         // Y
+	Z     string `spanner:"Z" json:"Z"`         // Z
+}
+
+func CustomCompositePrimaryKeyPrimaryKeys() []string {
+	return []string{
+		"PKey1",
+		"PKey2",
+	}
+}
+
+func CustomCompositePrimaryKeyColumns() []string {
+	return []string{
+		"Id",
+		"PKey1",
+		"PKey2",
+		"Error",
+		"X",
+		"Y",
+		"Z",
+	}
+}
+
+func CustomCompositePrimaryKeyWritableColumns() []string {
+	return []string{
+		"Id",
+		"PKey1",
+		"PKey2",
+		"Error",
+		"X",
+		"Y",
+		"Z",
+	}
+}
+
+func (ccpk *CustomCompositePrimaryKey) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "Id":
+			ret = append(ret, &ccpk.ID)
+		case "PKey1":
+			ret = append(ret, &ccpk.PKey1)
+		case "PKey2":
+			ret = append(ret, &ccpk.PKey2)
+		case "Error":
+			ret = append(ret, &ccpk.Error)
+		case "X":
+			ret = append(ret, &ccpk.X)
+		case "Y":
+			ret = append(ret, &ccpk.Y)
+		case "Z":
+			ret = append(ret, &ccpk.Z)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (ccpk *CustomCompositePrimaryKey) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "Id":
+			ret = append(ret, ccpk.ID)
+		case "PKey1":
+			ret = append(ret, ccpk.PKey1)
+		case "PKey2":
+			ret = append(ret, ccpk.PKey2)
+		case "Error":
+			ret = append(ret, ccpk.Error)
+		case "X":
+			ret = append(ret, ccpk.X)
+		case "Y":
+			ret = append(ret, ccpk.Y)
+		case "Z":
+			ret = append(ret, ccpk.Z)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newCustomCompositePrimaryKey_Decoder returns a decoder which reads a row from *spanner.Row
+// into CustomCompositePrimaryKey. The decoder is not goroutine-safe. Don't use it concurrently.
+func newCustomCompositePrimaryKey_Decoder(cols []string) func(*spanner.Row) (*CustomCompositePrimaryKey, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*CustomCompositePrimaryKey, error) {
+		var ccpk CustomCompositePrimaryKey
+		ptrs, err := ccpk.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &ccpk, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (ccpk *CustomCompositePrimaryKey) Insert(ctx context.Context) *spanner.Mutation {
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.Insert("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (ccpk *CustomCompositePrimaryKey) Update(ctx context.Context) *spanner.Mutation {
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.Update("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (ccpk *CustomCompositePrimaryKey) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyWritableColumns())
+	return spanner.InsertOrUpdate("CustomCompositePrimaryKeys", CustomCompositePrimaryKeyWritableColumns(), values)
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (ccpk *CustomCompositePrimaryKey) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, CustomCompositePrimaryKeyPrimaryKeys()...)
+
+	values, err := ccpk.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "CustomCompositePrimaryKey.UpdateColumns", "CustomCompositePrimaryKeys", err)
+	}
+
+	return spanner.Update("CustomCompositePrimaryKeys", colsWithPKeys, values), nil
+}
+
+// FindCustomCompositePrimaryKey gets a CustomCompositePrimaryKey by primary key
+func FindCustomCompositePrimaryKey(ctx context.Context, db YORODB, pKey1 string, pKey2 int64) (*CustomCompositePrimaryKey, error) {
+	key := spanner.Key{pKey1, pKey2}
+	row, err := db.ReadRow(ctx, "CustomCompositePrimaryKeys", key, CustomCompositePrimaryKeyColumns())
+	if err != nil {
+		return nil, newError("FindCustomCompositePrimaryKey", "CustomCompositePrimaryKeys", err)
+	}
+
+	decoder := newCustomCompositePrimaryKey_Decoder(CustomCompositePrimaryKeyColumns())
+	ccpk, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKey", "CustomCompositePrimaryKeys", err)
+	}
+
+	return ccpk, nil
+}
+
+// ReadCustomCompositePrimaryKey retrieves multiples rows from CustomCompositePrimaryKey by KeySet as a slice.
+func ReadCustomCompositePrimaryKey(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
+	var res []*CustomCompositePrimaryKey
+
+	decoder := newCustomCompositePrimaryKey_Decoder(CustomCompositePrimaryKeyColumns())
+
+	rows := db.Read(ctx, "CustomCompositePrimaryKeys", keys, CustomCompositePrimaryKeyColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		ccpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ccpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKey", "CustomCompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the CustomCompositePrimaryKey from the database.
+func (ccpk *CustomCompositePrimaryKey) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := ccpk.columnsToValues(CustomCompositePrimaryKeyPrimaryKeys())
+	return spanner.Delete("CustomCompositePrimaryKeys", spanner.Key(values))
+}
+
+// CustomPrimitiveType represents a row from 'CustomPrimitiveTypes'.
+type CustomPrimitiveType struct {
+	PKey              string            `spanner:"PKey" json:"PKey"`                           // PKey
+	FTInt64           int64             `spanner:"FTInt64" json:"FTInt64"`                     // FTInt64
+	FTInt64null       spanner.NullInt64 `spanner:"FTInt64Null" json:"FTInt64Null"`             // FTInt64Null
+	FTInt32           int64             `spanner:"FTInt32" json:"FTInt32"`                     // FTInt32
+	FTInt32null       spanner.NullInt64 `spanner:"FTInt32Null" json:"FTInt32Null"`             // FTInt32Null
+	FTInt16           int64             `spanner:"FTInt16" json:"FTInt16"`                     // FTInt16
+	FTInt16null       spanner.NullInt64 `spanner:"FTInt16Null" json:"FTInt16Null"`             // FTInt16Null
+	FTInt8            int64             `spanner:"FTInt8" json:"FTInt8"`                       // FTInt8
+	FTInt8null        spanner.NullInt64 `spanner:"FTInt8Null" json:"FTInt8Null"`               // FTInt8Null
+	FTUInt64          int64             `spanner:"FTUInt64" json:"FTUInt64"`                   // FTUInt64
+	FTUInt64null      spanner.NullInt64 `spanner:"FTUInt64Null" json:"FTUInt64Null"`           // FTUInt64Null
+	FTUInt32          int64             `spanner:"FTUInt32" json:"FTUInt32"`                   // FTUInt32
+	FTUInt32null      spanner.NullInt64 `spanner:"FTUInt32Null" json:"FTUInt32Null"`           // FTUInt32Null
+	FTUInt16          int64             `spanner:"FTUInt16" json:"FTUInt16"`                   // FTUInt16
+	FTUInt16null      spanner.NullInt64 `spanner:"FTUInt16Null" json:"FTUInt16Null"`           // FTUInt16Null
+	FTUInt8           int64             `spanner:"FTUInt8" json:"FTUInt8"`                     // FTUInt8
+	FTUInt8null       spanner.NullInt64 `spanner:"FTUInt8Null" json:"FTUInt8Null"`             // FTUInt8Null
+	FTArrayInt64      []int64           `spanner:"FTArrayInt64" json:"FTArrayInt64"`           // FTArrayInt64
+	FTArrayInt64null  []int64           `spanner:"FTArrayInt64Null" json:"FTArrayInt64Null"`   // FTArrayInt64Null
+	FTArrayInt32      []int64           `spanner:"FTArrayInt32" json:"FTArrayInt32"`           // FTArrayInt32
+	FTArrayInt32null  []int64           `spanner:"FTArrayInt32Null" json:"FTArrayInt32Null"`   // FTArrayInt32Null
+	FTArrayInt16      []int64           `spanner:"FTArrayInt16" json:"FTArrayInt16"`           // FTArrayInt16
+	FTArrayInt16null  []int64           `spanner:"FTArrayInt16Null" json:"FTArrayInt16Null"`   // FTArrayInt16Null
+	FTArrayInt8       []int64           `spanner:"FTArrayInt8" json:"FTArrayInt8"`             // FTArrayInt8
+	FTArrayInt8null   []int64           `spanner:"FTArrayInt8Null" json:"FTArrayInt8Null"`     // FTArrayInt8Null
+	FTArrayUINt64     []int64           `spanner:"FTArrayUInt64" json:"FTArrayUInt64"`         // FTArrayUInt64
+	FTArrayUINt64null []int64           `spanner:"FTArrayUInt64Null" json:"FTArrayUInt64Null"` // FTArrayUInt64Null
+	FTArrayUINt32     []int64           `spanner:"FTArrayUInt32" json:"FTArrayUInt32"`         // FTArrayUInt32
+	FTArrayUINt32null []int64           `spanner:"FTArrayUInt32Null" json:"FTArrayUInt32Null"` // FTArrayUInt32Null
+	FTArrayUINt16     []int64           `spanner:"FTArrayUInt16" json:"FTArrayUInt16"`         // FTArrayUInt16
+	FTArrayUINt16null []int64           `spanner:"FTArrayUInt16Null" json:"FTArrayUInt16Null"` // FTArrayUInt16Null
+	FTArrayUINt8      []int64           `spanner:"FTArrayUInt8" json:"FTArrayUInt8"`           // FTArrayUInt8
+	FTArrayUINt8null  []int64           `spanner:"FTArrayUInt8Null" json:"FTArrayUInt8Null"`   // FTArrayUInt8Null
+}
+
+func CustomPrimitiveTypePrimaryKeys() []string {
+	return []string{
+		"PKey",
+	}
+}
+
+func CustomPrimitiveTypeColumns() []string {
+	return []string{
+		"PKey",
+		"FTInt64",
+		"FTInt64Null",
+		"FTInt32",
+		"FTInt32Null",
+		"FTInt16",
+		"FTInt16Null",
+		"FTInt8",
+		"FTInt8Null",
+		"FTUInt64",
+		"FTUInt64Null",
+		"FTUInt32",
+		"FTUInt32Null",
+		"FTUInt16",
+		"FTUInt16Null",
+		"FTUInt8",
+		"FTUInt8Null",
+		"FTArrayInt64",
+		"FTArrayInt64Null",
+		"FTArrayInt32",
+		"FTArrayInt32Null",
+		"FTArrayInt16",
+		"FTArrayInt16Null",
+		"FTArrayInt8",
+		"FTArrayInt8Null",
+		"FTArrayUInt64",
+		"FTArrayUInt64Null",
+		"FTArrayUInt32",
+		"FTArrayUInt32Null",
+		"FTArrayUInt16",
+		"FTArrayUInt16Null",
+		"FTArrayUInt8",
+		"FTArrayUInt8Null",
+	}
+}
+
+func CustomPrimitiveTypeWritableColumns() []string {
+	return []string{
+		"PKey",
+		"FTInt64",
+		"FTInt64Null",
+		"FTInt32",
+		"FTInt32Null",
+		"FTInt16",
+		"FTInt16Null",
+		"FTInt8",
+		"FTInt8Null",
+		"FTUInt64",
+		"FTUInt64Null",
+		"FTUInt32",
+		"FTUInt32Null",
+		"FTUInt16",
+		"FTUInt16Null",
+		"FTUInt8",
+		"FTUInt8Null",
+		"FTArrayInt64",
+		"FTArrayInt64Null",
+		"FTArrayInt32",
+		"FTArrayInt32Null",
+		"FTArrayInt16",
+		"FTArrayInt16Null",
+		"FTArrayInt8",
+		"FTArrayInt8Null",
+		"FTArrayUInt64",
+		"FTArrayUInt64Null",
+		"FTArrayUInt32",
+		"FTArrayUInt32Null",
+		"FTArrayUInt16",
+		"FTArrayUInt16Null",
+		"FTArrayUInt8",
+		"FTArrayUInt8Null",
+	}
+}
+
+func (cpt *CustomPrimitiveType) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "PKey":
+			ret = append(ret, &cpt.PKey)
+		case "FTInt64":
+			ret = append(ret, &cpt.FTInt64)
+		case "FTInt64Null":
+			ret = append(ret, &cpt.FTInt64null)
+		case "FTInt32":
+			ret = append(ret, &cpt.FTInt32)
+		case "FTInt32Null":
+			ret = append(ret, &cpt.FTInt32null)
+		case "FTInt16":
+			ret = append(ret, &cpt.FTInt16)
+		case "FTInt16Null":
+			ret = append(ret, &cpt.FTInt16null)
+		case "FTInt8":
+			ret = append(ret, &cpt.FTInt8)
+		case "FTInt8Null":
+			ret = append(ret, &cpt.FTInt8null)
+		case "FTUInt64":
+			ret = append(ret, &cpt.FTUInt64)
+		case "FTUInt64Null":
+			ret = append(ret, &cpt.FTUInt64null)
+		case "FTUInt32":
+			ret = append(ret, &cpt.FTUInt32)
+		case "FTUInt32Null":
+			ret = append(ret, &cpt.FTUInt32null)
+		case "FTUInt16":
+			ret = append(ret, &cpt.FTUInt16)
+		case "FTUInt16Null":
+			ret = append(ret, &cpt.FTUInt16null)
+		case "FTUInt8":
+			ret = append(ret, &cpt.FTUInt8)
+		case "FTUInt8Null":
+			ret = append(ret, &cpt.FTUInt8null)
+		case "FTArrayInt64":
+			ret = append(ret, &cpt.FTArrayInt64)
+		case "FTArrayInt64Null":
+			ret = append(ret, &cpt.FTArrayInt64null)
+		case "FTArrayInt32":
+			ret = append(ret, &cpt.FTArrayInt32)
+		case "FTArrayInt32Null":
+			ret = append(ret, &cpt.FTArrayInt32null)
+		case "FTArrayInt16":
+			ret = append(ret, &cpt.FTArrayInt16)
+		case "FTArrayInt16Null":
+			ret = append(ret, &cpt.FTArrayInt16null)
+		case "FTArrayInt8":
+			ret = append(ret, &cpt.FTArrayInt8)
+		case "FTArrayInt8Null":
+			ret = append(ret, &cpt.FTArrayInt8null)
+		case "FTArrayUInt64":
+			ret = append(ret, &cpt.FTArrayUINt64)
+		case "FTArrayUInt64Null":
+			ret = append(ret, &cpt.FTArrayUINt64null)
+		case "FTArrayUInt32":
+			ret = append(ret, &cpt.FTArrayUINt32)
+		case "FTArrayUInt32Null":
+			ret = append(ret, &cpt.FTArrayUINt32null)
+		case "FTArrayUInt16":
+			ret = append(ret, &cpt.FTArrayUINt16)
+		case "FTArrayUInt16Null":
+			ret = append(ret, &cpt.FTArrayUINt16null)
+		case "FTArrayUInt8":
+			ret = append(ret, &cpt.FTArrayUINt8)
+		case "FTArrayUInt8Null":
+			ret = append(ret, &cpt.FTArrayUINt8null)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (cpt *CustomPrimitiveType) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "PKey":
+			ret = append(ret, cpt.PKey)
+		case "FTInt64":
+			ret = append(ret, cpt.FTInt64)
+		case "FTInt64Null":
+			ret = append(ret, cpt.FTInt64null)
+		case "FTInt32":
+			ret = append(ret, cpt.FTInt32)
+		case "FTInt32Null":
+			ret = append(ret, cpt.FTInt32null)
+		case "FTInt16":
+			ret = append(ret, cpt.FTInt16)
+		case "FTInt16Null":
+			ret = append(ret, cpt.FTInt16null)
+		case "FTInt8":
+			ret = append(ret, cpt.FTInt8)
+		case "FTInt8Null":
+			ret = append(ret, cpt.FTInt8null)
+		case "FTUInt64":
+			ret = append(ret, cpt.FTUInt64)
+		case "FTUInt64Null":
+			ret = append(ret, cpt.FTUInt64null)
+		case "FTUInt32":
+			ret = append(ret, cpt.FTUInt32)
+		case "FTUInt32Null":
+			ret = append(ret, cpt.FTUInt32null)
+		case "FTUInt16":
+			ret = append(ret, cpt.FTUInt16)
+		case "FTUInt16Null":
+			ret = append(ret, cpt.FTUInt16null)
+		case "FTUInt8":
+			ret = append(ret, cpt.FTUInt8)
+		case "FTUInt8Null":
+			ret = append(ret, cpt.FTUInt8null)
+		case "FTArrayInt64":
+			ret = append(ret, cpt.FTArrayInt64)
+		case "FTArrayInt64Null":
+			ret = append(ret, cpt.FTArrayInt64null)
+		case "FTArrayInt32":
+			ret = append(ret, cpt.FTArrayInt32)
+		case "FTArrayInt32Null":
+			ret = append(ret, cpt.FTArrayInt32null)
+		case "FTArrayInt16":
+			ret = append(ret, cpt.FTArrayInt16)
+		case "FTArrayInt16Null":
+			ret = append(ret, cpt.FTArrayInt16null)
+		case "FTArrayInt8":
+			ret = append(ret, cpt.FTArrayInt8)
+		case "FTArrayInt8Null":
+			ret = append(ret, cpt.FTArrayInt8null)
+		case "FTArrayUInt64":
+			ret = append(ret, cpt.FTArrayUINt64)
+		case "FTArrayUInt64Null":
+			ret = append(ret, cpt.FTArrayUINt64null)
+		case "FTArrayUInt32":
+			ret = append(ret, cpt.FTArrayUINt32)
+		case "FTArrayUInt32Null":
+			ret = append(ret, cpt.FTArrayUINt32null)
+		case "FTArrayUInt16":
+			ret = append(ret, cpt.FTArrayUINt16)
+		case "FTArrayUInt16Null":
+			ret = append(ret, cpt.FTArrayUINt16null)
+		case "FTArrayUInt8":
+			ret = append(ret, cpt.FTArrayUINt8)
+		case "FTArrayUInt8Null":
+			ret = append(ret, cpt.FTArrayUINt8null)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newCustomPrimitiveType_Decoder returns a decoder which reads a row from *spanner.Row
+// into CustomPrimitiveType. The decoder is not goroutine-safe. Don't use it concurrently.
+func newCustomPrimitiveType_Decoder(cols []string) func(*spanner.Row) (*CustomPrimitiveType, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*CustomPrimitiveType, error) {
+		var cpt CustomPrimitiveType
+		ptrs, err := cpt.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &cpt, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (cpt *CustomPrimitiveType) Insert(ctx context.Context) *spanner.Mutation {
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.Insert("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (cpt *CustomPrimitiveType) Update(ctx context.Context) *spanner.Mutation {
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.Update("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (cpt *CustomPrimitiveType) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypeWritableColumns())
+	return spanner.InsertOrUpdate("CustomPrimitiveTypes", CustomPrimitiveTypeWritableColumns(), values)
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (cpt *CustomPrimitiveType) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, CustomPrimitiveTypePrimaryKeys()...)
+
+	values, err := cpt.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "CustomPrimitiveType.UpdateColumns", "CustomPrimitiveTypes", err)
+	}
+
+	return spanner.Update("CustomPrimitiveTypes", colsWithPKeys, values), nil
+}
+
+// FindCustomPrimitiveType gets a CustomPrimitiveType by primary key
+func FindCustomPrimitiveType(ctx context.Context, db YORODB, pKey string) (*CustomPrimitiveType, error) {
+	key := spanner.Key{pKey}
+	row, err := db.ReadRow(ctx, "CustomPrimitiveTypes", key, CustomPrimitiveTypeColumns())
+	if err != nil {
+		return nil, newError("FindCustomPrimitiveType", "CustomPrimitiveTypes", err)
+	}
+
+	decoder := newCustomPrimitiveType_Decoder(CustomPrimitiveTypeColumns())
+	cpt, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindCustomPrimitiveType", "CustomPrimitiveTypes", err)
+	}
+
+	return cpt, nil
+}
+
+// ReadCustomPrimitiveType retrieves multiples rows from CustomPrimitiveType by KeySet as a slice.
+func ReadCustomPrimitiveType(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomPrimitiveType, error) {
+	var res []*CustomPrimitiveType
+
+	decoder := newCustomPrimitiveType_Decoder(CustomPrimitiveTypeColumns())
+
+	rows := db.Read(ctx, "CustomPrimitiveTypes", keys, CustomPrimitiveTypeColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		cpt, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, cpt)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomPrimitiveType", "CustomPrimitiveTypes", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the CustomPrimitiveType from the database.
+func (cpt *CustomPrimitiveType) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := cpt.columnsToValues(CustomPrimitiveTypePrimaryKeys())
+	return spanner.Delete("CustomPrimitiveTypes", spanner.Key(values))
 }
 
 // FereignItem represents a row from 'FereignItems'.
@@ -939,6 +1519,169 @@ func ReadGeneratedColumn(ctx context.Context, db YORODB, keys spanner.KeySet) ([
 func (gc *GeneratedColumn) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := gc.columnsToValues(GeneratedColumnPrimaryKeys())
 	return spanner.Delete("GeneratedColumns", spanner.Key(values))
+}
+
+// Inflectionzz represents a row from 'Inflectionzz'.
+type Inflectionzz struct {
+	X string `spanner:"X" json:"X"` // X
+	Y string `spanner:"Y" json:"Y"` // Y
+}
+
+func InflectionzzPrimaryKeys() []string {
+	return []string{
+		"X",
+	}
+}
+
+func InflectionzzColumns() []string {
+	return []string{
+		"X",
+		"Y",
+	}
+}
+
+func InflectionzzWritableColumns() []string {
+	return []string{
+		"X",
+		"Y",
+	}
+}
+
+func (i *Inflectionzz) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "X":
+			ret = append(ret, &i.X)
+		case "Y":
+			ret = append(ret, &i.Y)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (i *Inflectionzz) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "X":
+			ret = append(ret, i.X)
+		case "Y":
+			ret = append(ret, i.Y)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newInflectionzz_Decoder returns a decoder which reads a row from *spanner.Row
+// into Inflectionzz. The decoder is not goroutine-safe. Don't use it concurrently.
+func newInflectionzz_Decoder(cols []string) func(*spanner.Row) (*Inflectionzz, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*Inflectionzz, error) {
+		var i Inflectionzz
+		ptrs, err := i.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &i, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (i *Inflectionzz) Insert(ctx context.Context) *spanner.Mutation {
+	values, _ := i.columnsToValues(InflectionzzWritableColumns())
+	return spanner.Insert("Inflectionzz", InflectionzzWritableColumns(), values)
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (i *Inflectionzz) Update(ctx context.Context) *spanner.Mutation {
+	values, _ := i.columnsToValues(InflectionzzWritableColumns())
+	return spanner.Update("Inflectionzz", InflectionzzWritableColumns(), values)
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (i *Inflectionzz) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	values, _ := i.columnsToValues(InflectionzzWritableColumns())
+	return spanner.InsertOrUpdate("Inflectionzz", InflectionzzWritableColumns(), values)
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (i *Inflectionzz) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, InflectionzzPrimaryKeys()...)
+
+	values, err := i.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "Inflectionzz.UpdateColumns", "Inflectionzz", err)
+	}
+
+	return spanner.Update("Inflectionzz", colsWithPKeys, values), nil
+}
+
+// FindInflectionzz gets a Inflectionzz by primary key
+func FindInflectionzz(ctx context.Context, db YORODB, x string) (*Inflectionzz, error) {
+	key := spanner.Key{x}
+	row, err := db.ReadRow(ctx, "Inflectionzz", key, InflectionzzColumns())
+	if err != nil {
+		return nil, newError("FindInflectionzz", "Inflectionzz", err)
+	}
+
+	decoder := newInflectionzz_Decoder(InflectionzzColumns())
+	i, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindInflectionzz", "Inflectionzz", err)
+	}
+
+	return i, nil
+}
+
+// ReadInflectionzz retrieves multiples rows from Inflectionzz by KeySet as a slice.
+func ReadInflectionzz(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*Inflectionzz, error) {
+	var res []*Inflectionzz
+
+	decoder := newInflectionzz_Decoder(InflectionzzColumns())
+
+	rows := db.Read(ctx, "Inflectionzz", keys, InflectionzzColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		i, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, i)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadInflectionzz", "Inflectionzz", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the Inflectionzz from the database.
+func (i *Inflectionzz) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := i.columnsToValues(InflectionzzPrimaryKeys())
+	return spanner.Delete("Inflectionzz", spanner.Key(values))
 }
 
 // Item represents a row from 'Items'.
@@ -1846,6 +2589,311 @@ func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.K
 	return res, nil
 }
 
+// FindCustomCompositePrimaryKeysByError retrieves multiple rows from 'CustomCompositePrimaryKeys' as a slice of CustomCompositePrimaryKey.
+//
+// Generated from index 'CustomCompositePrimaryKeysByError'.
+func FindCustomCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([]*CustomCompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CustomCompositePrimaryKeys@{FORCE_INDEX=CustomCompositePrimaryKeysByError} " +
+		"WHERE Error = @param0"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = e
+
+	decoder := newCustomCompositePrimaryKey_Decoder(CustomCompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, e)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CustomCompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCustomCompositePrimaryKeysByError", "CustomCompositePrimaryKeys", err)
+		}
+
+		ccpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKeysByError", "CustomCompositePrimaryKeys", err)
+		}
+
+		res = append(res, ccpk)
+	}
+
+	return res, nil
+}
+
+// ReadCustomCompositePrimaryKeysByError retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CustomCompositePrimaryKeysByError'.
+func ReadCustomCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
+	var res []*CustomCompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"Error",
+	}
+
+	decoder := newCustomCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CustomCompositePrimaryKeys", "CustomCompositePrimaryKeysByError", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ccpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ccpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKeysByError", "CustomCompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
+// FindCustomCompositePrimaryKeysByZError retrieves multiple rows from 'CustomCompositePrimaryKeys' as a slice of CustomCompositePrimaryKey.
+//
+// Generated from index 'CustomCompositePrimaryKeysByError2'.
+func FindCustomCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) ([]*CustomCompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CustomCompositePrimaryKeys@{FORCE_INDEX=CustomCompositePrimaryKeysByError2} " +
+		"WHERE Error = @param0"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = e
+
+	decoder := newCustomCompositePrimaryKey_Decoder(CustomCompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, e)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CustomCompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCustomCompositePrimaryKeysByZError", "CustomCompositePrimaryKeys", err)
+		}
+
+		ccpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKeysByZError", "CustomCompositePrimaryKeys", err)
+		}
+
+		res = append(res, ccpk)
+	}
+
+	return res, nil
+}
+
+// ReadCustomCompositePrimaryKeysByZError retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CustomCompositePrimaryKeysByError2'.
+func ReadCustomCompositePrimaryKeysByZError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
+	var res []*CustomCompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"Error",
+		"Z",
+	}
+
+	decoder := newCustomCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CustomCompositePrimaryKeys", "CustomCompositePrimaryKeysByError2", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ccpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ccpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKeysByZError", "CustomCompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
+// FindCustomCompositePrimaryKeysByZYError retrieves multiple rows from 'CustomCompositePrimaryKeys' as a slice of CustomCompositePrimaryKey.
+//
+// Generated from index 'CustomCompositePrimaryKeysByError3'.
+func FindCustomCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, e int64) ([]*CustomCompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CustomCompositePrimaryKeys@{FORCE_INDEX=CustomCompositePrimaryKeysByError3} " +
+		"WHERE Error = @param0"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = e
+
+	decoder := newCustomCompositePrimaryKey_Decoder(CustomCompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, e)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CustomCompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCustomCompositePrimaryKeysByZYError", "CustomCompositePrimaryKeys", err)
+		}
+
+		ccpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKeysByZYError", "CustomCompositePrimaryKeys", err)
+		}
+
+		res = append(res, ccpk)
+	}
+
+	return res, nil
+}
+
+// ReadCustomCompositePrimaryKeysByZYError retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CustomCompositePrimaryKeysByError3'.
+func ReadCustomCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
+	var res []*CustomCompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"Error",
+		"Z",
+		"Y",
+	}
+
+	decoder := newCustomCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CustomCompositePrimaryKeys", "CustomCompositePrimaryKeysByError3", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ccpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ccpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKeysByZYError", "CustomCompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
+// FindCustomCompositePrimaryKeysByXY retrieves multiple rows from 'CustomCompositePrimaryKeys' as a slice of CustomCompositePrimaryKey.
+//
+// Generated from index 'CustomCompositePrimaryKeysByXY'.
+func FindCustomCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y string) ([]*CustomCompositePrimaryKey, error) {
+	const sqlstr = "SELECT " +
+		"Id, PKey1, PKey2, Error, X, Y, Z " +
+		"FROM CustomCompositePrimaryKeys@{FORCE_INDEX=CustomCompositePrimaryKeysByXY} " +
+		"WHERE X = @param0 AND Y = @param1"
+
+	stmt := spanner.NewStatement(sqlstr)
+	stmt.Params["param0"] = x
+	stmt.Params["param1"] = y
+
+	decoder := newCustomCompositePrimaryKey_Decoder(CustomCompositePrimaryKeyColumns())
+
+	// run query
+	YOLog(ctx, sqlstr, x, y)
+	iter := db.Query(ctx, stmt)
+	defer iter.Stop()
+
+	// load results
+	res := []*CustomCompositePrimaryKey{}
+	for {
+		row, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, newError("FindCustomCompositePrimaryKeysByXY", "CustomCompositePrimaryKeys", err)
+		}
+
+		ccpk, err := decoder(row)
+		if err != nil {
+			return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKeysByXY", "CustomCompositePrimaryKeys", err)
+		}
+
+		res = append(res, ccpk)
+	}
+
+	return res, nil
+}
+
+// ReadCustomCompositePrimaryKeysByXY retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
+//
+// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// used for primary key, index key and storing columns. If you need more columns, add storing
+// columns or Read by primary key or Query with join.
+//
+// Generated from unique index 'CustomCompositePrimaryKeysByXY'.
+func ReadCustomCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
+	var res []*CustomCompositePrimaryKey
+	columns := []string{
+		"PKey1",
+		"PKey2",
+		"X",
+		"Y",
+	}
+
+	decoder := newCustomCompositePrimaryKey_Decoder(columns)
+
+	rows := db.ReadUsingIndex(ctx, "CustomCompositePrimaryKeys", "CustomCompositePrimaryKeysByXY", keys, columns)
+	err := rows.Do(func(row *spanner.Row) error {
+		ccpk, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, ccpk)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKeysByXY", "CustomCompositePrimaryKeys", err)
+	}
+
+	return res, nil
+}
+
 // FindFullTypeByFTString retrieves a row from 'FullTypes' as a FullType.
 //
 // If no row is present with the given key, then ReadRow returns an error where
@@ -2356,9 +3404,9 @@ func (e yoError) DBTableName() string {
 // If the error is originated from the Spanner library, this returns a gRPC status of
 // the original error. It may contain details of the status such as RetryInfo.
 func (e yoError) GRPCStatus() *status.Status {
-	var se *spanner.Error
-	if errors.As(e.err, &se) {
-		return status.Convert(se.Unwrap())
+	var ae *apierror.APIError
+	if errors.As(e.err, &ae) {
+		return status.Convert(ae.Unwrap())
 	}
 
 	return status.New(e.code, e.Error())

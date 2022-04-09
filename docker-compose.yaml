@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  yo-1.18:
+    tty: true
+    image: golang:1.18-bullseye
+    container_name: yo-1.18
+    # volumes:
+    #   - .:/go/src/github.com/cloudspannerecosystem/yo
+    environment:
+      - SPANNER_EMULATOR_HOST=spanner-emulator:9010
+      - SPANNER_EMULATOR_HOST_REST=spanner-emulator:9020
+      - PROJECT=yo-test
+      - INSTANCE=yo-test
+      - DATABASE=yo-test
+  yo-1.16:
+    tty: true
+    image: golang:1.15-buster
+    container_name: yo-1.16
+    # volumes:
+    #   - .:/go/src/github.com/cloudspannerecosystem/yo
+    environment:
+      - SPANNER_EMULATOR_HOST=spanner-emulator:9010
+      - SPANNER_EMULATOR_HOST_REST=spanner-emulator:9020
+      - PROJECT=yo-test
+      - INSTANCE=yo-test
+      - DATABASE=yo-test
+  spanner-emulator:
+    image: gcr.io/cloud-spanner-emulator/emulator:1.4.2
+    container_name: yo-spanner
+    ports:
+      - 9010:9010
+      - 9020:9020

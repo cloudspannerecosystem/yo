@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/spanner"
+	"github.com/googleapis/gax-go/v2/apierror"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

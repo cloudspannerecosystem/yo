@@ -66,9 +66,9 @@ func (e yoError) DBTableName() string {
 // If the error is originated from the Spanner library, this returns a gRPC status of
 // the original error. It may contain details of the status such as RetryInfo.
 func (e yoError) GRPCStatus() *status.Status {
-	var se *spanner.Error
-	if errors.As(e.err, &se) {
-		return status.Convert(se.Unwrap())
+	var ae *apierror.APIError
+	if errors.As(e.err, &ae) {
+		return status.Convert(ae.Unwrap())
 	}
 
 	return status.New(e.code, e.Error())
