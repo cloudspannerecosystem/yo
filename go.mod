@@ -5,7 +5,7 @@ go 1.16
 require (
 	cloud.google.com/go v0.97.0
 	cloud.google.com/go/spanner v1.28.0
-	github.com/MakeNowJust/memefish v0.0.0-20211014154734-dbfb8b28907d
+	github.com/MakeNowJust/memefish v0.0.0-20220411073705-82b90bc3f220
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/google/go-cmp v0.5.6
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
