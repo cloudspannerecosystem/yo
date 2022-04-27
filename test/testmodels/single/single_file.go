@@ -2359,7 +2359,7 @@ func (e yoError) DBTableName() string {
 func (e yoError) GRPCStatus() *status.Status {
 	var ae *apierror.APIError
 	if errors.As(e.err, &ae) {
-		return status.Convert(ae.Unwrap())
+		return status.Convert(ae)
 	}
 
 	return status.New(e.code, e.Error())

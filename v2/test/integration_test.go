@@ -1153,7 +1153,7 @@ func TestSessionNotFound(t *testing.T) {
 			t.Fatalf("the error returned by yo can be apierror.APIError: %T", err)
 		}
 
-		st := status.Convert(ae.Unwrap())
+		st := status.Convert(ae)
 		ri := extractResourceInfo(st)
 
 		expectedResourceInfo := &errdetails.ResourceInfo{
