@@ -31,6 +31,7 @@ import (
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/gax-go/v2/apierror"
 	"go.mercari.io/yo/test/testmodels/customtypes"
 	models "go.mercari.io/yo/test/testmodels/default"
 	"go.mercari.io/yo/test/testutil"
@@ -697,12 +698,12 @@ func TestSessionNotFound(t *testing.T) {
 
 	t.Run("ConvertToSpannerError", func(t *testing.T) {
 		_, err = models.FindCompositePrimaryKey(ctx, client.Single(), "x200", 200)
-		var se *spanner.Error
-		if !errors.As(err, &se) {
-			t.Fatalf("the error returned by yo can be spanner.Error: %T", err)
+		var ae *apierror.APIError
+		if !errors.As(err, &ae) {
+			t.Fatalf("the error returned by yo can be apierror.APIError: %T", err)
 		}
 
-		st := status.Convert(se.Unwrap())
+		st := status.Convert(ae)
 		ri := extractResourceInfo(st)
 
 		expectedResourceInfo := &errdetails.ResourceInfo{
