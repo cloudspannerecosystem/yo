@@ -59,6 +59,8 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 		"tolower":           a.tolower,
 		"nullcheck":         a.nullcheck,
 		"pluralize":         a.pluralize,
+		"join":              a.join,
+		"placeholders":      a.placeholders,
 	}
 }
 
@@ -645,4 +647,30 @@ func (a *Generator) nullcheck(field *internal.Field) string {
 // pluralize converts s to plural.
 func (a *Generator) pluralize(s string) string {
 	return a.inflector.Pluralize(s)
+}
+
+func (a *Generator) join(fields []*internal.Field, prefix, sep string, ignoreNames ...interface{}) string {
+	ignore := ignoreFromMultiTypes(ignoreNames)
+
+	var strs []string
+	for _, f := range fields {
+		if ignore[f.Name] {
+			continue
+		}
+		strs = append(strs, prefix + f.Name)
+	}
+	return strings.Join(strs, sep)
+}
+
+func (a *Generator) placeholders(fields []*internal.Field, suffix string, ignoreNames ...interface{}) string {
+	ignore := ignoreFromMultiTypes(ignoreNames)
+
+	var strs []string
+	for i, f := range fields {
+		if ignore[f.Name] {
+			continue
+		}
+		strs = append(strs, fmt.Sprintf("@Param%d%s", i, suffix))
+	}
+	return strings.Join(strs, ", ")
 }
