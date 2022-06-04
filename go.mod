@@ -1,4 +1,4 @@
-module go.mercari.io/yo
+module github.com/SingColor/yo
 
 go 1.16
 
@@ -13,7 +13,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0
 	github.com/kenshaw/snaker v0.1.6
 	github.com/spf13/cobra v1.2.1
-	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
+	go.mercari.io/yo v0.5.2
 	golang.org/x/tools v0.1.8
 	google.golang.org/api v0.61.0
 	google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12
@@ -21,3 +21,5 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace go.mercari.io/yo => ./
