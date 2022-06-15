@@ -99,7 +99,7 @@ func Find{{ .LegacyFuncName }}(ctx context.Context, db YODB{{ goParams .Fields t
 
 // Read{{ .LegacyFuncName }} retrieves multiples rows from '{{ $table }}' by KeySet as a slice.
 //
-// This does not retrives all columns of '{{ $table }}' because an index has only columns
+// This does not retrieve all columns of '{{ $table }}' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
