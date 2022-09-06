@@ -3,7 +3,7 @@
 `yo` is a command-line tool to generate Go code for [Google Cloud Spanner](https://cloud.google.com/spanner/),
 forked from [xo](https://github.com/xo/xo) :rose:.
 
-`yo` uses database schema to generate code by using [Information Schema](https://cloud.google.com/spanner/docs/information-schema). `yo` runs SQL queries against tables in `INFORMATION_SCHEMA` to fetch metadata for a database, and applies the metadata to Go templates to generate code/models to acccess Cloud Spanner.
+`yo` uses database schema to generate code by using [Information Schema](https://cloud.google.com/spanner/docs/information-schema). `yo` runs SQL queries against tables in `INFORMATION_SCHEMA` to fetch metadata for a database, and applies the metadata to Go templates to generate code/models to access Cloud Spanner.
 
 Please feel free to report issues and send pull requests, but note that this
 application is not officially supported as part of the Cloud Spanner product.
@@ -64,7 +64,7 @@ Flags:
 
 ## Generated code
 
-`yo` generates a file per a table by default. Each files has struct, metadata, methods for a table.
+`yo` generates 1 file per table by default. Each file has struct, metadata and methods for that table.
 
 ### struct
 
@@ -90,7 +90,7 @@ type Example struct {
 
 ### Mutation methods
 
-An operation agaist a table is represented as mutation in Cloud Spanner. `yo` generates methods to create mutation to modify a table.
+An operation against a table is represented as mutation in Cloud Spanner. `yo` generates methods to create mutations to modify a table.
 
 * Insert
    * A wrapper method of `spanner.Insert`, which embeds struct values implicitly to insert a new record with struct values.
@@ -105,7 +105,7 @@ An operation agaist a table is represented as mutation in Cloud Spanner. `yo` ge
 
 `yo` generates functions to read data from Cloud Spanner. The functions are generated based on index.
 
-Naming convention of genearted functions is `FindXXXByYYY`. The XXX is table name and YYY is index name. XXX will be singular if the index is unique index, or plural if the index is not unique.
+Naming convention of generated functions is `FindXXXByYYY`. The XXX is table name and YYY is index name. XXX will be singular if the index is unique index, or plural if the index is not unique.
 
 
 **TODO**
@@ -123,7 +123,7 @@ Naming convention of genearted functions is `FindXXXByYYY`. The XXX is table nam
 * `NotFound()`
    * A helper to check the error is NotFound.
 
-The `yoError` inherits an original error from [google-cloud-go](https://github.com/GoogleCloudPlatform/google-cloud-go). It stil can be used with `status.FromError` or `status.Code` to check status code of the error. So the typical error handling will be like:
+The `yoError` inherits an original error from [google-cloud-go](https://github.com/GoogleCloudPlatform/google-cloud-go). It can still be used with `status.FromError` or `status.Code` to check status code of the error. So the typical error handling will be like:
 
 ```golang
 result, err := SomeFunction()
@@ -141,7 +141,7 @@ if err != nil {
 
 `yo` uses Go [template](https://golang.org/pkg/text/template/) package to generate code. You can use your own template for code generation by using `--template-path` option.
 
-`yo` provides default templates and uses them when `--template-path` option is not specified. The templates exist in [templates](templates/) directory. The templates are embeded into `yo` binary.
+`yo` provides default templates and uses them when `--template-path` option is not specified. The templates exist in [templates](templates/) directory. The templates are embedded into `yo` binary.
 
 ### Custom Template Quickstart
 
