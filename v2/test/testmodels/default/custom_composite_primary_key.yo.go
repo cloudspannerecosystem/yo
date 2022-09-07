@@ -255,7 +255,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx conte
 
 // ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CustomCompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -330,7 +330,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError2(ctx cont
 
 // ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError2 retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CustomCompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -406,7 +406,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError3(ctx cont
 
 // ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError3 retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CustomCompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -484,7 +484,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByXY(ctx context.
 
 // ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByXY retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CustomCompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CustomCompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //

@@ -434,7 +434,7 @@ func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*F
 
 // ReadFullTypeByFTString retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
-// This does not retrives all columns of 'FullTypes' because an index has only columns
+// This does not retrieve all columns of 'FullTypes' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -517,7 +517,7 @@ func FindFullTypesByFTIntFTTimestampNull(ctx context.Context, db YORODB, fTInt i
 
 // ReadFullTypesByFTIntFTTimestampNull retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
-// This does not retrives all columns of 'FullTypes' because an index has only columns
+// This does not retrieve all columns of 'FullTypes' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -593,7 +593,7 @@ func FindFullTypesByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTD
 
 // ReadFullTypesByFTIntFTDate retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
-// This does not retrives all columns of 'FullTypes' because an index has only columns
+// This does not retrieve all columns of 'FullTypes' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -669,7 +669,7 @@ func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int64
 
 // ReadFullTypesByFTIntFTTimestamp retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
-// This does not retrives all columns of 'FullTypes' because an index has only columns
+// This does not retrieve all columns of 'FullTypes' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -744,7 +744,7 @@ func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time
 
 // ReadFullTypesByFTTimestamp retrieves multiples rows from 'FullTypes' by KeySet as a slice.
 //
-// This does not retrives all columns of 'FullTypes' because an index has only columns
+// This does not retrieve all columns of 'FullTypes' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //

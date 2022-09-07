@@ -255,7 +255,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByError(ctx context.Context, 
 
 // ReadCompositePrimaryKeysByCompositePrimaryKeysByError retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -330,7 +330,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByError2(ctx context.Context,
 
 // ReadCompositePrimaryKeysByCompositePrimaryKeysByError2 retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -406,7 +406,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByError3(ctx context.Context,
 
 // ReadCompositePrimaryKeysByCompositePrimaryKeysByError3 retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
@@ -484,7 +484,7 @@ func FindCompositePrimaryKeysByCompositePrimaryKeysByXY(ctx context.Context, db 
 
 // ReadCompositePrimaryKeysByCompositePrimaryKeysByXY retrieves multiples rows from 'CompositePrimaryKeys' by KeySet as a slice.
 //
-// This does not retrives all columns of 'CompositePrimaryKeys' because an index has only columns
+// This does not retrieve all columns of 'CompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
