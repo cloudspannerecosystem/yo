@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.100.2
 	cloud.google.com/go/spanner v1.31.0
 	github.com/google/go-cmp v0.5.7
+	github.com/googleapis/gax-go/v2 v2.2.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/kenshaw/snaker v0.2.0
 	github.com/spf13/cobra v1.4.0
@@ -27,7 +28,6 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.6.7 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/googleapis/gax-go/v2 v2.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opencensus.io v0.23.0 // indirect
