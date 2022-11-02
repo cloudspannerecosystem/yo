@@ -22,6 +22,11 @@ regen: tplbin/templates.go ## regenerate template bin
 deps:
 	go get -u github.com/jessevdk/go-assets-builder
 
+.PHONY: gomod
+gomod: ## Run go mod
+	go mod tidy
+	cd v2; go mod tidy
+
 tplbin/templates.go: $(wildcard templates/*.tpl)
 	go-assets-builder \
 		--package=tplbin \
@@ -67,3 +72,13 @@ testdata-from-ddl/customtypes:
 recreate-templates:: ## recreate templates
 	rm -rf templates && mkdir templates
 	$(YOBIN) create-template --template-path templates
+
+.PHONY: check_gomod
+check_gomod: gomod ## check whether or not go mod tidy has been run
+	if git diff --quiet go.mod go.sum v2/go.mod v2/go.sum; then \
+        exit 0; \
+	else \
+		echo "\nerror: go mod tidy resulted in a change of files."; \
+		echo "Please run make gomod locally before pushing"; \
+		exit 1; \
+	fi

@@ -3,7 +3,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: golang:1.15-buster
+      - image: golang:1.18-bullseye
         environment:
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_EMULATOR_HOST_REST: localhost:9020
@@ -98,7 +98,16 @@ jobs:
           command: |
             make -C v2 testdata YOBIN=./yo
             git diff --quiet v2/test/
-
+  check_go_mod:
+    docker:
+      - image: golang:1.18-bullseye
+    working_directory: /go/src/github.com/cloudspannerecosystem/yo
+    steps:
+      - checkout
+      - run:
+          name: check go mod
+          command: |
+            make check_gomod
 
 workflows:
   version: 2
@@ -106,3 +115,4 @@ workflows:
     jobs:
       - test
       - v2test
+      - check_go_mod
