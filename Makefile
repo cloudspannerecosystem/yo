@@ -27,6 +27,11 @@ gomod: ## Run go mod
 	go mod tidy
 	cd v2; go mod tidy
 
+.PHONY: lint
+lint: ## Run linters
+	go fmt ./...
+	go vet ./...
+
 tplbin/templates.go: $(wildcard templates/*.tpl)
 	go-assets-builder \
 		--package=tplbin \
@@ -73,12 +78,22 @@ recreate-templates:: ## recreate templates
 	rm -rf templates && mkdir templates
 	$(YOBIN) create-template --template-path templates
 
+.PHONY: check_lint
+check_lint: lint ## check linter errors
+	if git diff --quiet; then \
+        exit 0; \
+	else \
+		echo "\nerror: make lint resulted in a change of files."; \
+		echo "Please run make lint locally before pushing."; \
+		exit 1; \
+	fi
+
 .PHONY: check_gomod
 check_gomod: gomod ## check whether or not go mod tidy has been run
 	if git diff --quiet go.mod go.sum v2/go.mod v2/go.sum; then \
         exit 0; \
 	else \
-		echo "\nerror: go mod tidy resulted in a change of files."; \
-		echo "Please run make gomod locally before pushing"; \
+		echo "\nerror: make gomod resulted in a change of files."; \
+		echo "Please run make gomod locally before pushing."; \
 		exit 1; \
 	fi

@@ -98,6 +98,16 @@ jobs:
           command: |
             make -C v2 testdata YOBIN=./yo
             git diff --quiet v2/test/
+  check_lint:
+    docker:
+      - image: golang:1.18-bullseye
+    working_directory: /go/src/github.com/cloudspannerecosystem/yo
+    steps:
+      - checkout
+      - run:
+          name: check lint
+          command: |
+            make check_lint
   check_go_mod:
     docker:
       - image: golang:1.18-bullseye
