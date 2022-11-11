@@ -125,4 +125,5 @@ workflows:
     jobs:
       - test
       - v2test
+      - check_lint
       - check_go_mod
