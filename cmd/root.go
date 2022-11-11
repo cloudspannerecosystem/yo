@@ -44,6 +44,8 @@ const (
 `
 )
 
+var version = "dev"
+
 var (
 	rootOpts = internal.ArgType{}
 	rootCmd  = &cobra.Command{
@@ -103,6 +105,7 @@ var (
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       version,
 	}
 )
 
