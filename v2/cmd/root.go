@@ -36,6 +36,8 @@ const (
 `
 )
 
+var version = "dev"
+
 var (
 	rootCmd = &cobra.Command{
 		Use:   "yo",
@@ -47,6 +49,7 @@ var (
 		RunE:          nil,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       version,
 	}
 )
 
