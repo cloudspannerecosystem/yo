@@ -45,6 +45,8 @@ const (
 `
 )
 
+var version string
+
 var (
 	rootOpts = internal.ArgType{}
 	rootCmd  = &cobra.Command{
@@ -104,7 +106,7 @@ var (
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		Version:       version(),
+		Version:       versionInfo(),
 	}
 )
 
@@ -230,8 +232,12 @@ func connectSpanner(args *internal.ArgType) (*spanner.Client, error) {
 	return spannerClient, nil
 }
 
-func version() string {
-	// Not using ldflags to show proper version even when a user "go install"s yo
+func versionInfo() string {
+	if version != "" {
+		return version
+	}
+
+	// For those who "go install" yo
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		return "(devel)"
