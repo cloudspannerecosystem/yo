@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"os"
 	pathpkg "path"
+	"runtime/debug"
 	"strings"
 
 	"cloud.google.com/go/spanner"
@@ -44,7 +45,7 @@ const (
 `
 )
 
-var version = "dev"
+var version string
 
 var (
 	rootOpts = internal.ArgType{}
@@ -105,7 +106,7 @@ var (
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		Version:       version,
+		Version:       versionInfo(),
 	}
 )
 
@@ -229,4 +230,17 @@ func connectSpanner(args *internal.ArgType) (*spanner.Client, error) {
 	}
 
 	return spannerClient, nil
+}
+
+func versionInfo() string {
+	if version != "" {
+		return version
+	}
+
+	// For those who "go install" yo
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(devel)"
+	}
+	return info.Main.Version
 }
