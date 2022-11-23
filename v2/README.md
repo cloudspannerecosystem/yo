@@ -26,7 +26,7 @@ $ cd $GOPATH/src/path/to/project
 $ mkdir -p models
 
 # generate code for a schema
-$ yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
+$ yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 ```
 
 ## Command line options
