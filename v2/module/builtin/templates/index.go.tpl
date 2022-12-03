@@ -103,7 +103,7 @@ func Find{{ .FuncName }}(ctx context.Context, db YODB{{ goParams .Fields true tr
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index '{{ .IndexName }}'.
+// Generated from index '{{ .IndexName }}'.
 func Read{{ .FuncName }}(ctx context.Context, db YODB, keys spanner.KeySet) ([]*{{ .Type.Name }}, error) {
 	var res []*{{ .Type.Name }}
     columns := []string{
