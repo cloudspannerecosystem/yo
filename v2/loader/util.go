@@ -25,13 +25,14 @@ import (
 	"strings"
 
 	"go.mercari.io/yo/v2/internal"
+	"go.mercari.io/yo/v2/models"
 )
 
 var lengthRegexp = regexp.MustCompile(`\(([0-9]+|MAX)\)$`)
 
 // SpanParseType parse a Spanner type into a Go type based on the column
 // definition.
-func parseSpannerType(dt string, nullable bool) (int, string, string) {
+func parseSpannerType(dt string, nullable bool) (int, string, string, *models.Package) {
 	nilVal := "nil"
 	length := -1
 
@@ -54,11 +55,15 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 	}
 
 	var typ string
+	var pkg *models.Package
 	switch dt {
 	case "BOOL":
 		nilVal = "false"
 		typ = "bool"
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullBool{}"
 			typ = "spanner.NullBool"
 		}
@@ -67,6 +72,9 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 		nilVal = `""`
 		typ = "string"
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullString{}"
 			typ = "spanner.NullString"
 		}
@@ -75,6 +83,9 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 		nilVal = "0"
 		typ = "int64"
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullInt64{}"
 			typ = "spanner.NullInt64"
 		}
@@ -83,6 +94,9 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 		nilVal = "0.0"
 		typ = "float64"
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullFloat64{}"
 			typ = "spanner.NullFloat64"
 		}
@@ -91,30 +105,53 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 		typ = "[]byte"
 
 	case "TIMESTAMP":
+		pkg = &models.Package{
+			Path: "time",
+		}
 		nilVal = "time.Time{}"
 		typ = "time.Time"
+
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullTime{}"
 			typ = "spanner.NullTime"
 		}
 
 	case "DATE":
+		pkg = &models.Package{
+			Path: "cloud.google.com/go/civil",
+		}
 		nilVal = "civil.Date{}"
 		typ = "civil.Date"
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullDate{}"
 			typ = "spanner.NullDate"
 		}
 
 	case "NUMERIC":
+		pkg = &models.Package{
+			Name: "big",
+			Path: "math/big",
+		}
 		nilVal = "big.Rat{}"
 		typ = "big.Rat"
 		if nullable {
+			pkg = &models.Package{
+				Path: "cloud.google.com/go/spanner",
+			}
 			nilVal = "spanner.NullNumeric{}"
 			typ = "spanner.NullNumeric"
 		}
 
 	case "JSON":
+		pkg = &models.Package{
+			Path: "cloud.google.com/go/spanner",
+		}
 		nilVal = `spanner.NullJSON{Valid: true}`
 		typ = "spanner.NullJSON"
 		if nullable {
@@ -124,7 +161,8 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 	default:
 		if strings.HasPrefix(dt, "ARRAY<") {
 			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
-			_, _, eleTyp := parseSpannerType(eleDataType, false)
+			_, _, eleTyp, elePkg := parseSpannerType(eleDataType, false)
+			pkg = elePkg
 			typ, nilVal = "[]"+eleTyp, "nil"
 			if !nullable {
 				nilVal = typ + "{}"
@@ -136,5 +174,5 @@ func parseSpannerType(dt string, nullable bool) (int, string, string) {
 		nilVal = typ + "{}"
 	}
 
-	return length, nilVal, typ
+	return length, nilVal, typ, pkg
 }

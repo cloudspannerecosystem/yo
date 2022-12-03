@@ -19,6 +19,12 @@
 
 package models
 
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+)
+
 // Schema contains information of all Go types.
 type Schema struct {
 	Types []*Type
@@ -36,19 +42,57 @@ type Type struct {
 
 // Field is a field of Go type that represents a Spanner column.
 type Field struct {
-	Name            string // Go like (CamelCase) field name
-	Type            string // Go type specified by custom type or same to OriginalType below
-	OriginalType    string // Go type corresponding to Spanner type
-	NullValue       string // NULL value for Type
-	Len             int    // Length for STRING, BYTES. -1 for MAX or other types
-	ColumnName      string // column_name
-	SpannerDataType string // data_type
-	IsNotNull       bool   // not_null
-	IsPrimaryKey    bool   // is_primary_key
-	IsGenerated     bool   // is_generated
+	Name            string   // Go like (CamelCase) field name
+	Type            string   // Go type specified by custom type or same to OriginalType below
+	Package         *Package // Go package of Type
+	OriginalType    string   // Go type corresponding to Spanner type
+	NullValue       string   // NULL value for Type
+	Len             int      // Length for STRING, BYTES. -1 for MAX or other types
+	ColumnName      string   // column_name
+	SpannerDataType string   // data_type
+	IsNotNull       bool     // not_null
+	IsPrimaryKey    bool     // is_primary_key
+	IsGenerated     bool     // is_generated
 }
 
-// Index is a template item for a index into a table.
+// Package represents a Go package
+type Package struct {
+	// Name is the name of the package.
+	Name string
+	// Path is the path to the package.
+	Path string
+	// Alias is the alias of the package.
+	Alias string
+}
+
+// LocalName returns the local name of the package.
+func (p Package) LocalName() string {
+	if p.Alias != "" {
+		return p.Alias
+	}
+
+	if p.Name != "" {
+		return p.Name
+	}
+
+	// Assume the last element in the path corresponds to its package name
+	return filepath.Base(p.Path)
+}
+
+// Standard returns whether the import is a golang standard package.
+func (p Package) Standard() bool {
+	return !strings.Contains(p.Path, ".")
+}
+
+// String returns a string representation of this package in the form of import line in Go.
+func (p Package) String() string {
+	if p.Alias == "" {
+		return fmt.Sprintf("%q", p.Path)
+	}
+	return fmt.Sprintf("%s %q", p.Alias, p.Path)
+}
+
+// Index is a template item for an index into a table.
 type Index struct {
 	Name           string // Go like (CamelCase) index name
 	FuncName       string // `By` + Name

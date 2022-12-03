@@ -268,7 +268,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 			continue
 		}
 
-		len, nilVal, typ := parseSpannerType(c.DataType, !c.NotNull)
+		len, nilVal, typ, pkg := parseSpannerType(c.DataType, !c.NotNull)
 
 		// set col info
 		f := &models.Field{
@@ -276,6 +276,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 			Len:             len,
 			NullValue:       nilVal,
 			Type:            typ,
+			Package:         pkg,
 			OriginalType:    typ,
 			ColumnName:      c.ColumnName,
 			SpannerDataType: c.DataType,

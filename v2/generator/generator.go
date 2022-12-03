@@ -111,13 +111,35 @@ func (g *Generator) Generate(schema *models.Schema) error {
 			if err := g.ExecuteTemplate(mod, tbl.Name, tbl); err != nil {
 				return err
 			}
+
+			r, err := NewTypePackageRegistry(tbl)
+			if err != nil {
+				return err
+			}
+
+			ds := &basicDataSet{
+				BuildTag:        g.tags,
+				Package:         g.packageName,
+				PackageRegistry: r,
+				Schema:          schema,
+			}
+
+			if err := g.ExecuteHeaderTemplate(g.headerModule, tbl.Name, ds); err != nil {
+				return err
+			}
 		}
 	}
 
+	r, err := NewGlobalPackageRegistry()
+	if err != nil {
+		return err
+	}
+
 	ds := &basicDataSet{
-		BuildTag: g.tags,
-		Package:  g.packageName,
-		Schema:   schema,
+		BuildTag:        g.tags,
+		Package:         g.packageName,
+		PackageRegistry: r,
+		Schema:          schema,
 	}
 
 	// execute global modules
@@ -125,9 +147,13 @@ func (g *Generator) Generate(schema *models.Schema) error {
 		if err := g.ExecuteTemplate(mod, mod.Name(), ds); err != nil {
 			return err
 		}
+
+		if err := g.ExecuteHeaderTemplate(g.headerModule, mod.Name(), ds); err != nil {
+			return err
+		}
 	}
 
-	if err := g.writeFiles(ds); err != nil {
+	if err := g.writeFiles(); err != nil {
 		return err
 	}
 
@@ -154,12 +180,8 @@ func (g *Generator) getFile(name string) *FileBuffer {
 }
 
 // writeFiles writes the generated definitions.
-func (g *Generator) writeFiles(ds *basicDataSet) error {
+func (g *Generator) writeFiles() error {
 	for _, file := range g.files {
-		if err := g.ExecuteHeaderTemplate(g.headerModule, file, ds); err != nil {
-			return err
-		}
-
 		if err := file.WriteTempFile(); err != nil {
 			return err
 		}
@@ -193,12 +215,12 @@ func (g *Generator) ExecuteTemplate(mod module.Module, name string, obj interfac
 	if err := g.newTemplateSet().Execute(tbuf.Buf, mod, obj); err != nil {
 		return fmt.Errorf("error happened while executing template: %v", err)
 	}
-
 	file.Chunks = append(file.Chunks, &tbuf)
 	return nil
 }
 
-func (g *Generator) ExecuteHeaderTemplate(mod module.Module, file *FileBuffer, obj interface{}) error {
+func (g *Generator) ExecuteHeaderTemplate(mod module.Module, name string, obj interface{}) error {
+	file := g.getFile(name)
 	buf := new(bytes.Buffer)
 
 	if err := g.newTemplateSet().Execute(buf, mod, obj); err != nil {
