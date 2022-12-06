@@ -440,7 +440,7 @@ func FindFullTypeByFullTypesByFTString(ctx context.Context, db YODB, fTString st
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByFTString'.
+// Generated from index 'FullTypesByFTString'.
 func ReadFullTypeByFullTypesByFTString(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -523,7 +523,7 @@ func FindFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YODB, fTI
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByInTimestampNull'.
+// Generated from index 'FullTypesByInTimestampNull'.
 func ReadFullTypesByFullTypesByInTimestampNull(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -599,7 +599,7 @@ func FindFullTypesByFullTypesByIntDate(ctx context.Context, db YODB, fTInt int64
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByIntDate'.
+// Generated from index 'FullTypesByIntDate'.
 func ReadFullTypesByFullTypesByIntDate(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -675,7 +675,7 @@ func FindFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YODB, fTInt 
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByIntTimestamp'.
+// Generated from index 'FullTypesByIntTimestamp'.
 func ReadFullTypesByFullTypesByIntTimestamp(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -750,7 +750,7 @@ func FindFullTypesByFullTypesByTimestamp(ctx context.Context, db YODB, fTTimesta
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByTimestamp'.
+// Generated from index 'FullTypesByTimestamp'.
 func ReadFullTypesByFullTypesByTimestamp(ctx context.Context, db YODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
