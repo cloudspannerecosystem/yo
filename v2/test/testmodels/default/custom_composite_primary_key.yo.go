@@ -259,7 +259,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx conte
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CustomCompositePrimaryKeysByError'.
+// Generated from index 'CustomCompositePrimaryKeysByError'.
 func ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
 	var res []*CustomCompositePrimaryKey
 	columns := []string{
@@ -334,7 +334,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError2(ctx cont
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CustomCompositePrimaryKeysByError2'.
+// Generated from index 'CustomCompositePrimaryKeysByError2'.
 func ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError2(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
 	var res []*CustomCompositePrimaryKey
 	columns := []string{
@@ -410,7 +410,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError3(ctx cont
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CustomCompositePrimaryKeysByError3'.
+// Generated from index 'CustomCompositePrimaryKeysByError3'.
 func ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError3(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
 	var res []*CustomCompositePrimaryKey
 	columns := []string{
@@ -488,7 +488,7 @@ func FindCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByXY(ctx context.
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CustomCompositePrimaryKeysByXY'.
+// Generated from index 'CustomCompositePrimaryKeysByXY'.
 func ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByXY(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
 	var res []*CustomCompositePrimaryKey
 	columns := []string{
