@@ -231,7 +231,7 @@ func FindSnakeCasesBySnakeCasesByStringID(ctx context.Context, db YODB, stringID
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'snake_cases_by_string_id'.
+// Generated from index 'snake_cases_by_string_id'.
 func ReadSnakeCasesBySnakeCasesByStringID(ctx context.Context, db YODB, keys spanner.KeySet) ([]*SnakeCase, error) {
 	var res []*SnakeCase
 	columns := []string{
