@@ -4,8 +4,8 @@
 // +build {{ .BuildTag}}
 {{- end -}}
 
-// Package {{ .Package }} contains the types.
-package {{ .Package }}
+// Package {{ .Package.Name }} contains the types.
+package {{ .Package.Name }}
 
 import (
 {{- range .PackageRegistry.GetImports }}

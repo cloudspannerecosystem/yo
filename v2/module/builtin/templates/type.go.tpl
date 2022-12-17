@@ -1,36 +1,36 @@
-{{- $short := (shortName .Name "err" "res" "sqlstr" "db" "YOLog") -}}
-{{- $table := (.TableName) -}}
+{{- $short := (shortName .Type.Name "err" "res" "sqlstr" "db" "YOLog") -}}
+{{- $table := (.Type.TableName) -}}
 
-// {{ .Name }} represents a row from '{{ $table }}'.
-type {{ .Name }} struct {
-{{- range .Fields }}
+// {{ .Type.Name }} represents a row from '{{ $table }}'.
+type {{ .Type.Name }} struct {
+{{- range .Type.Fields }}
 {{- if eq (.SpannerDataType) (.ColumnName) }}
 	{{ .Name }} string `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }} enum
 {{- else }}
-	{{ .Name }} {{ .Type }} `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }}
+	{{ .Name }} {{ .Type.GetType $.PackageRegistry }} `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }}
 {{- end }}
 {{- end }}
 }
 
-func {{ .Name }}PrimaryKeys() []string {
+func {{ .Type.Name }}PrimaryKeys() []string {
      return []string{
-{{- range .PrimaryKeyFields }}
+{{- range .Type.PrimaryKeyFields }}
 		"{{ .ColumnName }}",
 {{- end }}
 	}
 }
 
-func {{ .Name }}Columns() []string {
+func {{ .Type.Name }}Columns() []string {
 	return []string{
-{{- range .Fields }}
+{{- range .Type.Fields }}
 		"{{ .ColumnName }}",
 {{- end }}
 	}
 }
 
-func {{ .Name }}WritableColumns() []string {
+func {{ .Type.Name }}WritableColumns() []string {
 	return []string{
-{{- range .Fields }}
+{{- range .Type.Fields }}
 	{{- if not .IsGenerated }}
 		"{{ .ColumnName }}",
 	{{- end }}
@@ -38,11 +38,11 @@ func {{ .Name }}WritableColumns() []string {
 	}
 }
 
-func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string) ([]interface{}, error) {
+func ({{ $short }} *{{ .Type.Name }}) columnsToPtrs(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
 		switch col {
-{{- range .Fields }}
+{{- range .Type.Fields }}
 		case "{{ .ColumnName }}":
 			ret = append(ret, yoDecode(&{{ $short }}.{{ .Name }}))
 {{- end }}
@@ -53,27 +53,27 @@ func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string) ([]interface{}, er
 	return ret, nil
 }
 
-func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, error) {
+func ({{ $short }} *{{ .Type.Name }}) columnsToValues(cols []string) ([]interface{}, error) {
 	ret := make([]interface{}, 0, len(cols))
 	for _, col := range cols {
 		switch col {
-{{- range .Fields }}
+{{- range .Type.Fields }}
 		case "{{ .ColumnName }}":
 			ret = append(ret, yoEncode({{ $short }}.{{ .Name }}))
 {{- end }}
 		default:
-			return nil, fmt.Errorf("unknown column: %s", col)
+			return nil, {{ .PackageRegistry.Use presetPackages.fmt "Errorf" }}("unknown column: %s", col)
 		}
 	}
 
 	return ret, nil
 }
 
-// new{{ .Name }}_Decoder returns a decoder which reads a row from *spanner.Row
-// into {{ .Name }}. The decoder is not goroutine-safe. Don't use it concurrently.
-func new{{ .Name }}_Decoder(cols []string) func(*spanner.Row) (*{{ .Name }}, error) {
-	return func(row *spanner.Row) (*{{ .Name }}, error) {
-        var {{ $short }} {{ .Name }}
+// new{{ .Type.Name }}_Decoder returns a decoder which reads a row from *spanner.Row
+// into {{ .Type.Name }}. The decoder is not goroutine-safe. Don't use it concurrently.
+func new{{ .Type.Name }}_Decoder(cols []string) func(*{{ .PackageRegistry.Use presetPackages.goSpanner "Row" }}) (*{{ .Type.Name }}, error) {
+	return func(row *{{ .PackageRegistry.Use presetPackages.goSpanner "Row" }}) (*{{ .Type.Name }}, error) {
+        var {{ $short }} {{ .Type.Name }}
         ptrs, err := {{ $short }}.columnsToPtrs(cols)
         if err != nil {
             return nil, err

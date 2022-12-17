@@ -23,236 +23,69 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"go.mercari.io/yo/v2/models"
 )
 
-func TestNewTypePackageRegistry(t *testing.T) {
+func TestPackageRegistry_Use(t *testing.T) {
 	t.Parallel()
 
+	local := models.Package{Name: "v2", Path: "go.mercari.io/yo/v2"}
+	initialPkgs := []models.Package{
+		{Name: "p1", Path: "go.mercari.io/yo/v2/p1"},
+		{Name: "p2", Path: "go.mercari.io/yo/v2/p2"},
+		{Name: "p3", Path: "go.mercari.io/yo/v2/p3"},
+	}
+
 	table := []struct {
-		name            string
-		typ             *models.Type
-		expectedImports []string
-		expectedErr     string
+		desc     string
+		pkg      models.Package
+		name     string
+		expected string
 	}{
 		{
-			name: "no duplication with default imports",
-			typ: &models.Type{
-				Fields: []*models.Field{
-					{Package: &models.Package{Path: "sort"}},
-					{Package: &models.Package{Path: "go.mercari.io/test"}},
-				},
-			},
-			expectedImports: []string{
-				`"context"`,
-				`"fmt"`,
-				`"sort"`,
-				`"strings"`,
-				`"time"`,
-				`"cloud.google.com/go/spanner"`,
-				`"go.mercari.io/test"`,
-				`"google.golang.org/api/iterator"`,
-				`"google.golang.org/grpc/codes"`,
-			},
+			desc:     "local package",
+			pkg:      local,
+			name:     "Test{}",
+			expected: "Test{}",
 		},
 		{
-			name: "duplicated package with default imports",
-			typ: &models.Type{
-				Fields: []*models.Field{
-					{Package: &models.Package{Path: "context"}},
-					{Package: &models.Package{Path: "cloud.google.com/go/spanner"}},
-				},
-			},
-			expectedImports: []string{
-				`"context"`,
-				`"fmt"`,
-				`"strings"`,
-				`"time"`,
-				`"cloud.google.com/go/spanner"`,
-				`"google.golang.org/api/iterator"`,
-				`"google.golang.org/grpc/codes"`,
-			},
+			desc:     "builtin package",
+			pkg:      models.BuiltInPackage,
+			name:     "int64",
+			expected: "int64",
 		},
 		{
-			name: "alias conflicts with default imports",
-			typ: &models.Type{
-				Fields: []*models.Field{
-					{Package: &models.Package{Path: "cloud.google.com/go/spanner", Alias: "spn"}},
-				},
-			},
-			expectedErr: `importing "cloud.google.com/go/spanner" package with different local names: "spn", "spanner"`,
+			desc:     "package is already used before",
+			pkg:      models.Package{Name: "p1", Path: "go.mercari.io/yo/v2/p1"},
+			name:     "Test{}",
+			expected: "p1.Test{}",
+		},
+		{
+			desc:     "package name conflicts with the go reserved names",
+			pkg:      models.Package{Name: "var", Path: "go.mercari.io/yo/v2/var"},
+			name:     "Test{}",
+			expected: "_var.Test{}",
+		},
+		{
+			desc:     "package name is already used",
+			pkg:      models.Package{Name: "p1", Path: "github.com/mercari/repo/p1"},
+			name:     "Test{}",
+			expected: "p11.Test{}",
 		},
 	}
 
 	for _, tc := range table {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := NewTypePackageRegistry(tc.typ)
-			if tc.expectedErr != "" {
-				if err == nil {
-					t.Fatal("expected to receive an error but got nil")
-				}
-
-				if diff := cmp.Diff(err.Error(), tc.expectedErr); diff != "" {
-					t.Fatalf("%s (-got, +want)\n%s", tc.expectedErr, diff)
-				}
-			} else {
-				if err != nil {
-					t.Fatalf("received an unexpected error: %v", err)
-				}
-
-				if got == nil {
-					t.Fatal("received a nil package registry")
-				}
-
-				if diff := cmp.Diff(got.GetImports(), tc.expectedImports); diff != "" {
-					t.Fatalf("%s (-got, +want)\n%s", tc.expectedImports, diff)
-				}
-			}
-		})
-	}
-}
-
-func TestNewGlobalPackageRegistry(t *testing.T) {
-	t.Parallel()
-
-	got, err := NewGlobalPackageRegistry()
-	if err != nil {
-		t.Fatalf("received an unexpected error: %v", err)
-	}
-
-	if got == nil {
-		t.Fatal("received a nil package registry")
-	}
-
-	expectedImports := []string{
-		`"context"`,
-		`"errors"`,
-		`"fmt"`,
-		`"strconv"`,
-		`"cloud.google.com/go/spanner"`,
-		`"github.com/googleapis/gax-go/v2/apierror"`,
-		`"google.golang.org/grpc/codes"`,
-		`"google.golang.org/grpc/status"`,
-	}
-
-	if diff := cmp.Diff(got.GetImports(), expectedImports); diff != "" {
-		t.Fatalf("%s (-got, +want)\n%s", expectedImports, diff)
-	}
-}
-
-func TestPackageRegistry_Register(t *testing.T) {
-	t.Parallel()
-
-	table := []struct {
-		name            string
-		initialPkgs     []*models.Package
-		pkg             *models.Package
-		expectedImports []string
-		expectedErr     string
-	}{
-		{
-			name: "plain package",
-			initialPkgs: []*models.Package{
-				{Path: "fmt"},
-				{Path: "go.mercari.io/test"},
-			},
-			pkg: &models.Package{Path: "go.mercari.io/aaa"},
-			expectedImports: []string{
-				`"fmt"`,
-				`"go.mercari.io/aaa"`,
-				`"go.mercari.io/test"`,
-			},
-		},
-		{
-			name: "package with name",
-			initialPkgs: []*models.Package{
-				{Path: "fmt"},
-				{Path: "go.mercari.io/test"},
-			},
-			pkg: &models.Package{Name: "testpkgname", Path: "go.mercari.io/aaa"},
-			expectedImports: []string{
-				`"fmt"`,
-				`"go.mercari.io/aaa"`,
-				`"go.mercari.io/test"`,
-			},
-		},
-		{
-			name: "package with alias",
-			initialPkgs: []*models.Package{
-				{Path: "fmt"},
-				{Path: "go.mercari.io/test"},
-			},
-			pkg: &models.Package{Alias: "testpkgalias", Path: "go.mercari.io/aaa"},
-			expectedImports: []string{
-				`"fmt"`,
-				`testpkgalias "go.mercari.io/aaa"`,
-				`"go.mercari.io/test"`,
-			},
-		},
-		{
-			name: "duplicated packages",
-			initialPkgs: []*models.Package{
-				{Path: "fmt"},
-				{Path: "go.mercari.io/test"},
-			},
-			pkg: &models.Package{Path: "go.mercari.io/test"},
-			expectedImports: []string{
-				`"fmt"`,
-				`"go.mercari.io/test"`,
-			},
-		},
-		{
-			name: "the same package with different aliases",
-			initialPkgs: []*models.Package{
-				{Alias: "t1", Path: "go.mercari.io/test"},
-			},
-			pkg:         &models.Package{Alias: "t2", Path: "go.mercari.io/test"},
-			expectedErr: `importing "go.mercari.io/test" package with different local names: "t2", "t1"`,
-		},
-		{
-			name: "the same alias for different packages",
-			initialPkgs: []*models.Package{
-				{Alias: "testalias", Path: "go.mercari.io/test"},
-			},
-			pkg:         &models.Package{Alias: "testalias", Path: "test"},
-			expectedErr: `using the same local name "testalias" for different packages: "test", "go.mercari.io/test"`,
-		},
-		{
-			name: "the same package name for different packages",
-			initialPkgs: []*models.Package{
-				{Path: "go.mercari.io/test"},
-			},
-			pkg:         &models.Package{Path: "test"},
-			expectedErr: `using the same local name "test" for different packages: "test", "go.mercari.io/test"`,
-		},
-	}
-
-	for _, tc := range table {
-		t.Run(tc.name, func(t *testing.T) {
-			registry, err := newPackageRegistry(tc.initialPkgs)
-			if err != nil {
-				t.Fatalf("failed initializing pagkage registry: %v", err)
+		t.Run(tc.desc, func(t *testing.T) {
+			registry := NewPackageRegistry(local)
+			for _, pkg := range initialPkgs {
+				registry.packageNames[pkg] = pkg.Name
+				registry.usedPackageNames[pkg.Name] = struct{}{}
 			}
 
-			err = registry.Register(tc.pkg)
+			got := registry.Use(tc.pkg, tc.name)
 
-			if tc.expectedErr != "" {
-				if err == nil {
-					t.Fatal("expected to receive an error but got nil")
-				}
-
-				if diff := cmp.Diff(err.Error(), tc.expectedErr); diff != "" {
-					t.Fatalf("%s (-got, +want)\n%s", tc.expectedErr, diff)
-				}
-			} else {
-				if err != nil {
-					t.Fatalf("received an unexpected error: %v", err)
-				}
-
-				if diff := cmp.Diff(registry.GetImports(), tc.expectedImports); diff != "" {
-					t.Fatalf("%s (-got, +want)\n%s", tc.expectedImports, diff)
-				}
+			if diff := cmp.Diff(got, tc.expected); diff != "" {
+				t.Fatalf("%s (-got, +want)\n%s", tc.expected, diff)
 			}
 		})
 	}
@@ -262,51 +95,44 @@ func TestPackageRegistry_GetImports(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		name            string
-		pkgs            []*models.Package
-		expectedImports []string
+		name         string
+		packageNames map[models.Package]string
+		expected     []string
 	}{
 		{
-			name: "packages are unordered",
-			pkgs: []*models.Package{
-				{Path: "go.mercari.io/bbb"},
-				{Path: "fmt"},
-				{Path: "go.mercari.io/aaa"},
-				{Path: "sort"},
+			name: "packages without alias",
+			packageNames: map[models.Package]string{
+				{Name: "p1", Path: "go.mercari.io/yo/v2/p1"}: "p1",
+				{Name: "p2", Path: "go.mercari.io/yo/v2/p2"}: "p2",
+				{Name: "p3", Path: "go.mercari.io/yo/v2/p3"}: "p3",
 			},
-			expectedImports: []string{
-				`"fmt"`,
-				`"sort"`,
-				`"go.mercari.io/aaa"`,
-				`"go.mercari.io/bbb"`,
+			expected: []string{
+				`"go.mercari.io/yo/v2/p1"`,
+				`"go.mercari.io/yo/v2/p2"`,
+				`"go.mercari.io/yo/v2/p3"`,
 			},
 		},
 		{
 			name: "packages with alias",
-			pkgs: []*models.Package{
-				{Path: "fmt"},
-				{Alias: "srt", Path: "sort"},
-				{Alias: "a", Path: "go.mercari.io/aaa"},
-				{Alias: "b", Path: "go.mercari.io/bbb"},
+			packageNames: map[models.Package]string{
+				{Name: "p1", Path: "go.mercari.io/yo/v2/p1"}:     "p1",
+				{Name: "p2", Path: "go.mercari.io/yo/v2/p2"}:     "p2",
+				{Name: "p1", Path: "github.com/mercari/repo/p1"}: "p11",
 			},
-			expectedImports: []string{
-				`"fmt"`,
-				`srt "sort"`,
-				`a "go.mercari.io/aaa"`,
-				`b "go.mercari.io/bbb"`,
+			expected: []string{
+				`"go.mercari.io/yo/v2/p1"`,
+				`"go.mercari.io/yo/v2/p2"`,
+				`p11 "github.com/mercari/repo/p1"`,
 			},
 		},
 	}
 
 	for _, tc := range table {
 		t.Run(tc.name, func(t *testing.T) {
-			registry, err := newPackageRegistry(tc.pkgs)
-			if err != nil {
-				t.Fatalf("failed initializing pagkage registry: %v", err)
-			}
+			registry := PackageRegistry{packageNames: tc.packageNames}
 
-			if diff := cmp.Diff(registry.GetImports(), tc.expectedImports); diff != "" {
-				t.Fatalf("%s (-got, +want)\n%s", tc.expectedImports, diff)
+			if diff := cmp.Diff(registry.GetImports(), tc.expected); diff != "" {
+				t.Fatalf("%s (-got, +want)\n%s", tc.expected, diff)
 			}
 		})
 	}

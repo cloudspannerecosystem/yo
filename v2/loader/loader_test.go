@@ -99,9 +99,7 @@ func TestLoader(t *testing.T) {
 						Fields: []*models.Field{
 							{
 								Name:            "ID",
-								Type:            "int64",
-								OriginalType:    "int64",
-								NullValue:       "0",
+								Type:            models.PlainFieldType{Type: "int64", NullValue: "0"},
 								Len:             -1,
 								ColumnName:      "Id",
 								SpannerDataType: "INT64",
@@ -110,9 +108,7 @@ func TestLoader(t *testing.T) {
 							},
 							{
 								Name:            "Value",
-								Type:            "string",
-								OriginalType:    "string",
-								NullValue:       `""`,
+								Type:            models.PlainFieldType{Type: "string", NullValue: `""`},
 								Len:             32,
 								ColumnName:      "Value",
 								SpannerDataType: "STRING(32)",
@@ -162,9 +158,7 @@ func TestLoader(t *testing.T) {
 						Fields: []*models.Field{
 							{
 								Name:            "InterleavedID",
-								Type:            "int64",
-								OriginalType:    "int64",
-								NullValue:       "0",
+								Type:            models.PlainFieldType{Type: "int64", NullValue: "0"},
 								Len:             -1,
 								ColumnName:      "InterleavedId",
 								SpannerDataType: "INT64",
@@ -173,9 +167,7 @@ func TestLoader(t *testing.T) {
 							},
 							{
 								Name:            "ID",
-								Type:            "int64",
-								OriginalType:    "int64",
-								NullValue:       "0",
+								Type:            models.PlainFieldType{Type: "int64", NullValue: "0"},
 								Len:             -1,
 								ColumnName:      "Id",
 								SpannerDataType: "INT64",
@@ -184,9 +176,7 @@ func TestLoader(t *testing.T) {
 							},
 							{
 								Name:            "Value",
-								Type:            "int64",
-								OriginalType:    "int64",
-								NullValue:       "0",
+								Type:            models.PlainFieldType{Type: "int64", NullValue: "0"},
 								Len:             -1,
 								ColumnName:      "Value",
 								SpannerDataType: "INT64",
@@ -216,9 +206,7 @@ func TestLoader(t *testing.T) {
 						Fields: []*models.Field{
 							{
 								Name:            "ID",
-								Type:            "int64",
-								OriginalType:    "int64",
-								NullValue:       "0",
+								Type:            models.PlainFieldType{Type: "int64", NullValue: "0"},
 								Len:             -1,
 								ColumnName:      "Id",
 								SpannerDataType: "INT64",
@@ -247,9 +235,7 @@ func TestLoader(t *testing.T) {
 						Fields: []*models.Field{
 							{
 								Name:            "PKey1",
-								Type:            "string",
-								OriginalType:    "string",
-								NullValue:       `""`,
+								Type:            models.PlainFieldType{Type: "string", NullValue: `""`},
 								Len:             32,
 								ColumnName:      "PKey1",
 								SpannerDataType: "STRING(32)",
@@ -258,9 +244,7 @@ func TestLoader(t *testing.T) {
 							},
 							{
 								Name:            "PKey2",
-								Type:            "string",
-								OriginalType:    "string",
-								NullValue:       `""`,
+								Type:            models.PlainFieldType{Type: "string", NullValue: `""`},
 								Len:             32,
 								ColumnName:      "PKey2",
 								SpannerDataType: "STRING(32)",
@@ -269,9 +253,7 @@ func TestLoader(t *testing.T) {
 							},
 							{
 								Name:            "PKey3",
-								Type:            "string",
-								OriginalType:    "string",
-								NullValue:       `""`,
+								Type:            models.PlainFieldType{Type: "string", NullValue: `""`},
 								Len:             32,
 								ColumnName:      "PKey3",
 								SpannerDataType: "STRING(32)",
@@ -298,9 +280,7 @@ func TestLoader(t *testing.T) {
 						Fields: []*models.Field{
 							{
 								Name:            "MaxString",
-								Type:            "string",
-								OriginalType:    "string",
-								NullValue:       `""`,
+								Type:            models.PlainFieldType{Type: "string", NullValue: `""`},
 								Len:             -1,
 								ColumnName:      "MaxString",
 								SpannerDataType: "STRING(MAX)",
@@ -309,9 +289,7 @@ func TestLoader(t *testing.T) {
 							},
 							{
 								Name:            "MaxBytes",
-								Type:            "[]byte",
-								OriginalType:    "[]byte",
-								NullValue:       "nil",
+								Type:            models.PlainFieldType{Type: "[]byte", NullValue: "nil"},
 								Len:             -1,
 								ColumnName:      "MaxBytes",
 								SpannerDataType: "BYTES(MAX)",
@@ -426,9 +404,7 @@ func TestLoader_CustomTypes(t *testing.T) {
 						Fields: []*models.Field{
 							{
 								Name:            "ID",
-								Type:            "int64",
-								OriginalType:    "int64",
-								NullValue:       "0",
+								Type:            models.PlainFieldType{Type: "int64", NullValue: "0"},
 								Len:             -1,
 								ColumnName:      "Id",
 								SpannerDataType: "INT64",
@@ -437,9 +413,7 @@ func TestLoader_CustomTypes(t *testing.T) {
 							},
 							{
 								Name:            "Value",
-								Type:            "Value",
-								OriginalType:    "string",
-								NullValue:       `""`,
+								Type:            models.PlainFieldType{Type: "string", CustomType: "Value", NullValue: `""`},
 								Len:             32,
 								ColumnName:      "Value",
 								SpannerDataType: "STRING(32)",

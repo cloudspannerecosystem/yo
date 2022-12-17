@@ -1,122 +1,88 @@
+// Copyright (c) 2020 Mercari, Inc.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 package generator
 
 import (
 	"fmt"
-	"sort"
+	"strconv"
 
 	"go.mercari.io/yo/v2/models"
 )
 
-var defaultTypeModulePackages = []*models.Package{
-	{Path: "context"},
-	{Path: "fmt"},
-	{Path: "strings"},
-	{Path: "time"},
-
-	{Path: "cloud.google.com/go/spanner"},
-	{Path: "google.golang.org/api/iterator"},
-	{Path: "google.golang.org/grpc/codes"},
-}
-
-var defaultGlobalModulePackages = []*models.Package{
-	{Path: "context"},
-	{Path: "errors"},
-	{Path: "fmt"},
-	{Path: "strconv"},
-
-	{Path: "cloud.google.com/go/spanner"},
-	{Path: "github.com/googleapis/gax-go/v2/apierror"},
-	{Path: "google.golang.org/grpc/codes"},
-	{Path: "google.golang.org/grpc/status"},
-}
-
-// NewTypePackageRegistry creates a new instance of PackageRegistry for a specific type module
-func NewTypePackageRegistry(t *models.Type) (*PackageRegistry, error) {
-	r, err := newPackageRegistry(defaultTypeModulePackages)
-	if err != nil {
-		return nil, err
+func NewPackageRegistry(local models.Package) *PackageRegistry {
+	return &PackageRegistry{
+		localPackage:     local,
+		packageNames:     map[models.Package]string{},
+		usedPackageNames: map[string]struct{}{},
+		manualImports:    map[models.Package]struct{}{},
 	}
-
-	for _, f := range t.Fields {
-		if f.Package == nil {
-			continue
-		}
-
-		if err := r.Register(f.Package); err != nil {
-			return nil, err
-		}
-	}
-
-	return r, nil
-}
-
-// NewGlobalPackageRegistry creates a new instance of PackageRegistry for a global module
-func NewGlobalPackageRegistry() (*PackageRegistry, error) {
-	r, err := newPackageRegistry(defaultGlobalModulePackages)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
-}
-
-func newPackageRegistry(defaults []*models.Package) (*PackageRegistry, error) {
-	r := &PackageRegistry{
-		pathToLocalName: map[string]string{},
-		localNameToPath: map[string]string{},
-	}
-	for _, p := range defaults {
-		if err := r.Register(p); err != nil {
-			return nil, err
-		}
-	}
-	return r, nil
 }
 
 // PackageRegistry manages Go packages imported in a generated file
 type PackageRegistry struct {
-	packages []*models.Package
-	// pathToLocalName maps a package import path to its local name
-	pathToLocalName map[string]string
-	// localNameToPath maps a package local name to its import path
-	localNameToPath map[string]string
+	localPackage     models.Package
+	packageNames     map[models.Package]string
+	usedPackageNames map[string]struct{}
+	manualImports    map[models.Package]struct{}
 }
 
-// Register registers Go packages imported in a given file
-func (r *PackageRegistry) Register(p *models.Package) error {
-	path, localNameRegistered := r.localNameToPath[p.LocalName()]
-	if localNameRegistered && path != p.Path {
-		return fmt.Errorf("using the same local name %q for different packages: %q, %q", p.LocalName(), p.Path, path)
+// Use registers Go packages imported in a given file
+func (r *PackageRegistry) Use(pkg models.Package, name string) string {
+	if pkg == r.localPackage || pkg == models.BuiltInPackage {
+		return name
+	}
+	if packageName, ok := r.packageNames[pkg]; ok {
+		return fmt.Sprintf("%s.%s", packageName, name)
 	}
 
-	localName, pathRegistered := r.pathToLocalName[p.Path]
-	if pathRegistered && localName != p.LocalName() {
-		return fmt.Errorf("importing %q package with different local names: %q, %q", p.Path, p.LocalName(), localName)
+	packageName := pkg.Name
+	if _, reserved := goReservedNames[packageName]; reserved {
+		// Prepend '_' if the package name conflict with a Go keyword
+		packageName = "_" + packageName
 	}
 
-	if !pathRegistered {
-		r.packages = append(r.packages, p)
-		r.pathToLocalName[p.Path] = p.LocalName()
-		r.localNameToPath[p.LocalName()] = p.Path
+	i := 1
+	original := packageName
+	for {
+		if _, used := r.usedPackageNames[packageName]; !used {
+			break
+		}
+		packageName = original + strconv.Itoa(i)
+		i += 1
 	}
-
-	return nil
+	r.packageNames[pkg] = packageName
+	r.usedPackageNames[packageName] = struct{}{}
+	return fmt.Sprintf("%s.%s", packageName, name)
 }
 
 // GetImports returns a list of import statements
 func (r *PackageRegistry) GetImports() []string {
-	sort.Slice(r.packages, func(i, j int) bool {
-		// Standard libraries come first, sorted lexicographically
-		if r.packages[i].Standard() == r.packages[j].Standard() {
-			return r.packages[i].Path < r.packages[j].Path
+	var imports []string
+	for pkg, name := range r.packageNames {
+		if name != pkg.Name {
+			// Need to set an alias since the name is not equal to the package name
+			imports = append(imports, fmt.Sprintf("%s %q", name, pkg.Path))
+			continue
 		}
 
-		return r.packages[i].Standard()
-	})
-
-	var imports []string
-	for _, p := range r.packages {
-		imports = append(imports, p.String())
+		imports = append(imports, strconv.Quote(pkg.Path))
 	}
 
 	return imports

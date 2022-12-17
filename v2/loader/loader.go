@@ -268,27 +268,18 @@ func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 			continue
 		}
 
-		len, nilVal, typ, pkg := parseSpannerType(c.DataType, !c.NotNull)
+		length, typ := parseSpannerType(c.DataType, columnTypes[c.ColumnName], !c.NotNull)
 
 		// set col info
 		f := &models.Field{
 			Name:            internal.SnakeToCamel(c.ColumnName),
-			Len:             len,
-			NullValue:       nilVal,
+			Len:             length,
 			Type:            typ,
-			Package:         pkg,
-			OriginalType:    typ,
 			ColumnName:      c.ColumnName,
 			SpannerDataType: c.DataType,
 			IsNotNull:       c.NotNull,
 			IsPrimaryKey:    c.IsPrimaryKey,
 			IsGenerated:     c.IsGenerated,
-		}
-
-		// set custom type
-		customType, ok := columnTypes[c.ColumnName]
-		if ok && tl.validateCustomType(c.DataType, customType) {
-			f.Type = customType
 		}
 
 		// append col to template fields

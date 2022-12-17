@@ -1,15 +1,15 @@
-# Field list of {{ .Name }}
+# Field list of {{ .Type.Name }}
 
-{{ range .Fields -}}
-* {{ .Name }} {{ .SpannerDataType }} {{ .Type }}
+{{ range .Type.Fields -}}
+* {{ .Name }} {{ .SpannerDataType }} {{ .Type.GetType $.PackageRegistry }}
 {{ end }}
 # Primary Key
 
-{{ range .PrimaryKeyFields -}}
-* {{ .Name }} {{ .SpannerDataType }} {{ .Type }}
+{{ range .Type.PrimaryKeyFields -}}
+* {{ .Name }} {{ .SpannerDataType }} {{ .Type.GetType $.PackageRegistry }}
 {{ end }}
-# Index list of {{ .Name }}
+# Index list of {{ .Type.Name }}
 
-{{ range .Indexes -}}
+{{ range .Type.Indexes -}}
 * {{ .IndexName }}
 {{ end -}}

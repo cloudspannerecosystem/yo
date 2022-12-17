@@ -21,6 +21,7 @@ package generator
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -49,11 +50,15 @@ func (g *Generator) newTemplateFuncs() template.FuncMap {
 		"goParam":         g.goParam,
 		"goEncodedParam":  g.goEncodedParam,
 		"goParams":        g.goParams,
+		"goParamDefs":     g.goParamDefs,
 		"goEncodedParams": g.goEncodedParams,
 
 		"escape":    g.escape,
 		"toLower":   g.toLower,
 		"pluralize": g.pluralize,
+
+		"newPackage":     newPackage,
+		"presetPackages": presetPackages,
 	}
 }
 
@@ -234,7 +239,7 @@ func (g *Generator) fieldNames(fields []*models.Field, prefix string) string {
 	return str
 }
 
-// goReservedNames is a map of of go reserved names to "safe" names.
+// goReservedNames is a map of go reserved names to "safe" names.
 var goReservedNames = map[string]string{
 	"break":       "brk",
 	"case":        "cs",
@@ -315,36 +320,25 @@ func (g *Generator) goEncodedParam(name string) string {
 // Used to present a comma separated list of Go variable names for use with as
 // either a Go func parameter list, or in a call to another Go func.
 // (ie, ", a, b, c, ..." or ", a T1, b T2, c T3, ...").
-func (g *Generator) goParams(fields []*models.Field, addPrefix bool, addType bool) string {
-	i := 0
-	vals := []string{}
-	for _, f := range fields {
-		s := "v" + strconv.Itoa(i)
-		if len(f.Name) > 0 {
-			s = g.goParam(f.Name)
-		}
-
-		// add the go type
-		if addType {
-			s += " " + f.Type
-		}
-
-		// add to vals
-		vals = append(vals, s)
-
-		i++
-	}
-
-	// concat generated values
-	str := strings.Join(vals, ", ")
-	if addPrefix && str != "" {
-		return ", " + str
-	}
-
-	return str
+func (g *Generator) goParams(fields []*models.Field, addPrefix bool) string {
+	return g.handleGoParams(fields, addPrefix, func(_ *models.Field, param string) string {
+		return param
+	})
 }
 
 func (g *Generator) goEncodedParams(fields []*models.Field, addPrefix bool) string {
+	return g.handleGoParams(fields, addPrefix, func(_ *models.Field, param string) string {
+		return fmt.Sprintf("yoEncode(%s)", param)
+	})
+}
+
+func (g *Generator) goParamDefs(registry *PackageRegistry, fields []*models.Field, addPrefix bool) string {
+	return g.handleGoParams(fields, addPrefix, func(field *models.Field, param string) string {
+		return fmt.Sprintf("%s %s", param, field.Type.GetType(registry))
+	})
+}
+
+func (g *Generator) handleGoParams(fields []*models.Field, addPrefix bool, handle func(field *models.Field, param string) string) string {
 	i := 0
 	vals := []string{}
 	for _, f := range fields {
@@ -354,7 +348,7 @@ func (g *Generator) goEncodedParams(fields []*models.Field, addPrefix bool) stri
 		}
 
 		// add to vals
-		vals = append(vals, fmt.Sprintf("yoEncode(%s)", s))
+		vals = append(vals, handle(f, s))
 
 		i++
 	}
@@ -396,14 +390,18 @@ func (g *Generator) hasField(fields []*models.Field, name string) bool {
 func (g *Generator) nullcheck(field *models.Field) string {
 	paramName := g.goParam(field.Name)
 
-	switch field.Type {
-	case "spanner.NullInt64",
-		"spanner.NullString",
-		"spanner.NullFloat64",
-		"spanner.NullBool",
-		"spanner.NullTime",
-		"spanner.NullDate":
-		return fmt.Sprintf("%s.IsNull()", paramName)
+	if t, ok := field.Type.(models.PlainFieldType); ok {
+		if t.Pkg == models.GoSpannerPackage {
+			switch t.Type {
+			case "NullInt64",
+				"NullString",
+				"NullFloat64",
+				"NullBool",
+				"NullTime",
+				"NullDate":
+				return fmt.Sprintf("%s.IsNull()", paramName)
+			}
+		}
 	}
 
 	return fmt.Sprintf("yo, ok := %s.(yoIsNull); ok && yo.IsNull()", paramName)
@@ -422,4 +420,39 @@ func (g *Generator) toLower(s string) string {
 // pluralize converts s to plural.
 func (g *Generator) pluralize(s string) string {
 	return g.inflector.Pluralize(s)
+}
+
+// newPackage returns a new models.Package object
+func newPackage(path, name string) models.Package {
+	if name == "" {
+		return models.Package{
+			Path: path,
+			Name: filepath.Base(path),
+		}
+	}
+
+	return models.Package{
+		Path: path,
+		Name: name,
+	}
+}
+
+// presetPackages returns preset Go packages
+func presetPackages() map[string]models.Package {
+	return map[string]models.Package{
+		"big":     models.MathBigPackage,
+		"context": models.ContextPackage,
+		"errors":  models.ErrorsPackage,
+		"fmt":     models.FmtPackage,
+		"strconv": models.StrconvPackage,
+		"strings": models.StringsPackage,
+		"time":    models.TimePackage,
+
+		"apiIterator":               models.APIIteratorPackage,
+		"googleApisGaxGoV2ApiError": models.GoogleApisGaxGoV2ApiErrorPackage,
+		"goSpanner":                 models.GoSpannerPackage,
+		"goCivil":                   models.GoCivilPackage,
+		"gRPCCodes":                 models.GRPCCodesPackage,
+		"gRPCStatus":                models.GRPCStatusPackage,
+	}
 }

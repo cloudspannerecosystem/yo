@@ -19,10 +19,24 @@
 
 package models
 
-import (
-	"fmt"
-	"path/filepath"
-	"strings"
+var (
+	// BuiltInPackage represents a built-in Go package
+	BuiltInPackage = Package{}
+
+	MathBigPackage = Package{Path: "math/big", Name: "big"}
+	ContextPackage = Package{Path: "context", Name: "context"}
+	ErrorsPackage  = Package{Path: "errors", Name: "errors"}
+	FmtPackage     = Package{Path: "fmt", Name: "fmt"}
+	StrconvPackage = Package{Path: "strconv", Name: "strconv"}
+	StringsPackage = Package{Path: "strings", Name: "strings"}
+	TimePackage    = Package{Path: "time", Name: "time"}
+
+	APIIteratorPackage               = Package{Path: "google.golang.org/api/iterator", Name: "iterator"}
+	GoCivilPackage                   = Package{Path: "cloud.google.com/go/civil", Name: "civil"}
+	GoogleApisGaxGoV2ApiErrorPackage = Package{Path: "github.com/googleapis/gax-go/v2/apierror", Name: "apierror"}
+	GoSpannerPackage                 = Package{Path: "cloud.google.com/go/spanner", Name: "spanner"}
+	GRPCCodesPackage                 = Package{Path: "google.golang.org/grpc/codes", Name: "codes"}
+	GRPCStatusPackage                = Package{Path: "google.golang.org/grpc/status", Name: "status"}
 )
 
 // Schema contains information of all Go types.
@@ -42,54 +56,20 @@ type Type struct {
 
 // Field is a field of Go type that represents a Spanner column.
 type Field struct {
-	Name            string   // Go like (CamelCase) field name
-	Type            string   // Go type specified by custom type or same to OriginalType below
-	Package         *Package // Go package of Type
-	OriginalType    string   // Go type corresponding to Spanner type
-	NullValue       string   // NULL value for Type
-	Len             int      // Length for STRING, BYTES. -1 for MAX or other types
-	ColumnName      string   // column_name
-	SpannerDataType string   // data_type
-	IsNotNull       bool     // not_null
-	IsPrimaryKey    bool     // is_primary_key
-	IsGenerated     bool     // is_generated
+	Name            string    // Go like (CamelCase) field name
+	Type            FieldType // Go type of the field
+	Len             int       // Length for STRING, BYTES. -1 for MAX or other types
+	ColumnName      string    // column_name
+	SpannerDataType string    // data_type
+	IsNotNull       bool      // not_null
+	IsPrimaryKey    bool      // is_primary_key
+	IsGenerated     bool      // is_generated
 }
 
 // Package represents a Go package
 type Package struct {
-	// Name is the name of the package.
-	Name string
-	// Path is the path to the package.
-	Path string
-	// Alias is the alias of the package.
-	Alias string
-}
-
-// LocalName returns the local name of the package.
-func (p Package) LocalName() string {
-	if p.Alias != "" {
-		return p.Alias
-	}
-
-	if p.Name != "" {
-		return p.Name
-	}
-
-	// Assume the last element in the path corresponds to its package name
-	return filepath.Base(p.Path)
-}
-
-// Standard returns whether the import is a golang standard package.
-func (p Package) Standard() bool {
-	return !strings.Contains(p.Path, ".")
-}
-
-// String returns a string representation of this package in the form of import line in Go.
-func (p Package) String() string {
-	if p.Alias == "" {
-		return fmt.Sprintf("%q", p.Path)
-	}
-	return fmt.Sprintf("%s %q", p.Alias, p.Path)
+	Name string // Go package name
+	Path string // Go package path
 }
 
 // Index is a template item for an index into a table.

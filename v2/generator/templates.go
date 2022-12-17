@@ -88,9 +88,15 @@ var (
 // basicDataSet is used for template data for yo_db and yo_package.
 type basicDataSet struct {
 	BuildTag        string
-	Package         string
+	Package         models.Package
 	PackageRegistry *PackageRegistry
 	Schema          *models.Schema
+}
+
+// typeDataSet is used for template data for a type module.
+type typeDataSet struct {
+	Type            *models.Type
+	PackageRegistry *PackageRegistry
 }
 
 // templateSet is a set of templates.

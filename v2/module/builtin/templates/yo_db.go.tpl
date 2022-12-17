@@ -1,20 +1,20 @@
 // YODB is the common interface for database operations.
 type YODB interface {
-	ReadRow(ctx context.Context, table string, key spanner.Key, columns []string) (*spanner.Row, error)
-	Read(ctx context.Context, table string, keys spanner.KeySet, columns []string) *spanner.RowIterator
-	ReadUsingIndex(ctx context.Context, table, index string, keys spanner.KeySet, columns []string) (ri *spanner.RowIterator)
-	Query(ctx context.Context, statement spanner.Statement) *spanner.RowIterator
+	ReadRow(ctx {{ .PackageRegistry.Use presetPackages.context "Context" }}, table string, key {{ .PackageRegistry.Use presetPackages.goSpanner "Key" }}, columns []string) (*{{ .PackageRegistry.Use presetPackages.goSpanner "Row" }}, error)
+	Read(ctx {{ .PackageRegistry.Use presetPackages.context "Context" }}, table string, keys {{ .PackageRegistry.Use presetPackages.goSpanner "KeySet" }}, columns []string) *{{ .PackageRegistry.Use presetPackages.goSpanner "RowIterator" }}
+	ReadUsingIndex(ctx {{ .PackageRegistry.Use presetPackages.context "Context" }}, table, index string, keys {{ .PackageRegistry.Use presetPackages.goSpanner "KeySet" }}, columns []string) (ri *{{ .PackageRegistry.Use presetPackages.goSpanner "RowIterator" }})
+	Query(ctx {{ .PackageRegistry.Use presetPackages.context "Context" }}, statement {{ .PackageRegistry.Use presetPackages.goSpanner "Statement" }}) *{{ .PackageRegistry.Use presetPackages.goSpanner "RowIterator" }}
 }
 
 // YOLog provides the log func used by generated queries.
-var YOLog = func(context.Context, string, ...interface{}) { }
+var YOLog = func({{ .PackageRegistry.Use presetPackages.context "Context" }}, string, ...interface{}) { }
 
 func newError(method, table string, err error) error {
-	code := spanner.ErrCode(err)
+	code := {{ .PackageRegistry.Use presetPackages.goSpanner "ErrCode" }}(err)
 	return newErrorWithCode(code, method, table, err)
 }
 
-func newErrorWithCode(code codes.Code, method, table string, err error) error {
+func newErrorWithCode(code {{ .PackageRegistry.Use presetPackages.gRPCCodes "Code" }}, method, table string, err error) error {
 	return &yoError{
 		method: method,
 		table:  table,
@@ -27,11 +27,11 @@ type yoError struct {
 	err    error
 	method string
 	table  string
-	code   codes.Code
+	code   {{ .PackageRegistry.Use presetPackages.gRPCCodes "Code" }}
 }
 
 func (e yoError) Error() string {
-	return fmt.Sprintf("yo error in %s(%s): %v", e.method, e.table, e.err)
+	return {{ .PackageRegistry.Use presetPackages.fmt "Sprintf" }}("yo error in %s(%s): %v", e.method, e.table, e.err)
 }
 
 func (e yoError) Unwrap() error {
@@ -45,22 +45,22 @@ func (e yoError) DBTableName() string {
 // GRPCStatus implements a conversion to a gRPC status using `status.Convert(error)`.
 // If the error is originated from the Spanner library, this returns a gRPC status of
 // the original error. It may contain details of the status such as RetryInfo.
-func (e yoError) GRPCStatus() *status.Status {
-	var ae *apierror.APIError
-	if errors.As(e.err, &ae) {
-		return status.Convert(ae)
+func (e yoError) GRPCStatus() *{{ .PackageRegistry.Use presetPackages.gRPCStatus "Status" }} {
+	var ae *{{ .PackageRegistry.Use presetPackages.googleApisGaxGoV2ApiError "APIError" }}
+	if {{ .PackageRegistry.Use presetPackages.errors "As" }}(e.err, &ae) {
+		return {{ .PackageRegistry.Use presetPackages.gRPCStatus "Convert" }}(ae)
 	}
 
-	return status.New(e.code, e.Error())
+	return {{ .PackageRegistry.Use presetPackages.gRPCStatus "New" }}(e.code, e.Error())
 }
 
-func (e yoError) Timeout() bool { return e.code == codes.DeadlineExceeded }
-func (e yoError) Temporary() bool { return e.code == codes.DeadlineExceeded }
-func (e yoError) NotFound() bool { return e.code == codes.NotFound }
+func (e yoError) Timeout() bool { return e.code == {{ .PackageRegistry.Use presetPackages.gRPCCodes "DeadlineExceeded" }} }
+func (e yoError) Temporary() bool { return e.code == {{ .PackageRegistry.Use presetPackages.gRPCCodes "DeadlineExceeded" }} }
+func (e yoError) NotFound() bool { return e.code == {{ .PackageRegistry.Use presetPackages.gRPCCodes "NotFound" }} }
 
 // yoEncode encodes primitive types that spanner library does not support into spanner types before
-// passing to spanner functions. Suppotted primitive types and user defined types that implement
-// spanner.Encoder interface are handled in encoding phase inside spanner libirary.
+// passing to spanner functions. Supported primitive types and user defined types that implement
+// spanner.Encoder interface are handled in encoding phase inside Spanner library.
 func yoEncode(v interface{}) interface{} {
 	switch vv := v.(type) {
 	case int8:
@@ -83,9 +83,9 @@ func yoEncode(v interface{}) interface{} {
 }
 
 // yoDecode wraps primitive types that spanner library does not support to decode from spanner types
-// by yoPrimitiveDecoder before passing to spanner functions. Supported primitive types and
+// by yoPrimitiveDecoder before passing to Spanner functions. Supported primitive types and
 // user defined types that implement spanner.Decoder interface are handled in decoding phase inside
-// spanner libirary.
+// Spanner library.
 func yoDecode(ptr interface{}) interface{} {
 	switch ptr.(type) {
 	case *int8, *uint8, *int16, *uint16, *int32, *uint32, *uint64:
@@ -102,12 +102,12 @@ type yoPrimitiveDecoder struct {
 func (y *yoPrimitiveDecoder) DecodeSpanner(val interface{}) error {
 	strVal, ok := val.(string)
 	if !ok {
-		return spanner.ToSpannerError(status.Errorf(codes.FailedPrecondition, "failed to decode customField: %T(%v)", val, val))
+		return {{ .PackageRegistry.Use presetPackages.goSpanner "ToSpannerError" }}({{ .PackageRegistry.Use presetPackages.gRPCStatus "Errorf" }}({{ .PackageRegistry.Use presetPackages.gRPCCodes "FailedPrecondition" }}, "failed to decode customField: %T(%v)", val, val))
 	}
 
-	intVal, err := strconv.ParseInt(strVal, 10, 64)
+	intVal, err := {{ .PackageRegistry.Use presetPackages.strconv "ParseInt" }}(strVal, 10, 64)
 	if err != nil {
-		return spanner.ToSpannerError(status.Errorf(codes.FailedPrecondition, "%v wasn't correctly encoded: <%v>", val, err))
+		return {{ .PackageRegistry.Use presetPackages.goSpanner "ToSpannerError" }}({{ .PackageRegistry.Use presetPackages.gRPCStatus "Errorf" }}({{ .PackageRegistry.Use presetPackages.gRPCCodes "FailedPrecondition" }}, "%v wasn't correctly encoded: <%v>", val, err))
 	}
 
 	switch vv := y.val.(type) {
@@ -126,7 +126,7 @@ func (y *yoPrimitiveDecoder) DecodeSpanner(val interface{}) error {
 	case *uint64:
 		*vv = uint64(intVal)
 	default:
-		return status.Errorf(codes.Internal, "unexpected type for yoPrimitiveDecoder: %T", y.val)
+		return {{ .PackageRegistry.Use presetPackages.gRPCStatus "Errorf" }}({{ .PackageRegistry.Use presetPackages.gRPCCodes "Internal" }}, "unexpected type for yoPrimitiveDecoder: %T", y.val)
 	}
 
 	return nil

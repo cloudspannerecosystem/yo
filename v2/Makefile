@@ -44,12 +44,12 @@ testdata-from-ddl: ## generate test models
 
 testdata/default:
 	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
-	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --package models --out test/testmodels/default/
+	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --package-path go.mercari.io/yo/v2/models --out test/testmodels/default/
 
 testdata/legacy_default:
 	rm -rf test/testmodels/legacy_default && mkdir -p test/testmodels/legacy_default
-	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --use-legacy-index-module --package models --out test/testmodels/legacy_default/
+	$(YOBIN) generate $(GENERATE_OPT) --config test/testdata/config.yml --use-legacy-index-module --package-path go.mercari.io/yo/v2/models --out test/testmodels/legacy_default/
 
 testdata/dump_types:
 	rm -rf test/testmodels/dump_types && mkdir -p test/testmodels/dump_types
-	$(YOBIN) generate $(GENERATE_OPT) --suffix '.txt' --disable-format --disable-default-modules --type-module test/testdata/dump_types.go.tpl --package models --out test/testmodels/dump_types/
+	$(YOBIN) generate $(GENERATE_OPT) --suffix '.txt' --disable-format --disable-default-modules --type-module test/testdata/dump_types.go.tpl --package-path go.mercari.io/yo/v2/models --out test/testmodels/dump_types/

@@ -76,8 +76,8 @@ func (e yoError) Temporary() bool { return e.code == codes.DeadlineExceeded }
 func (e yoError) NotFound() bool  { return e.code == codes.NotFound }
 
 // yoEncode encodes primitive types that spanner library does not support into spanner types before
-// passing to spanner functions. Suppotted primitive types and user defined types that implement
-// spanner.Encoder interface are handled in encoding phase inside spanner libirary.
+// passing to spanner functions. Supported primitive types and user defined types that implement
+// spanner.Encoder interface are handled in encoding phase inside Spanner library.
 func yoEncode(v interface{}) interface{} {
 	switch vv := v.(type) {
 	case int8:
@@ -100,9 +100,9 @@ func yoEncode(v interface{}) interface{} {
 }
 
 // yoDecode wraps primitive types that spanner library does not support to decode from spanner types
-// by yoPrimitiveDecoder before passing to spanner functions. Supported primitive types and
+// by yoPrimitiveDecoder before passing to Spanner functions. Supported primitive types and
 // user defined types that implement spanner.Decoder interface are handled in decoding phase inside
-// spanner libirary.
+// Spanner library.
 func yoDecode(ptr interface{}) interface{} {
 	switch ptr.(type) {
 	case *int8, *uint8, *int16, *uint16, *int32, *uint32, *uint64:

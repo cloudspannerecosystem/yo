@@ -32,10 +32,8 @@ var lengthRegexp = regexp.MustCompile(`\(([0-9]+|MAX)\)$`)
 
 // SpanParseType parse a Spanner type into a Go type based on the column
 // definition.
-func parseSpannerType(dt string, nullable bool) (int, string, string, *models.Package) {
-	nilVal := "nil"
+func parseSpannerType(dt string, ct string, nullable bool) (int, models.FieldType) {
 	length := -1
-
 	// separate type and length from dt with length such as STRING(32) or BYTES(256)
 	m := lengthRegexp.FindStringSubmatchIndex(dt)
 	if m != nil {
@@ -54,125 +52,61 @@ func parseSpannerType(dt string, nullable bool) (int, string, string, *models.Pa
 		dt = dt[:m[0]] + dt[m[1]:]
 	}
 
-	var typ string
-	var pkg *models.Package
+	var fieldType models.FieldType
 	switch dt {
 	case "BOOL":
-		nilVal = "false"
-		typ = "bool"
+		fieldType = models.PlainFieldType{Type: "bool", CustomType: ct, NullValue: "false"}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullBool{}"
-			typ = "spanner.NullBool"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullBool", CustomType: ct, NullValue: "NullBool{}"}
 		}
-
 	case "STRING":
-		nilVal = `""`
-		typ = "string"
+		fieldType = models.PlainFieldType{Type: "string", CustomType: ct, NullValue: `""`}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullString{}"
-			typ = "spanner.NullString"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullString", CustomType: ct, NullValue: "NullString{}"}
 		}
-
 	case "INT64":
-		nilVal = "0"
-		typ = "int64"
+		fieldType = models.PlainFieldType{Type: "int64", CustomType: ct, NullValue: `0`}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullInt64{}"
-			typ = "spanner.NullInt64"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullInt64", CustomType: ct, NullValue: "NullInt64{}"}
 		}
-
 	case "FLOAT64":
-		nilVal = "0.0"
-		typ = "float64"
+		fieldType = models.PlainFieldType{Type: "float64", CustomType: ct, NullValue: `0.0`}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullFloat64{}"
-			typ = "spanner.NullFloat64"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullFloat64", CustomType: ct, NullValue: "NullFloat64{}"}
 		}
-
 	case "BYTES":
-		typ = "[]byte"
-
+		fieldType = models.PlainFieldType{Type: "[]byte", CustomType: ct, NullValue: models.GoNil}
 	case "TIMESTAMP":
-		pkg = &models.Package{
-			Path: "time",
-		}
-		nilVal = "time.Time{}"
-		typ = "time.Time"
-
+		fieldType = models.PlainFieldType{Pkg: models.TimePackage, Type: "Time", CustomType: ct, NullValue: `Time{}`}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullTime{}"
-			typ = "spanner.NullTime"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullTime", CustomType: ct, NullValue: "NullTime{}"}
 		}
-
 	case "DATE":
-		pkg = &models.Package{
-			Path: "cloud.google.com/go/civil",
-		}
-		nilVal = "civil.Date{}"
-		typ = "civil.Date"
+		fieldType = models.PlainFieldType{Pkg: models.GoCivilPackage, Type: "Date", CustomType: ct, NullValue: "Date{}"}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullDate{}"
-			typ = "spanner.NullDate"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullDate", CustomType: ct, NullValue: "NullDate{}"}
 		}
-
 	case "NUMERIC":
-		pkg = &models.Package{
-			Name: "big",
-			Path: "math/big",
-		}
-		nilVal = "big.Rat{}"
-		typ = "big.Rat"
+		fieldType = models.PlainFieldType{Pkg: models.MathBigPackage, Type: "Rat", CustomType: ct, NullValue: "Rat{}"}
 		if nullable {
-			pkg = &models.Package{
-				Path: "cloud.google.com/go/spanner",
-			}
-			nilVal = "spanner.NullNumeric{}"
-			typ = "spanner.NullNumeric"
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullNumeric", CustomType: ct, NullValue: "NullNumeric{}"}
 		}
-
 	case "JSON":
-		pkg = &models.Package{
-			Path: "cloud.google.com/go/spanner",
-		}
-		nilVal = `spanner.NullJSON{Valid: true}`
-		typ = "spanner.NullJSON"
+		fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullJSON", CustomType: ct, NullValue: "NullJSON{Valid: true}"}
 		if nullable {
-			nilVal = `spanner.NullJSON{}`
+			fieldType = models.PlainFieldType{Pkg: models.GoSpannerPackage, Type: "NullJSON", CustomType: ct, NullValue: "NullJSON"}
 		}
-
 	default:
 		if strings.HasPrefix(dt, "ARRAY<") {
 			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
-			_, _, eleTyp, elePkg := parseSpannerType(eleDataType, false)
-			pkg = elePkg
-			typ, nilVal = "[]"+eleTyp, "nil"
-			if !nullable {
-				nilVal = typ + "{}"
-			}
+			_, eleTyp := parseSpannerType(eleDataType, "", false)
+			fieldType = models.ArrayFieldType{Nullable: nullable, CustomType: ct, Element: eleTyp}
 			break
 		}
 
-		typ = internal.SnakeToCamel(dt)
-		nilVal = typ + "{}"
+		t := internal.SnakeToCamel(dt)
+		fieldType = models.PlainFieldType{Type: t, CustomType: ct, NullValue: t + "{}"}
 	}
 
-	return length, nilVal, typ, pkg
+	return length, fieldType
 }

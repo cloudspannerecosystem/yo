@@ -23,7 +23,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	pathpkg "path"
 	"path/filepath"
 	"time"
 
@@ -61,9 +60,11 @@ type generateCmdOption struct {
 	// Suffix is the output suffix for filenames.
 	Suffix string
 
-	// Package is the name used to generate package headers. If not specified,
-	// the name of the output directory will be used instead.
-	Package string
+	// PackagePath is the Go package import path for generated Go files.
+	PackagePath string
+
+	// PackageName is the Go package name for generated Go files.
+	PackageName string
 
 	// Tags is the list of build tags to add to generated Go files.
 	Tags string
@@ -71,7 +72,7 @@ type generateCmdOption struct {
 	// DDLFilepath is the filepath of the ddl file.
 	DDLFilepath string
 
-	// FromDDL indicates generating from ddl flie or not.
+	// FromDDL indicates generating from ddl file or not.
 	FromDDL bool
 
 	// IgnoreFields allows the user to specify field names which should not be
@@ -174,7 +175,9 @@ var (
 			headerModule, globalModules, typeModules := decideModules(&generateCmdOpts)
 
 			g := generator.NewGenerator(typeLoader, inflector, generator.GeneratorOption{
-				PackageName:    generateCmdOpts.Package,
+				PackagePath: generateCmdOpts.PackagePath,
+				PackageName: generateCmdOpts.PackageName,
+
 				Tags:           generateCmdOpts.Tags,
 				FilenameSuffix: generateCmdOpts.Suffix,
 				BaseDir:        generateCmdOpts.baseDir,
@@ -198,7 +201,8 @@ func init() {
 	generateCmd.Flags().BoolVar(&generateCmdOpts.FromDDL, "from-ddl", false, "toggle using ddl file")
 	generateCmd.Flags().StringVarP(&generateCmdOpts.Out, "out", "o", "", "output path or file name")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Suffix, "suffix", defaultSuffix, "output file suffix")
-	generateCmd.Flags().StringVarP(&generateCmdOpts.Package, "package", "p", "", "package name used in generated Go code")
+	generateCmd.Flags().StringVarP(&generateCmdOpts.PackagePath, "package-path", "p", "", "Go package import path for the generated Go code")
+	generateCmd.Flags().StringVar(&generateCmdOpts.PackageName, "package-name", "", "Go package name for the generated Go code")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
@@ -256,9 +260,14 @@ func processGenerateCmdOption(opts *generateCmdOption, argv []string) error {
 		path = cwd
 	}
 
-	// determine package name
-	if opts.Package == "" {
-		opts.Package = pathpkg.Base(path)
+	// check package path specification
+	if opts.PackagePath == "" {
+		return fmt.Errorf("package path cannot be empty")
+	}
+
+	if opts.PackageName == "" {
+		// use the last element of the path as a package name
+		opts.PackageName = filepath.Base(opts.PackagePath)
 	}
 
 	opts.baseDir = path

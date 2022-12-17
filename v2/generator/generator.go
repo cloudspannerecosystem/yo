@@ -39,6 +39,7 @@ type Loader interface {
 }
 
 type GeneratorOption struct {
+	PackagePath    string
 	PackageName    string
 	Tags           string
 	FilenameSuffix string
@@ -54,7 +55,7 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 	return &Generator{
 		loader:         loader,
 		inflector:      inflector,
-		packageName:    opt.PackageName,
+		pkg:            models.Package{Path: opt.PackagePath, Name: opt.PackageName},
 		tags:           opt.Tags,
 		filenameSuffix: opt.FilenameSuffix,
 		baseDir:        opt.BaseDir,
@@ -72,7 +73,7 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 type Generator struct {
 	loader            Loader
 	inflector         internal.Inflector
-	packageName       string
+	pkg               models.Package
 	tags              string
 	customTypePackage string
 	filenameSuffix    string
@@ -106,39 +107,35 @@ func (g *Generator) Generate(schema *models.Schema) error {
 	defer os.RemoveAll(g.tempDir)
 
 	// execute type modules
-	for _, mod := range g.typeModules {
-		for _, tbl := range schema.Types {
-			if err := g.ExecuteTemplate(mod, tbl.Name, tbl); err != nil {
-				return err
-			}
+	for _, tbl := range schema.Types {
+		registry := NewPackageRegistry(g.pkg)
+		tds := &typeDataSet{
+			Type:            tbl,
+			PackageRegistry: registry,
+		}
 
-			r, err := NewTypePackageRegistry(tbl)
-			if err != nil {
-				return err
-			}
-
-			ds := &basicDataSet{
-				BuildTag:        g.tags,
-				Package:         g.packageName,
-				PackageRegistry: r,
-				Schema:          schema,
-			}
-
-			if err := g.ExecuteHeaderTemplate(g.headerModule, tbl.Name, ds); err != nil {
+		for _, mod := range g.typeModules {
+			if err := g.ExecuteTemplate(mod, tbl.Name, tds); err != nil {
 				return err
 			}
 		}
-	}
 
-	r, err := NewGlobalPackageRegistry()
-	if err != nil {
-		return err
+		bds := &basicDataSet{
+			BuildTag:        g.tags,
+			Package:         g.pkg,
+			PackageRegistry: registry,
+			Schema:          schema,
+		}
+
+		if err := g.ExecuteHeaderTemplate(g.headerModule, tbl.Name, bds); err != nil {
+			return err
+		}
 	}
 
 	ds := &basicDataSet{
 		BuildTag:        g.tags,
-		Package:         g.packageName,
-		PackageRegistry: r,
+		Package:         g.pkg,
+		PackageRegistry: NewPackageRegistry(g.pkg),
 		Schema:          schema,
 	}
 
