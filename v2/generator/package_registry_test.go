@@ -131,8 +131,23 @@ func TestPackageRegistry_GetImports(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			registry := PackageRegistry{packageNames: tc.packageNames}
 
-			if diff := cmp.Diff(registry.GetImports(), tc.expected); diff != "" {
-				t.Fatalf("%s (-got, +want)\n%s", tc.expected, diff)
+			got := registry.GetImports()
+			if len(got) != len(tc.expected) {
+				t.Fatalf("import size does not match. got :%d, expected: %d", len(got), len(tc.expected))
+			}
+
+			for _, expectedImp := range tc.expected {
+				found := false
+				for _, gotImp := range got {
+					if gotImp == expectedImp {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					t.Fatalf("could not find an expected import statement %s in %v", expectedImp, got)
+				}
 			}
 		})
 	}
