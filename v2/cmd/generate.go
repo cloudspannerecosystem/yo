@@ -112,16 +112,16 @@ var (
 			}
 			return nil
 		},
-		Example: `  # Generate models from ddl under models directory
+		Example: `  # Generate models from DDL under the models directory
   yo generate schema.sql --from-ddl -o models
 
-  # Generate models from ddl under models directory with custom types
+  # Generate models from DDL under the models directory with custom types
   yo generate schema.sql --from-ddl -o models --custom-types-file custom_column_types.yml
 
-  # Generate models under models directory
+  # Generate models under the models directory
   yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 
-  # Generate models under models directory with custom types
+  # Generate models under the models directory with custom types
   yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -195,18 +195,18 @@ var (
 
 func init() {
 	generateCmd.Flags().StringVarP(&generateCmdOpts.ConfigFile, "config", "c", "", "path to Yo config file")
-	generateCmd.Flags().BoolVar(&generateCmdOpts.FromDDL, "from-ddl", false, "toggle using ddl file")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.FromDDL, "from-ddl", false, "toggle using DDL file")
 	generateCmd.Flags().StringVarP(&generateCmdOpts.Out, "out", "o", "", "output path or file name")
 	generateCmd.Flags().StringVar(&generateCmdOpts.Suffix, "suffix", defaultSuffix, "output file suffix")
 	generateCmd.Flags().StringVarP(&generateCmdOpts.Package, "package", "p", "", "package name used in generated Go code")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code types")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code types")
-	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to package header")
+	generateCmd.Flags().StringVar(&generateCmdOpts.Tags, "tags", "", "build tags to add to a package header")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableDefaultModules, "disable-default-modules", false, "disable the default modules for code generation")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.DisableFormat, "disable-format", false, "disable to apply gofmt to generated files")
 	generateCmd.Flags().StringVar(&generateCmdOpts.HeaderModule, "header-module", "", "replace the default header module by user defined module")
-	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
-	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")
+	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add a user defined module to global modules")
+	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add a user defined module to type modules")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.UseLegacyIndexModule, "use-legacy-index-module", false, "use legacy index func name")
 
 	helpFn := generateCmd.HelpFunc()

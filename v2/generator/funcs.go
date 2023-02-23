@@ -90,10 +90,10 @@ func (a *Generator) filterFields(fields []*models.Field, ignoreNames ...interfac
 
 // columnNames creates a list of the column names found in fields.
 //
-// When escaped is true, if the column name is a reserved word, it's escaped with backquotes.
+// When escaped is true, if the column name is a reserved word, it's escaped with back quotes.
 //
 // Used to present a comma separated list of column names, that can be used in
-// a SELECT, or UPDATE, or other SQL clause requiring an list of identifiers
+// a SELECT, or UPDATE, or other SQL clause requiring a list of identifiers
 // (ie, "field_1, field_2, field_3, ...").
 func (a *Generator) columnNames(fields []*models.Field) string {
 	str := ""
@@ -132,8 +132,8 @@ func (a *Generator) columnNamesQuery(fields []*models.Field, sep string) string 
 // against ShortNameTypeMap, and if not found, then the value is
 // calculated and stored in the ShortNameTypeMap for future use.
 //
-// A shortname is the concatentation of the lowercase of the first character in
-// the words comprising the name. For example, "MyCustomName" will have have
+// A shortname is the concatenation of the lowercase of the first character in
+// the words comprising the name. For example, "MyCustomName" will have
 // the shortname of "mcn".
 //
 // If a generated shortname conflicts with a Go reserved name, then the
@@ -368,7 +368,7 @@ func (a *Generator) goEncodedParams(fields []*models.Field, addPrefix bool) stri
 	return str
 }
 
-// hascolumn takes a list of fields and determines if field with the specified
+// hasColumn takes a list of fields and determines if field with the specified
 // column name is in the list.
 func (a *Generator) hasColumn(fields []*models.Field, name string) bool {
 	for _, f := range fields {
@@ -380,7 +380,7 @@ func (a *Generator) hasColumn(fields []*models.Field, name string) bool {
 	return false
 }
 
-// hasfield takes a list of fields and determines if field with the specified
+// hasField takes a list of fields and determines if field with the specified
 // field name is in the list.
 func (a *Generator) hasField(fields []*models.Field, name string) bool {
 	for _, f := range fields {

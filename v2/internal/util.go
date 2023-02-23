@@ -65,10 +65,10 @@ func CamelToScake(s string) string {
 }
 
 // EscapeColumnName will escape a column name if using reserved keyword as column name, returning it in
-// surrounded backquotes.
+// surrounded back quotes.
 func EscapeColumnName(s string) string {
 	if _, ok := reservedKeywords[strings.ToUpper(s)]; ok {
-		// return surrounded s with backquotes if reserved keyword
+		// return surrounded s with back quotes if reserved keyword
 		return fmt.Sprintf("`%s`", s)
 	}
 	// return s if not reserved keyword
