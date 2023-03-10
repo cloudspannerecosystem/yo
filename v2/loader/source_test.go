@@ -105,9 +105,10 @@ INTERLEAVE IN PARENT Parent;
 CREATE INDEX InterleavedKey ON Interleaved(Id, Value), INTERLEAVE IN Parent
 `
 	testSchema6 = `
-ALTER DATABASE source-test SET OPTIONS (version_retention_period = '1h'); 
+ALTER DATABASE source-test SET OPTIONS (version_retention_period = '1h');
+-- comment
 CREATE TABLE Simple (
-  Id INT64 NOT NULL,
+  Id INT64 NOT NULL, --comment
   Value STRING(32) NOT NULL,
 ) PRIMARY KEY(Id);
 CREATE INDEX SimpleIndex ON Simple(Value);
@@ -115,8 +116,18 @@ CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
 `
 	testSchema7 = `
 Invalid Statement;
+-- comment
 CREATE TABLE Simple (
-  Id INT64 NOT NULL,
+  Id INT64 NOT NULL, --comment
+  Value STRING(32) NOT NULL,
+) PRIMARY KEY(Id);
+CREATE INDEX SimpleIndex ON Simple(Value);
+CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
+`
+	testSchema8 = `
+-- comment
+CREATE TABLE Simple (
+  Id, -- invalid CREATE TABLE statement
   Value STRING(32) NOT NULL,
 ) PRIMARY KEY(Id);
 CREATE INDEX SimpleIndex ON Simple(Value);
@@ -134,6 +145,7 @@ func TestSource(t *testing.T) {
 		expectedColumns           map[string][]*SpannerColumn
 		expectedIndex             map[string][]*SpannerIndex
 		expectedIndexColumns      map[string][]*SpannerIndexColumn
+		expectedParseError        bool
 		skipUnsupportedStatements bool
 	}{
 		{
@@ -453,6 +465,12 @@ func TestSource(t *testing.T) {
 			},
 			skipUnsupportedStatements: true,
 		},
+		{
+			name:                      "SkipInvalidStatement with invalid CREATE TABLE ddl",
+			schema:                    testSchema8,
+			expectedParseError:        true,
+			skipUnsupportedStatements: true,
+		},
 	}
 
 	for _, tc := range table {
@@ -469,8 +487,11 @@ func TestSource(t *testing.T) {
 			path := f.Name()
 
 			parserSource, err := NewSchemaParserSource(path, tc.skipUnsupportedStatements)
-			if err != nil {
+			if err != nil && !tc.expectedParseError {
 				t.Fatalf("failed to create schema parser source: %v", err)
+			}
+			if err == nil && tc.expectedParseError {
+				t.Fatal("expected NewSchemaParserSource error. but err is nil")
 			}
 
 			sourceMap := map[string]SchemaSource{

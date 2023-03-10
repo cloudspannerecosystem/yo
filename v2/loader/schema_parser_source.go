@@ -22,34 +22,48 @@ package loader
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"regexp"
 	"sort"
-	"strings"
 
 	"cloud.google.com/go/spanner/spansql"
 )
 
-func NewSchemaParserSource(fpath string, skipUnsupportedStatements bool) (SchemaSource, error) {
+var (
+	supportedDDLRegexs = []*regexp.Regexp{
+		regexp.MustCompile(`(?is)^CREATE\s+TABLE\s.+$`),
+		regexp.MustCompile(`(?is)^CREATE\s+((?:UNIQUE|NULL_FILTERED)\s+)?INDEX\s+(.+)$`),
+		regexp.MustCompile(`(?is)^ALTER\s+TABLE\s.+$`),
+	}
+)
+
+func NewSchemaParserSource(fpath string, ignoreUnsupportedStatements bool) (SchemaSource, error) {
 	b, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
 	}
 
 	tables := make(map[string]table)
-	stmts := strings.Split(string(b), ";")
-	for _, stmt := range stmts {
-		stmt := strings.TrimSpace(stmt)
+	for _, separated := range separateInput(string(b)) {
+		stmt := separated.statement
 		if stmt == "" {
 			continue
+		}
+		if ignoreUnsupportedStatements {
+			supported := false
+			for _, re := range supportedDDLRegexs {
+				if re.MatchString(stmt) {
+					supported = true
+					break
+				}
+			}
+			if !supported {
+				continue
+			}
 		}
 
 		ddlstmt, err := spansql.ParseDDLStmt(stmt)
 		if err != nil {
-			if !skipUnsupportedStatements {
-				return nil, err
-			}
-			log.Printf("skipped unsupported statement. stmt: %s, err: %s", stmt, err)
-			continue
+			return nil, err
 		}
 
 		switch val := ddlstmt.(type) {
@@ -69,11 +83,7 @@ func NewSchemaParserSource(fpath string, skipUnsupportedStatements bool) (Schema
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		default:
-			if !skipUnsupportedStatements {
-				return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
-			}
-			log.Printf("skipped. stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
-			continue
+			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		}
 	}
 
