@@ -98,7 +98,9 @@ type generateCmdOption struct {
 	// UseLegacyIndexModule uses legacy index module instead of the default index module
 	UseLegacyIndexModule bool
 
-	baseDir string
+	// SkipInvalidStatements enable to skip invalid statement when parse statements
+	SkipInvalidStatements bool
+	baseDir               string
 }
 
 var (
@@ -144,7 +146,7 @@ var (
 
 			var source loader.SchemaSource
 			if generateCmdOpts.FromDDL {
-				source, err = loader.NewSchemaParserSource(generateCmdOpts.DDLFilepath)
+				source, err = loader.NewSchemaParserSource(generateCmdOpts.DDLFilepath, generateCmdOpts.SkipInvalidStatements)
 				if err != nil {
 					return fmt.Errorf("failed to create spanner loader: %v", err)
 				}
@@ -208,6 +210,7 @@ func init() {
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.UseLegacyIndexModule, "use-legacy-index-module", false, "use legacy index func name")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.SkipInvalidStatements, "skip-invalid-statements", false, "enable to skip invalid statement when parse statements")
 
 	helpFn := generateCmd.HelpFunc()
 	generateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {

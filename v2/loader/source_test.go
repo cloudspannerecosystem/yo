@@ -104,18 +104,37 @@ CREATE TABLE Interleaved (
 INTERLEAVE IN PARENT Parent;
 CREATE INDEX InterleavedKey ON Interleaved(Id, Value), INTERLEAVE IN Parent
 `
+	testSchema6 = `
+ALTER DATABASE source-test SET OPTIONS (version_retention_period = '1h'); 
+CREATE TABLE Simple (
+  Id INT64 NOT NULL,
+  Value STRING(32) NOT NULL,
+) PRIMARY KEY(Id);
+CREATE INDEX SimpleIndex ON Simple(Value);
+CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
+`
+	testSchema7 = `
+Invalid Statement;
+CREATE TABLE Simple (
+  Id INT64 NOT NULL,
+  Value STRING(32) NOT NULL,
+) PRIMARY KEY(Id);
+CREATE INDEX SimpleIndex ON Simple(Value);
+CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
+`
 )
 
 func TestSource(t *testing.T) {
 	dir := t.TempDir()
 
 	table := []struct {
-		name                 string
-		schema               string
-		expectedTables       []*SpannerTable
-		expectedColumns      map[string][]*SpannerColumn
-		expectedIndex        map[string][]*SpannerIndex
-		expectedIndexColumns map[string][]*SpannerIndexColumn
+		name                  string
+		schema                string
+		expectedTables        []*SpannerTable
+		expectedColumns       map[string][]*SpannerColumn
+		expectedIndex         map[string][]*SpannerIndex
+		expectedIndexColumns  map[string][]*SpannerIndexColumn
+		skipInvalidStatements bool
 	}{
 		{
 			name:   "Simple",
@@ -314,6 +333,126 @@ func TestSource(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "SkipInvalidStatement with spansql supported, yo unsupported ddl",
+			schema: testSchema6,
+			expectedTables: []*SpannerTable{
+				{
+					TableName:       "Simple",
+					ParentTableName: "",
+				},
+			},
+			expectedColumns: map[string][]*SpannerColumn{
+				"Simple": {
+					{
+						FieldOrdinal: 1,
+						ColumnName:   "Id",
+						DataType:     "INT64",
+						NotNull:      true,
+						IsPrimaryKey: true,
+					},
+					{
+						FieldOrdinal: 2,
+						ColumnName:   "Value",
+						DataType:     "STRING(32)",
+						NotNull:      true,
+					},
+				},
+			},
+			expectedIndex: map[string][]*SpannerIndex{
+				"Simple": {
+					{
+						IndexName: "SimpleIndex",
+						IsUnique:  false,
+						IsPrimary: false,
+					},
+					{
+						IndexName: "SimpleIndex2",
+						IsUnique:  true,
+						IsPrimary: false,
+					},
+				},
+			},
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{
+				"Simple/SimpleIndex": {
+					{
+						SeqNo:      1,
+						ColumnName: "Value",
+					},
+				},
+				"Simple/SimpleIndex2": {
+					{
+						SeqNo:      1,
+						ColumnName: "Id",
+					},
+					{
+						SeqNo:      2,
+						ColumnName: "Value",
+					},
+				},
+			},
+			skipInvalidStatements: true,
+		},
+		{
+			name:   "SkipInvalidStatement with invalid ddl",
+			schema: testSchema7,
+			expectedTables: []*SpannerTable{
+				{
+					TableName:       "Simple",
+					ParentTableName: "",
+				},
+			},
+			expectedColumns: map[string][]*SpannerColumn{
+				"Simple": {
+					{
+						FieldOrdinal: 1,
+						ColumnName:   "Id",
+						DataType:     "INT64",
+						NotNull:      true,
+						IsPrimaryKey: true,
+					},
+					{
+						FieldOrdinal: 2,
+						ColumnName:   "Value",
+						DataType:     "STRING(32)",
+						NotNull:      true,
+					},
+				},
+			},
+			expectedIndex: map[string][]*SpannerIndex{
+				"Simple": {
+					{
+						IndexName: "SimpleIndex",
+						IsUnique:  false,
+						IsPrimary: false,
+					},
+					{
+						IndexName: "SimpleIndex2",
+						IsUnique:  true,
+						IsPrimary: false,
+					},
+				},
+			},
+			expectedIndexColumns: map[string][]*SpannerIndexColumn{
+				"Simple/SimpleIndex": {
+					{
+						SeqNo:      1,
+						ColumnName: "Value",
+					},
+				},
+				"Simple/SimpleIndex2": {
+					{
+						SeqNo:      1,
+						ColumnName: "Id",
+					},
+					{
+						SeqNo:      2,
+						ColumnName: "Value",
+					},
+				},
+			},
+			skipInvalidStatements: true,
+		},
 	}
 
 	for _, tc := range table {
@@ -329,29 +468,31 @@ func TestSource(t *testing.T) {
 			_ = f.Close()
 			path := f.Name()
 
-			parserSource, err := NewSchemaParserSource(path)
+			parserSource, err := NewSchemaParserSource(path, tc.skipInvalidStatements)
 			if err != nil {
 				t.Fatalf("failed to create schema parser source: %v", err)
 			}
 
-			if err := testutil.SetupDatabase(ctx, "yo-test", "yo-loader-test", "source-test", tc.schema); err != nil {
-				t.Fatalf("failed to setup database: %v", err)
-			}
-
-			client, err := testutil.TestClient(ctx, "yo-test", "yo-loader-test", "source-test")
-			if err != nil {
-				t.Fatalf("failed to create client: %v", err)
-			}
-			defer client.Close()
-
-			informationSchemaSource, err := NewInformationSchemaSource(client)
-			if err != nil {
-				t.Fatalf("failed to create information schema source: %v", err)
-			}
-
 			sourceMap := map[string]SchemaSource{
-				"Parser":            parserSource,
-				"InformationSchema": informationSchemaSource,
+				"Parser": parserSource,
+			}
+			if !tc.skipInvalidStatements {
+				if err := testutil.SetupDatabase(ctx, "yo-test", "yo-loader-test", "source-test", tc.schema); err != nil {
+					t.Fatalf("failed to setup database: %v", err)
+				}
+
+				client, err := testutil.TestClient(ctx, "yo-test", "yo-loader-test", "source-test")
+				if err != nil {
+					t.Fatalf("failed to create client: %v", err)
+				}
+				defer client.Close()
+
+				informationSchemaSource, err := NewInformationSchemaSource(client)
+				if err != nil {
+					t.Fatalf("failed to create information schema source: %v", err)
+				}
+
+				sourceMap["InformationSchema"] = informationSchemaSource
 			}
 
 			for name, s := range sourceMap {

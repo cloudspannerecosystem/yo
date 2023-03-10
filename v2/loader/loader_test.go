@@ -626,7 +626,7 @@ func setUpTypeLoader(t *testing.T, schema string, opt Option) *TypeLoader {
 	_ = f.Close()
 	path := f.Name()
 
-	source, err := NewSchemaParserSource(path)
+	source, err := NewSchemaParserSource(path, false)
 	if err != nil {
 		t.Fatalf("failed to create schema parser source: %v", err)
 	}

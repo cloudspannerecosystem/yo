@@ -22,13 +22,14 @@ package loader
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"sort"
 	"strings"
 
 	"cloud.google.com/go/spanner/spansql"
 )
 
-func NewSchemaParserSource(fpath string) (SchemaSource, error) {
+func NewSchemaParserSource(fpath string, skipInvalidStatements bool) (SchemaSource, error) {
 	b, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
@@ -44,7 +45,11 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 
 		ddlstmt, err := spansql.ParseDDLStmt(stmt)
 		if err != nil {
-			return nil, err
+			if !skipInvalidStatements {
+				return nil, err
+			}
+			log.Printf("skipped invalid statement. stmt: %s, err: %s", stmt, err)
+			continue
 		}
 
 		switch val := ddlstmt.(type) {
@@ -64,7 +69,11 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		default:
-			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			if !skipInvalidStatements {
+				return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			}
+			log.Printf("skipped. stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			continue
 		}
 	}
 
