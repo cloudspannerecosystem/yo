@@ -487,7 +487,10 @@ func TestSource(t *testing.T) {
 			path := f.Name()
 
 			parserSource, err := NewSchemaParserSource(path, tc.skipUnsupportedStatements)
-			if err != nil && !tc.expectedParseError {
+			if err != nil {
+				if tc.expectedParseError {
+					return
+				}
 				t.Fatalf("failed to create schema parser source: %v", err)
 			}
 			if err == nil && tc.expectedParseError {
