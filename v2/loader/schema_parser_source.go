@@ -48,7 +48,7 @@ func NewSchemaParserSource(fpath string, skipUnsupportedStatements bool) (Schema
 			if !skipUnsupportedStatements {
 				return nil, err
 			}
-			log.Printf("skipped invalid statement. stmt: %s, err: %s", stmt, err)
+			log.Printf("skipped unsupported statement. stmt: %s, err: %s", stmt, err)
 			continue
 		}
 
