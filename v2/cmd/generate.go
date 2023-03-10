@@ -98,9 +98,9 @@ type generateCmdOption struct {
 	// UseLegacyIndexModule uses legacy index module instead of the default index module
 	UseLegacyIndexModule bool
 
-	// SkipUnsupportedStatements enable to skip invalid statement when parse statements
-	SkipUnsupportedStatements bool
-	baseDir                   string
+	// IgnoreUnsupportedStatements enable to skip invalid statement when parse statements
+	IgnoreUnsupportedStatements bool
+	baseDir                     string
 }
 
 var (
@@ -146,7 +146,7 @@ var (
 
 			var source loader.SchemaSource
 			if generateCmdOpts.FromDDL {
-				source, err = loader.NewSchemaParserSource(generateCmdOpts.DDLFilepath, generateCmdOpts.SkipUnsupportedStatements)
+				source, err = loader.NewSchemaParserSource(generateCmdOpts.DDLFilepath, generateCmdOpts.IgnoreUnsupportedStatements)
 				if err != nil {
 					return fmt.Errorf("failed to create spanner loader: %v", err)
 				}
@@ -210,7 +210,7 @@ func init() {
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.UseLegacyIndexModule, "use-legacy-index-module", false, "use legacy index func name")
-	generateCmd.Flags().BoolVar(&generateCmdOpts.SkipUnsupportedStatements, "ignore-unsupported-statements", false, "enable to ignore unsupporteds tatement when parse statements")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.IgnoreUnsupportedStatements, "ignore-unsupported-statements", false, "enable to ignore unsupporteds tatement when parse statements")
 
 	helpFn := generateCmd.HelpFunc()
 	generateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {

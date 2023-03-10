@@ -139,14 +139,14 @@ func TestSource(t *testing.T) {
 	dir := t.TempDir()
 
 	table := []struct {
-		name                      string
-		schema                    string
-		expectedTables            []*SpannerTable
-		expectedColumns           map[string][]*SpannerColumn
-		expectedIndex             map[string][]*SpannerIndex
-		expectedIndexColumns      map[string][]*SpannerIndexColumn
-		expectedParseError        bool
-		skipUnsupportedStatements bool
+		name                        string
+		schema                      string
+		expectedTables              []*SpannerTable
+		expectedColumns             map[string][]*SpannerColumn
+		expectedIndex               map[string][]*SpannerIndex
+		expectedIndexColumns        map[string][]*SpannerIndexColumn
+		expectedParseError          bool
+		ignoreUnsupportedStatements bool
 	}{
 		{
 			name:   "Simple",
@@ -346,7 +346,7 @@ func TestSource(t *testing.T) {
 			},
 		},
 		{
-			name:   "SkipInvalidStatement with spansql supported, yo unsupported ddl",
+			name:   "IgnoreInvalidStatement with spansql supported, yo unsupported ddl",
 			schema: testSchema6,
 			expectedTables: []*SpannerTable{
 				{
@@ -403,10 +403,10 @@ func TestSource(t *testing.T) {
 					},
 				},
 			},
-			skipUnsupportedStatements: true,
+			ignoreUnsupportedStatements: true,
 		},
 		{
-			name:   "SkipInvalidStatement with invalid ddl",
+			name:   "IgnoreInvalidStatement with invalid ddl",
 			schema: testSchema7,
 			expectedTables: []*SpannerTable{
 				{
@@ -463,13 +463,13 @@ func TestSource(t *testing.T) {
 					},
 				},
 			},
-			skipUnsupportedStatements: true,
+			ignoreUnsupportedStatements: true,
 		},
 		{
-			name:                      "SkipInvalidStatement with invalid CREATE TABLE ddl",
-			schema:                    testSchema8,
-			expectedParseError:        true,
-			skipUnsupportedStatements: true,
+			name:                        "IgnoreInvalidStatement with invalid CREATE TABLE ddl",
+			schema:                      testSchema8,
+			expectedParseError:          true,
+			ignoreUnsupportedStatements: true,
 		},
 	}
 
@@ -486,7 +486,7 @@ func TestSource(t *testing.T) {
 			_ = f.Close()
 			path := f.Name()
 
-			parserSource, err := NewSchemaParserSource(path, tc.skipUnsupportedStatements)
+			parserSource, err := NewSchemaParserSource(path, tc.ignoreUnsupportedStatements)
 			if err != nil {
 				if tc.expectedParseError {
 					return
@@ -500,7 +500,7 @@ func TestSource(t *testing.T) {
 			sourceMap := map[string]SchemaSource{
 				"Parser": parserSource,
 			}
-			if !tc.skipUnsupportedStatements {
+			if !tc.ignoreUnsupportedStatements {
 				if err := testutil.SetupDatabase(ctx, "yo-test", "yo-loader-test", "source-test", tc.schema); err != nil {
 					t.Fatalf("failed to setup database: %v", err)
 				}
