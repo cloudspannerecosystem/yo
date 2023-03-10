@@ -29,7 +29,7 @@ import (
 	"cloud.google.com/go/spanner/spansql"
 )
 
-func NewSchemaParserSource(fpath string, skipInvalidStatements bool) (SchemaSource, error) {
+func NewSchemaParserSource(fpath string, skipUnsupportedStatements bool) (SchemaSource, error) {
 	b, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func NewSchemaParserSource(fpath string, skipInvalidStatements bool) (SchemaSour
 
 		ddlstmt, err := spansql.ParseDDLStmt(stmt)
 		if err != nil {
-			if !skipInvalidStatements {
+			if !skipUnsupportedStatements {
 				return nil, err
 			}
 			log.Printf("skipped invalid statement. stmt: %s, err: %s", stmt, err)
@@ -69,7 +69,7 @@ func NewSchemaParserSource(fpath string, skipInvalidStatements bool) (SchemaSour
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		default:
-			if !skipInvalidStatements {
+			if !skipUnsupportedStatements {
 				return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 			}
 			log.Printf("skipped. stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())

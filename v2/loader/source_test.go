@@ -128,13 +128,13 @@ func TestSource(t *testing.T) {
 	dir := t.TempDir()
 
 	table := []struct {
-		name                  string
-		schema                string
-		expectedTables        []*SpannerTable
-		expectedColumns       map[string][]*SpannerColumn
-		expectedIndex         map[string][]*SpannerIndex
-		expectedIndexColumns  map[string][]*SpannerIndexColumn
-		skipInvalidStatements bool
+		name                      string
+		schema                    string
+		expectedTables            []*SpannerTable
+		expectedColumns           map[string][]*SpannerColumn
+		expectedIndex             map[string][]*SpannerIndex
+		expectedIndexColumns      map[string][]*SpannerIndexColumn
+		skipUnsupportedStatements bool
 	}{
 		{
 			name:   "Simple",
@@ -391,7 +391,7 @@ func TestSource(t *testing.T) {
 					},
 				},
 			},
-			skipInvalidStatements: true,
+			skipUnsupportedStatements: true,
 		},
 		{
 			name:   "SkipInvalidStatement with invalid ddl",
@@ -451,7 +451,7 @@ func TestSource(t *testing.T) {
 					},
 				},
 			},
-			skipInvalidStatements: true,
+			skipUnsupportedStatements: true,
 		},
 	}
 
@@ -468,7 +468,7 @@ func TestSource(t *testing.T) {
 			_ = f.Close()
 			path := f.Name()
 
-			parserSource, err := NewSchemaParserSource(path, tc.skipInvalidStatements)
+			parserSource, err := NewSchemaParserSource(path, tc.skipUnsupportedStatements)
 			if err != nil {
 				t.Fatalf("failed to create schema parser source: %v", err)
 			}
@@ -476,7 +476,7 @@ func TestSource(t *testing.T) {
 			sourceMap := map[string]SchemaSource{
 				"Parser": parserSource,
 			}
-			if !tc.skipInvalidStatements {
+			if !tc.skipUnsupportedStatements {
 				if err := testutil.SetupDatabase(ctx, "yo-test", "yo-loader-test", "source-test", tc.schema); err != nil {
 					t.Fatalf("failed to setup database: %v", err)
 				}
