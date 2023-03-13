@@ -133,6 +133,13 @@ CREATE TABLE Simple (
 CREATE INDEX SimpleIndex ON Simple(Value);
 CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
 `
+	testSchema9 = `
+-- failed comment;
+CREATE TABLE Simple (
+  Id INT64 NOT NULL,
+  Value STRING(32) NOT NULL,
+) PRIMARY KEY(Id);
+`
 )
 
 func TestSource(t *testing.T) {
@@ -406,68 +413,20 @@ func TestSource(t *testing.T) {
 			ignoreUnsupportedStatements: true,
 		},
 		{
-			name:   "IgnoreInvalidStatement with invalid ddl",
-			schema: testSchema7,
-			expectedTables: []*SpannerTable{
-				{
-					TableName:       "Simple",
-					ParentTableName: "",
-				},
-			},
-			expectedColumns: map[string][]*SpannerColumn{
-				"Simple": {
-					{
-						FieldOrdinal: 1,
-						ColumnName:   "Id",
-						DataType:     "INT64",
-						NotNull:      true,
-						IsPrimaryKey: true,
-					},
-					{
-						FieldOrdinal: 2,
-						ColumnName:   "Value",
-						DataType:     "STRING(32)",
-						NotNull:      true,
-					},
-				},
-			},
-			expectedIndex: map[string][]*SpannerIndex{
-				"Simple": {
-					{
-						IndexName: "SimpleIndex",
-						IsUnique:  false,
-						IsPrimary: false,
-					},
-					{
-						IndexName: "SimpleIndex2",
-						IsUnique:  true,
-						IsPrimary: false,
-					},
-				},
-			},
-			expectedIndexColumns: map[string][]*SpannerIndexColumn{
-				"Simple/SimpleIndex": {
-					{
-						SeqNo:      1,
-						ColumnName: "Value",
-					},
-				},
-				"Simple/SimpleIndex2": {
-					{
-						SeqNo:      1,
-						ColumnName: "Id",
-					},
-					{
-						SeqNo:      2,
-						ColumnName: "Value",
-					},
-				},
-			},
+			name:                        "IgnoreInvalidStatement with invalid ddl",
+			schema:                      testSchema7,
+			expectedParseError:          true,
 			ignoreUnsupportedStatements: true,
 		},
 		{
 			name:                        "IgnoreInvalidStatement with invalid CREATE TABLE ddl",
 			schema:                      testSchema8,
+			expectedParseError:          true,
+			ignoreUnsupportedStatements: true,
+		},
+		{
+			name:                        "has unsupported comment",
+			schema:                      testSchema9,
 			expectedParseError:          true,
 			ignoreUnsupportedStatements: true,
 		},

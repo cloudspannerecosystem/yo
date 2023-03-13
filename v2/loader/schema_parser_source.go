@@ -22,18 +22,11 @@ package loader
 import (
 	"fmt"
 	"io/ioutil"
-	"regexp"
+	"log"
 	"sort"
+	"strings"
 
 	"cloud.google.com/go/spanner/spansql"
-)
-
-var (
-	supportedDDLRegexs = []*regexp.Regexp{
-		regexp.MustCompile(`(?is)^CREATE\s+TABLE\s.+$`),
-		regexp.MustCompile(`(?is)^CREATE\s+((?:UNIQUE|NULL_FILTERED)\s+)?INDEX\s+(.+)$`),
-		regexp.MustCompile(`(?is)^ALTER\s+TABLE\s.+$`),
-	}
 )
 
 func NewSchemaParserSource(fpath string, ignoreUnsupportedStatements bool) (SchemaSource, error) {
@@ -43,24 +36,12 @@ func NewSchemaParserSource(fpath string, ignoreUnsupportedStatements bool) (Sche
 	}
 
 	tables := make(map[string]table)
-	for _, separated := range separateInput(string(b)) {
-		stmt := separated.statement
+	stmts := strings.Split(string(b), ";")
+	for _, stmt := range stmts {
+		stmt := strings.TrimSpace(stmt)
 		if stmt == "" {
 			continue
 		}
-		if ignoreUnsupportedStatements {
-			supported := false
-			for _, re := range supportedDDLRegexs {
-				if re.MatchString(stmt) {
-					supported = true
-					break
-				}
-			}
-			if !supported {
-				continue
-			}
-		}
-
 		ddlstmt, err := spansql.ParseDDLStmt(stmt)
 		if err != nil {
 			return nil, err
@@ -83,7 +64,12 @@ func NewSchemaParserSource(fpath string, ignoreUnsupportedStatements bool) (Sche
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
 		default:
-			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			msg := fmt.Sprintf("stmt should be CreateTable, CreateIndex or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			if !ignoreUnsupportedStatements {
+				return nil, fmt.Errorf(msg)
+			}
+			log.Printf("ignored by --ignore-unsupported-statements flag. %s", msg)
+			continue
 		}
 	}
 
