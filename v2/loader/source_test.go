@@ -106,7 +106,6 @@ CREATE INDEX InterleavedKey ON Interleaved(Id, Value), INTERLEAVE IN Parent
 `
 	testSchema6 = `
 ALTER DATABASE source-test SET OPTIONS (version_retention_period = '1h');
--- comment
 CREATE TABLE Simple (
   Id INT64 NOT NULL, --comment
   Value STRING(32) NOT NULL,
@@ -134,7 +133,7 @@ CREATE INDEX SimpleIndex ON Simple(Value);
 CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
 `
 	testSchema9 = `
--- failed comment;
+-- this scope comment is not supported
 CREATE TABLE Simple (
   Id INT64 NOT NULL,
   Value STRING(32) NOT NULL,
