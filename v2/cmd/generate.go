@@ -98,7 +98,7 @@ type generateCmdOption struct {
 	// UseLegacyIndexModule uses legacy index module instead of the default index module
 	UseLegacyIndexModule bool
 
-	// IgnoreUnsupportedStatements enable to skip invalid statement when parse statements
+	// IgnoreUnsupportedStatements enable to ignore yo unsupported statement when parse statements
 	IgnoreUnsupportedStatements bool
 	baseDir                     string
 }
@@ -210,7 +210,7 @@ func init() {
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalGlobalModules, "global-module", nil, "add user defined module to global modules")
 	generateCmd.Flags().StringArrayVar(&generateCmdOpts.AdditionalTypeModules, "type-module", nil, "add user defined module to type modules")
 	generateCmd.Flags().BoolVar(&generateCmdOpts.UseLegacyIndexModule, "use-legacy-index-module", false, "use legacy index func name")
-	generateCmd.Flags().BoolVar(&generateCmdOpts.IgnoreUnsupportedStatements, "ignore-unsupported-statements", false, "enable to ignore unsupporteds tatement when parse statements")
+	generateCmd.Flags().BoolVar(&generateCmdOpts.IgnoreUnsupportedStatements, "ignore-unsupported-statements", false, "enable to ignore yo unsupported statement when parse statements")
 
 	helpFn := generateCmd.HelpFunc()
 	generateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
