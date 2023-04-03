@@ -100,6 +100,7 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 	for _, ti := range tableList {
 		ignore := false
 
+		// Ignore tables specified by IgnoreTables argument.
 		for _, ignoreTable := range args.IgnoreTables {
 			if ignoreTable == ti.TableName {
 				// Skip adding this table if user has specified they are not
@@ -109,6 +110,16 @@ func (tl *TypeLoader) LoadTable(args *ArgType) (map[string]*Type, error) {
 				// database (e.g. SchemaMigrations) instead of
 				// via Go code.
 				ignore = true
+			}
+		}
+
+		// If the 'TargetTables' argument is passed, ignore any tables that are not specified in the array.
+		if len(args.TargetTables) != 0 {
+			ignore = true
+			for _, t := range args.TargetTables {
+				if t == ti.TableName {
+					ignore = false
+				}
 			}
 		}
 
