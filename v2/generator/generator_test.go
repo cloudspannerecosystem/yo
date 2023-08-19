@@ -20,7 +20,6 @@
 package generator
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -85,19 +84,19 @@ func TestGenerator(t *testing.T) {
 
 				t.Logf("generated file path: %v\n", path)
 
-				actualContent, err := ioutil.ReadFile(path)
+				actualContent, err := os.ReadFile(path)
 				if err != nil {
 					t.Fatalf("failed to read file: %v", err)
 				}
 
 				expectedFilePath := filepath.Join(tc.expectedFilesDir, info.Name())
-				expectedContent, err := ioutil.ReadFile(expectedFilePath)
+				expectedContent, err := os.ReadFile(expectedFilePath)
 				if os.IsNotExist(err) {
 					err = os.MkdirAll(filepath.Join(tc.expectedFilesDir), 0766)
 					if err != nil {
 						t.Fatal(err)
 					}
-					err = ioutil.WriteFile(expectedFilePath, actualContent, 0444)
+					err = os.WriteFile(expectedFilePath, actualContent, 0444)
 					if err != nil {
 						t.Fatal(err)
 					}

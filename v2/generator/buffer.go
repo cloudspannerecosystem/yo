@@ -22,7 +22,6 @@ package generator
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -49,7 +48,7 @@ type FileBuffer struct {
 }
 
 func (f *FileBuffer) WriteTempFile() error {
-	file, err := ioutil.TempFile(f.TempDir, fmt.Sprintf("%s_*", f.BaseName))
+	file, err := os.CreateTemp(f.TempDir, fmt.Sprintf("%s_*", f.BaseName))
 	if err != nil {
 		return fmt.Errorf("failed to create temp file for %s: %v", f.BaseName, err)
 	}
@@ -109,7 +108,7 @@ func (f *FileBuffer) Postprocess(disableFormat bool) error {
 
 		// overwrite the tempfile by gofmt result
 		// since abs file exists, set perm to 0
-		if err := ioutil.WriteFile(f.TempFilePath, formatted, 0); err != nil {
+		if err := os.WriteFile(f.TempFilePath, formatted, 0); err != nil {
 			return fmt.Errorf("failed to formatted file for %s: %v", f.BaseName, err)
 		}
 	}

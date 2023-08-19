@@ -22,7 +22,7 @@ package loader
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -321,7 +321,7 @@ func TestSource(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			f, err := ioutil.TempFile(dir, "")
+			f, err := os.CreateTemp(dir, "")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}

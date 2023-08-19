@@ -22,7 +22,7 @@ package testutil
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -238,7 +238,7 @@ func ApplyTestSchema(ctx context.Context, adminClient *dbadmin.DatabaseAdminClie
 	}
 	defer file.Close()
 
-	b, err := ioutil.ReadAll(file)
+	b, err := io.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("read error: %v", err)
 	}
