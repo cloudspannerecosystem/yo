@@ -62,8 +62,6 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 				continue
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddConstraint, but got '%s'", ddl.SQL())
-		default:
-			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddConstraint, but got '%s'", ddl.SQL())
 		}
 	}
 
