@@ -5,7 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go v0.105.0
 	cloud.google.com/go/spanner v1.40.0
-	github.com/cloudspannerecosystem/memefish v0.0.0-20230403015737-24c8a514b9e7
+	github.com/cloudspannerecosystem/memefish v0.0.0-20231022025528-9cf0b5bd2d80
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/google/go-cmp v0.5.9
 	github.com/googleapis/gax-go/v2 v2.7.0

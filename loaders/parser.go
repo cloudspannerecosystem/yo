@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/cloudspannerecosystem/memefish/pkg/ast"
-	"github.com/cloudspannerecosystem/memefish/pkg/parser"
-	"github.com/cloudspannerecosystem/memefish/pkg/token"
+	parser "github.com/cloudspannerecosystem/memefish"
+	"github.com/cloudspannerecosystem/memefish/ast"
+	"github.com/cloudspannerecosystem/memefish/token"
 	"go.mercari.io/yo/models"
 )
 
@@ -58,7 +58,7 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 			v.createIndexes = append(v.createIndexes, val)
 			tables[val.TableName.Name] = v
 		case *ast.AlterTable:
-			if _, ok := val.TableAlternation.(*ast.AddTableConstraint); ok {
+			if _, ok := val.TableAlteration.(*ast.AddTableConstraint); ok {
 				continue
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddConstraint, but got '%s'", ddl.SQL())
