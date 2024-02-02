@@ -138,8 +138,8 @@ func (fi *FereignItem) UpdateColumns(ctx context.Context, cols ...string) (*span
 
 // FindFereignItem gets a FereignItem by primary key
 func FindFereignItem(ctx context.Context, db YODB, id int64) (*FereignItem, error) {
-	key := spanner.Key{yoEncode(id)}
-	row, err := db.ReadRow(ctx, "FereignItems", key, FereignItemColumns())
+	key_ := spanner.Key{yoEncode(id)}
+	row, err := db.ReadRow(ctx, "FereignItems", key_, FereignItemColumns())
 	if err != nil {
 		return nil, newError("FindFereignItem", "FereignItems", err)
 	}
