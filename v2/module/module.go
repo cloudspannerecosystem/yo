@@ -21,7 +21,7 @@ package module
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 // ModuleType represents a module type.
@@ -62,7 +62,7 @@ func (m *module) Type() ModuleType {
 }
 
 func (m *module) Load() ([]byte, error) {
-	b, err := ioutil.ReadFile(m.path)
+	b, err := os.ReadFile(m.path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %s: %w", m.path, err)
 	}

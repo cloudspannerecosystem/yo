@@ -22,7 +22,6 @@ package generator
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -96,7 +95,7 @@ func (g *Generator) newTemplateSet() *templateSet {
 }
 
 func (g *Generator) Generate(schema *models.Schema) error {
-	tempDir, err := ioutil.TempDir("", "yo_")
+	tempDir, err := os.MkdirTemp("", "yo_")
 	if err != nil {
 		return fmt.Errorf("failed to create temp dir: %v", err)
 	}
