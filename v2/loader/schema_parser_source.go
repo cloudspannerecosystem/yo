@@ -21,8 +21,8 @@ package loader
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"sort"
 	"strings"
 
@@ -30,7 +30,7 @@ import (
 )
 
 func NewSchemaParserSource(fpath string, ignoreUnsupportedStatements bool) (SchemaSource, error) {
-	b, err := ioutil.ReadFile(fpath)
+	b, err := os.ReadFile(fpath)
 	if err != nil {
 		return nil, err
 	}

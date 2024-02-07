@@ -19,7 +19,7 @@
 
 package internal
 
-// This list was created with reference to https://cloud.google.com/spanner/docs/lexical#reserved-keywords
+// This list was created with reference to https://cloud.google.com/spanner/docs/reference/standard-sql/lexical#reserved_keywords
 var reservedKeywords = map[string]struct{}{
 	"ALL":                  struct{}{},
 	"AND":                  struct{}{},

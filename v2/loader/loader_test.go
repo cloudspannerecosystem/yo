@@ -21,7 +21,7 @@ package loader
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -618,7 +618,7 @@ func setUpTypeLoader(t *testing.T, schema string, opt Option) *TypeLoader {
 
 	dir := t.TempDir()
 
-	f, err := ioutil.TempFile(dir, "")
+	f, err := os.CreateTemp(dir, "")
 	if err != nil {
 		t.Fatalf("failed to create temp file: %v", err)
 	}
