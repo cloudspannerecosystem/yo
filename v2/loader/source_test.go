@@ -352,7 +352,7 @@ func TestSource(t *testing.T) {
 			},
 		},
 		{
-			name:   "IgnoreInvalidStatement with spansql supported, yo unsupported ddl",
+			name:   "IgnoreUnsupportedStatements with spansql supported, yo unsupported ddl",
 			schema: testSchema6,
 			expectedTables: []*SpannerTable{
 				{
@@ -412,13 +412,13 @@ func TestSource(t *testing.T) {
 			ignoreUnsupportedStatements: true,
 		},
 		{
-			name:                        "IgnoreInvalidStatement with invalid ddl",
+			name:                        "IgnoreUnsupportedStatements with invalid ddl",
 			schema:                      testSchema7,
 			expectedParseError:          true,
 			ignoreUnsupportedStatements: true,
 		},
 		{
-			name:                        "IgnoreInvalidStatement with invalid CREATE TABLE ddl",
+			name:                        "IgnoreUnsupportedStatements with invalid CREATE TABLE ddl",
 			schema:                      testSchema8,
 			expectedParseError:          true,
 			ignoreUnsupportedStatements: true,
