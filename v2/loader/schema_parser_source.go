@@ -21,7 +21,6 @@ package loader
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -60,7 +59,7 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 			v.createIndexes = append(v.createIndexes, val)
 			tables[tableName] = v
 		case *spansql.CreateChangeStream:
-			log.Printf("skipped. CreateChangeStream isn't supported yet. got ' %s'", ddlstmt.SQL())
+			// CreateChangeStream isn't supported yet
 			continue
 		case *spansql.AlterTable:
 			if isAlterTableAddFK(val) {
