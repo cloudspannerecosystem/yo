@@ -58,15 +58,10 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 			v := tables[tableName]
 			v.createIndexes = append(v.createIndexes, val)
 			tables[tableName] = v
-		case *spansql.CreateChangeStream:
-			// CreateChangeStream isn't supported yet
-			continue
 		case *spansql.AlterTable:
 			if isAlterTableAddFK(val) {
 				continue
 			}
-			return nil, fmt.Errorf("unknown statement is specified: %s", ddlstmt.SQL())
-		default:
 			return nil, fmt.Errorf("unknown statement is specified: %s", ddlstmt.SQL())
 		}
 	}
