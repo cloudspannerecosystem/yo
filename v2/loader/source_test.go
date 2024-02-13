@@ -38,6 +38,8 @@ CREATE TABLE Simple (
 ) PRIMARY KEY(Id);
 CREATE INDEX SimpleIndex ON Simple(Value);
 CREATE UNIQUE INDEX SimpleIndex2 ON Simple(Id, Value);
+CREATE CHANGE STREAM EverythingStream
+  FOR ALL;
 `
 	testSchema2 = `
 CREATE TABLE MaxLengths (
