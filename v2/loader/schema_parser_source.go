@@ -65,9 +65,9 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 			if isAlterTableAddFK(val) {
 				continue
 			}
-			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex, CreateChangeStream or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			return nil, fmt.Errorf("unknown statement is specified: %s", ddlstmt.SQL())
 		default:
-			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex, CreateChangeStream or AlterTableAddForeignKey, but got '%s'", ddlstmt.SQL())
+			return nil, fmt.Errorf("unknown statement is specified: %s", ddlstmt.SQL())
 		}
 	}
 
