@@ -51,6 +51,10 @@ type ArgType struct {
 	// CustomTypePackage is the Go package name to use for unknown types.
 	CustomTypePackage string
 
+	// TargetTables allows the user to specify table names which should be
+	// handled by yo in the generated code.
+	TargetTables []string
+
 	// IgnoreFields allows the user to specify field names which should not be
 	// handled by yo in the generated code.
 	IgnoreFields []string
