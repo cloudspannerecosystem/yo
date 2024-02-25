@@ -131,8 +131,8 @@ func (i *Inflection) UpdateColumns(ctx context.Context, cols ...string) (*spanne
 
 // FindInflection gets a Inflection by primary key
 func FindInflection(ctx context.Context, db YODB, x string) (*Inflection, error) {
-	key_ := spanner.Key{yoEncode(x)}
-	row, err := db.ReadRow(ctx, "Inflectionzz", key_, InflectionColumns())
+	_key := spanner.Key{yoEncode(x)}
+	row, err := db.ReadRow(ctx, "Inflectionzz", _key, InflectionColumns())
 	if err != nil {
 		return nil, newError("FindInflection", "Inflectionzz", err)
 	}

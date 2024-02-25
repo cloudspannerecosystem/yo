@@ -139,8 +139,8 @@ func (sc *SnakeCase) UpdateColumns(ctx context.Context, cols ...string) (*spanne
 
 // FindSnakeCase gets a SnakeCase by primary key
 func FindSnakeCase(ctx context.Context, db YODB, id int64) (*SnakeCase, error) {
-	key_ := spanner.Key{yoEncode(id)}
-	row, err := db.ReadRow(ctx, "snake_cases", key_, SnakeCaseColumns())
+	_key := spanner.Key{yoEncode(id)}
+	row, err := db.ReadRow(ctx, "snake_cases", _key, SnakeCaseColumns())
 	if err != nil {
 		return nil, newError("FindSnakeCase", "snake_cases", err)
 	}
