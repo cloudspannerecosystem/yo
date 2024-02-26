@@ -144,8 +144,8 @@ func (gc *GeneratedColumn) UpdateColumns(ctx context.Context, cols ...string) (*
 
 // FindGeneratedColumn gets a GeneratedColumn by primary key
 func FindGeneratedColumn(ctx context.Context, db YODB, id int64) (*GeneratedColumn, error) {
-	key := spanner.Key{yoEncode(id)}
-	row, err := db.ReadRow(ctx, "GeneratedColumns", key, GeneratedColumnColumns())
+	_key := spanner.Key{yoEncode(id)}
+	row, err := db.ReadRow(ctx, "GeneratedColumns", _key, GeneratedColumnColumns())
 	if err != nil {
 		return nil, newError("FindGeneratedColumn", "GeneratedColumns", err)
 	}

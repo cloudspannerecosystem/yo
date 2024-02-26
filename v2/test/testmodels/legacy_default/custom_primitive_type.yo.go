@@ -348,8 +348,8 @@ func (cpt *CustomPrimitiveType) UpdateColumns(ctx context.Context, cols ...strin
 
 // FindCustomPrimitiveType gets a CustomPrimitiveType by primary key
 func FindCustomPrimitiveType(ctx context.Context, db YODB, pKey string) (*CustomPrimitiveType, error) {
-	key := spanner.Key{yoEncode(pKey)}
-	row, err := db.ReadRow(ctx, "CustomPrimitiveTypes", key, CustomPrimitiveTypeColumns())
+	_key := spanner.Key{yoEncode(pKey)}
+	row, err := db.ReadRow(ctx, "CustomPrimitiveTypes", _key, CustomPrimitiveTypeColumns())
 	if err != nil {
 		return nil, newError("FindCustomPrimitiveType", "CustomPrimitiveTypes", err)
 	}
