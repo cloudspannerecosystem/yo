@@ -1,6 +1,6 @@
 module go.mercari.io/yo/v2
 
-go 1.18
+go 1.21
 
 require (
 	cloud.google.com/go v0.110.7
