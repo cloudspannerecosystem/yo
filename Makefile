@@ -6,8 +6,6 @@ export SPANNER_DATABASE_NAME ?= yo-test
 
 YOBIN ?= yo
 
-export GO111MODULE=on
-
 .PHONY: help
 help: ## show this help message.
 	@grep -hE '^\S+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
