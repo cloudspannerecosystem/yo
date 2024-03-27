@@ -30,6 +30,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"golang.org/x/tools/imports"
 
@@ -45,30 +46,32 @@ type Loader interface {
 }
 
 type GeneratorOption struct {
-	PackageName       string
-	Tags              string
-	TemplatePath      string
-	CustomTypePackage string
-	FilenameSuffix    string
-	SingleFile        bool
-	Filename          string
-	Path              string
+	PackageName             string
+	Tags                    string
+	TemplatePath            string
+	CustomTypePackage       string
+	FilenameSuffix          string
+	SingleFile              bool
+	Filename                string
+	FilenameWithUnderscores bool
+	Path                    string
 }
 
 func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOption) *Generator {
 	return &Generator{
-		loader:             loader,
-		inflector:          inflector,
-		templatePath:       opt.TemplatePath,
-		nameConflictSuffix: "z",
-		packageName:        opt.PackageName,
-		tags:               opt.Tags,
-		customTypePackage:  opt.CustomTypePackage,
-		filenameSuffix:     opt.FilenameSuffix,
-		singleFile:         opt.SingleFile,
-		filename:           opt.Filename,
-		path:               opt.Path,
-		files:              make(map[string]*os.File),
+		loader:                  loader,
+		inflector:               inflector,
+		templatePath:            opt.TemplatePath,
+		nameConflictSuffix:      "z",
+		packageName:             opt.PackageName,
+		tags:                    opt.Tags,
+		customTypePackage:       opt.CustomTypePackage,
+		filenameSuffix:          opt.FilenameSuffix,
+		singleFile:              opt.SingleFile,
+		filename:                opt.Filename,
+		FilenameWithUnderscores: opt.FilenameWithUnderscores,
+		path:                    opt.Path,
+		files:                   make(map[string]*os.File),
 	}
 }
 
@@ -83,13 +86,14 @@ type Generator struct {
 	// generated is the generated templates after a run.
 	generated []TBuf
 
-	packageName       string
-	tags              string
-	customTypePackage string
-	filenameSuffix    string
-	singleFile        bool
-	filename          string
-	path              string
+	packageName             string
+	tags                    string
+	customTypePackage       string
+	filenameSuffix          string
+	singleFile              bool
+	filename                string
+	FilenameWithUnderscores bool
+	path                    string
 
 	nameConflictSuffix string
 }
@@ -152,9 +156,14 @@ func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[strin
 // the os.OpenFile with the correct parameters depending on the state of args.
 func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	// determine filename
-	var filename = strings.ToLower(t.Name) + g.filenameSuffix
-	if g.singleFile {
+	var filename string
+	switch {
+	case g.singleFile:
 		filename = g.filename
+	case g.FilenameWithUnderscores:
+		filename = toSnakeCase(t.Name) + g.filenameSuffix
+	default:
+		filename = strings.ToLower(t.Name) + g.filenameSuffix
 	}
 	filename = path.Join(g.path, filename)
 
@@ -174,7 +183,7 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	}
 
 	// open file
-	f, err = os.OpenFile(filename, mode, 0666)
+	f, err = os.OpenFile(filename, mode, 0o666)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +202,23 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	g.files[filename] = f
 
 	return f, nil
+}
+
+func toSnakeCase(s string) string {
+	b := &strings.Builder{}
+	for i, r := range s {
+		if i == 0 {
+			b.WriteRune(unicode.ToLower(r))
+			continue
+		}
+		if unicode.IsUpper(r) {
+			b.WriteRune('_')
+			b.WriteRune(unicode.ToLower(r))
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // importsOptions is the same as x/tools/cmd/goimports options except Fragment.
