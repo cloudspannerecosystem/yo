@@ -261,7 +261,7 @@ func TestDefaultCompositePrimaryKey(t *testing.T) {
 	})
 
 	t.Run("ReadByError3", func(t *testing.T) {
-		got, err := models.ReadCompositePrimaryKeysByYZError(ctx, client.Single(), spanner.Key{cpk.Error})
+		got, err := models.ReadCompositePrimaryKeysByZYError(ctx, client.Single(), spanner.Key{cpk.Error})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
