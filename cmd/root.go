@@ -89,14 +89,15 @@ var (
 			}
 
 			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
-				PackageName:       rootOpts.Package,
-				Tags:              rootOpts.Tags,
-				TemplatePath:      rootOpts.TemplatePath,
-				CustomTypePackage: rootOpts.CustomTypePackage,
-				FilenameSuffix:    rootOpts.Suffix,
-				SingleFile:        rootOpts.SingleFile,
-				Filename:          rootOpts.Filename,
-				Path:              rootOpts.Path,
+				PackageName:             rootOpts.Package,
+				Tags:                    rootOpts.Tags,
+				TemplatePath:            rootOpts.TemplatePath,
+				CustomTypePackage:       rootOpts.CustomTypePackage,
+				FilenameSuffix:          rootOpts.Suffix,
+				SingleFile:              rootOpts.SingleFile,
+				Filename:                rootOpts.Filename,
+				FilenameWithUnderscores: rootOpts.FilenameWithUnderscores,
+				Path:                    rootOpts.Path,
 			})
 			if err := g.Generate(tableMap, ixMap); err != nil {
 				return fmt.Errorf("error: %v", err)

@@ -69,7 +69,7 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 		filenameSuffix:          opt.FilenameSuffix,
 		singleFile:              opt.SingleFile,
 		filename:                opt.Filename,
-		FilenameWithUnderscores: opt.FilenameWithUnderscores,
+		filenameWithUnderscores: opt.FilenameWithUnderscores,
 		path:                    opt.Path,
 		files:                   make(map[string]*os.File),
 	}
@@ -92,7 +92,7 @@ type Generator struct {
 	filenameSuffix          string
 	singleFile              bool
 	filename                string
-	FilenameWithUnderscores bool
+	filenameWithUnderscores bool
 	path                    string
 
 	nameConflictSuffix string
@@ -160,7 +160,7 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	switch {
 	case g.singleFile:
 		filename = g.filename
-	case g.FilenameWithUnderscores:
+	case g.filenameWithUnderscores:
 		filename = toSnakeCase(t.Name) + g.filenameSuffix
 	default:
 		filename = strings.ToLower(t.Name) + g.filenameSuffix

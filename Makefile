@@ -43,11 +43,15 @@ test: ## run test
 	go test -race -v ./test
 
 testdata: ## generate test models
-	$(MAKE) -j4 testdata/default testdata/customtypes testdata/single
+	$(MAKE) -j4 testdata/default testdata/with-underscores testdata/customtypes testdata/single
 
 testdata/default:
 	rm -rf test/testmodels/default && mkdir -p test/testmodels/default
 	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --out test/testmodels/default/
+
+testdata/with-underscores:
+	rm -rf test/testmodels/underscores && mkdir -p test/testmodels/underscores
+	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --with-underscores --out test/testmodels/underscores/
 
 testdata/single:
 	rm -rf test/testmodels/single && mkdir -p test/testmodels/single
