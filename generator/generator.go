@@ -30,8 +30,8 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	"unicode"
 
+	"github.com/kenshaw/snaker"
 	"golang.org/x/tools/imports"
 
 	"go.mercari.io/yo/internal"
@@ -161,7 +161,7 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	case g.singleFile:
 		filename = g.filename
 	case g.filenameWithUnderscores:
-		filename = toSnakeCase(t.Name) + g.filenameSuffix
+		filename = snaker.CamelToSnake(t.Name) + g.filenameSuffix
 	default:
 		filename = strings.ToLower(t.Name) + g.filenameSuffix
 	}
@@ -202,23 +202,6 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	g.files[filename] = f
 
 	return f, nil
-}
-
-func toSnakeCase(s string) string {
-	b := &strings.Builder{}
-	for i, r := range s {
-		if i == 0 {
-			b.WriteRune(unicode.ToLower(r))
-			continue
-		}
-		if unicode.IsUpper(r) {
-			b.WriteRune('_')
-			b.WriteRune(unicode.ToLower(r))
-			continue
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }
 
 // importsOptions is the same as x/tools/cmd/goimports options except Fragment.
