@@ -70,14 +70,14 @@ type ArgType struct {
 	// Tags is the list of build tags to add to generated Go files.
 	Tags string
 
-	Path                    string
-	Filename                string
-	FilenameWithUnderscores bool
+	Path               string
+	Filename           string
+	FilenameUnderscore bool
 
 	// DDLFilepath is the filepath of the ddl file.
 	DDLFilepath string
 
-	// FromDDL indicates generating from ddl flie or not.
+	// FromDDL indicates generating from ddl file or not.
 	FromDDL bool
 
 	// InflectionRuleFile is custom inflection rule file.

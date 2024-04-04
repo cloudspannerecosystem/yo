@@ -46,32 +46,32 @@ type Loader interface {
 }
 
 type GeneratorOption struct {
-	PackageName             string
-	Tags                    string
-	TemplatePath            string
-	CustomTypePackage       string
-	FilenameSuffix          string
-	SingleFile              bool
-	Filename                string
-	FilenameWithUnderscores bool
-	Path                    string
+	PackageName        string
+	Tags               string
+	TemplatePath       string
+	CustomTypePackage  string
+	FilenameSuffix     string
+	SingleFile         bool
+	Filename           string
+	FilenameUnderscore bool
+	Path               string
 }
 
 func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOption) *Generator {
 	return &Generator{
-		loader:                  loader,
-		inflector:               inflector,
-		templatePath:            opt.TemplatePath,
-		nameConflictSuffix:      "z",
-		packageName:             opt.PackageName,
-		tags:                    opt.Tags,
-		customTypePackage:       opt.CustomTypePackage,
-		filenameSuffix:          opt.FilenameSuffix,
-		singleFile:              opt.SingleFile,
-		filename:                opt.Filename,
-		filenameWithUnderscores: opt.FilenameWithUnderscores,
-		path:                    opt.Path,
-		files:                   make(map[string]*os.File),
+		loader:             loader,
+		inflector:          inflector,
+		templatePath:       opt.TemplatePath,
+		nameConflictSuffix: "z",
+		packageName:        opt.PackageName,
+		tags:               opt.Tags,
+		customTypePackage:  opt.CustomTypePackage,
+		filenameSuffix:     opt.FilenameSuffix,
+		singleFile:         opt.SingleFile,
+		filename:           opt.Filename,
+		filenameUnderscore: opt.FilenameUnderscore,
+		path:               opt.Path,
+		files:              make(map[string]*os.File),
 	}
 }
 
@@ -86,14 +86,14 @@ type Generator struct {
 	// generated is the generated templates after a run.
 	generated []TBuf
 
-	packageName             string
-	tags                    string
-	customTypePackage       string
-	filenameSuffix          string
-	singleFile              bool
-	filename                string
-	filenameWithUnderscores bool
-	path                    string
+	packageName        string
+	tags               string
+	customTypePackage  string
+	filenameSuffix     string
+	singleFile         bool
+	filename           string
+	filenameUnderscore bool
+	path               string
 
 	nameConflictSuffix string
 }
@@ -160,7 +160,7 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	switch {
 	case g.singleFile:
 		filename = g.filename
-	case g.filenameWithUnderscores:
+	case g.filenameUnderscore:
 		filename = snaker.CamelToSnake(t.Name) + g.filenameSuffix
 	default:
 		filename = strings.ToLower(t.Name) + g.filenameSuffix

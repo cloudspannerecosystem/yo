@@ -97,7 +97,7 @@ var (
 				FilenameSuffix:          generateOpts.Suffix,
 				SingleFile:              generateOpts.SingleFile,
 				Filename:                generateOpts.Filename,
-				FilenameWithUnderscores: generateOpts.FilenameWithUnderscores,
+				FilenameUnderscore: generateOpts.FilenameUnderscore,
 				Path:                    generateOpts.Path,
 			})
 			if err := g.Generate(tableMap, ixMap); err != nil {
