@@ -50,8 +50,8 @@ testdata/default:
 	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --out test/testmodels/default/
 
 testdata/underscore:
-	rm -rf test/testmodels/underscores && mkdir -p test/testmodels/underscores
-	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --underscore --out test/testmodels/underscores/
+	rm -rf test/testmodels/underscore && mkdir -p test/testmodels/underscore
+	$(YOBIN) $(SPANNER_PROJECT_NAME) $(SPANNER_INSTANCE_NAME) $(SPANNER_DATABASE_NAME) --package models --underscore --out test/testmodels/underscore/
 
 testdata/single:
 	rm -rf test/testmodels/single && mkdir -p test/testmodels/single
