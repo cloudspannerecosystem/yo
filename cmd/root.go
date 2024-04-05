@@ -89,14 +89,15 @@ var (
 			}
 
 			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
-				PackageName:       rootOpts.Package,
-				Tags:              rootOpts.Tags,
-				TemplatePath:      rootOpts.TemplatePath,
-				CustomTypePackage: rootOpts.CustomTypePackage,
-				FilenameSuffix:    rootOpts.Suffix,
-				SingleFile:        rootOpts.SingleFile,
-				Filename:          rootOpts.Filename,
-				Path:              rootOpts.Path,
+				PackageName:        rootOpts.Package,
+				Tags:               rootOpts.Tags,
+				TemplatePath:       rootOpts.TemplatePath,
+				CustomTypePackage:  rootOpts.CustomTypePackage,
+				FilenameSuffix:     rootOpts.Suffix,
+				SingleFile:         rootOpts.SingleFile,
+				Filename:           rootOpts.Filename,
+				FilenameUnderscore: rootOpts.FilenameUnderscore,
+				Path:               rootOpts.Path,
 			})
 			if err := g.Generate(tableMap, ixMap); err != nil {
 				return fmt.Errorf("error: %v", err)
@@ -123,6 +124,7 @@ func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
 	cmd.Flags().StringVarP(&opts.Out, "out", "o", "", "output path or file name")
 	cmd.Flags().StringVar(&opts.Suffix, "suffix", defaultSuffix, "output file suffix")
 	cmd.Flags().BoolVar(&opts.SingleFile, "single-file", false, "toggle single file output")
+	cmd.Flags().BoolVar(&opts.FilenameUnderscore, "underscore", false, "toggle underscores in file names")
 	cmd.Flags().StringVarP(&opts.Package, "package", "p", "", "package name used in generated Go code")
 	cmd.Flags().StringVar(&opts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
 	cmd.Flags().StringArrayVar(&opts.TargetTables, "target-tables", nil, "tables to include from the generated Go code")

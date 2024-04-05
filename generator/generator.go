@@ -31,6 +31,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/kenshaw/snaker"
 	"golang.org/x/tools/imports"
 
 	"go.mercari.io/yo/internal"
@@ -45,14 +46,15 @@ type Loader interface {
 }
 
 type GeneratorOption struct {
-	PackageName       string
-	Tags              string
-	TemplatePath      string
-	CustomTypePackage string
-	FilenameSuffix    string
-	SingleFile        bool
-	Filename          string
-	Path              string
+	PackageName        string
+	Tags               string
+	TemplatePath       string
+	CustomTypePackage  string
+	FilenameSuffix     string
+	SingleFile         bool
+	Filename           string
+	FilenameUnderscore bool
+	Path               string
 }
 
 func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOption) *Generator {
@@ -67,6 +69,7 @@ func NewGenerator(loader Loader, inflector internal.Inflector, opt GeneratorOpti
 		filenameSuffix:     opt.FilenameSuffix,
 		singleFile:         opt.SingleFile,
 		filename:           opt.Filename,
+		filenameUnderscore: opt.FilenameUnderscore,
 		path:               opt.Path,
 		files:              make(map[string]*os.File),
 	}
@@ -83,13 +86,14 @@ type Generator struct {
 	// generated is the generated templates after a run.
 	generated []TBuf
 
-	packageName       string
-	tags              string
-	customTypePackage string
-	filenameSuffix    string
-	singleFile        bool
-	filename          string
-	path              string
+	packageName        string
+	tags               string
+	customTypePackage  string
+	filenameSuffix     string
+	singleFile         bool
+	filename           string
+	filenameUnderscore bool
+	path               string
 
 	nameConflictSuffix string
 }
@@ -152,9 +156,14 @@ func (g *Generator) Generate(tableMap map[string]*internal.Type, ixMap map[strin
 // the os.OpenFile with the correct parameters depending on the state of args.
 func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	// determine filename
-	var filename = strings.ToLower(t.Name) + g.filenameSuffix
-	if g.singleFile {
+	var filename string
+	switch {
+	case g.singleFile:
 		filename = g.filename
+	case g.filenameUnderscore:
+		filename = snaker.CamelToSnake(t.Name) + g.filenameSuffix
+	default:
+		filename = strings.ToLower(t.Name) + g.filenameSuffix
 	}
 	filename = path.Join(g.path, filename)
 
@@ -174,7 +183,7 @@ func (g *Generator) getFile(ds *basicDataSet, t *TBuf) (*os.File, error) {
 	}
 
 	// open file
-	f, err = os.OpenFile(filename, mode, 0666)
+	f, err = os.OpenFile(filename, mode, 0o666)
 	if err != nil {
 		return nil, err
 	}

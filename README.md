@@ -60,6 +60,7 @@ Flags:
       --suffix string                output file suffix (default ".yo.go")
       --tags string                  build tags to add to package header
       --template-path string         user supplied template path
+      --underscore                   toggle underscores in file names
 ```
 
 ## Generated code
