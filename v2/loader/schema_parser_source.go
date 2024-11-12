@@ -21,12 +21,20 @@ package loader
 
 import (
 	"fmt"
+	"github.com/cloudspannerecosystem/memefish/ast"
 	"os"
 	"sort"
 	"strings"
 
-	"cloud.google.com/go/spanner/spansql"
+	"github.com/cloudspannerecosystem/memefish"
 )
+
+func extractName(path *ast.Path) (string, error) {
+	if len(path.Idents) != 1 {
+		return "", fmt.Errorf("path isn't simple ident: %v", path.SQL())
+	}
+	return path.Idents[0].Name, nil
+}
 
 func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 	b, err := os.ReadFile(fpath)
@@ -42,23 +50,31 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 			continue
 		}
 
-		ddlstmt, err := spansql.ParseDDLStmt(stmt)
+		ddlstmt, err := memefish.ParseDDL("", stmt)
 		if err != nil {
 			return nil, err
 		}
 
 		switch val := ddlstmt.(type) {
-		case *spansql.CreateTable:
-			tableName := string(val.Name)
+		case *ast.CreateTable:
+			tableName, err := extractName(val.Name)
+			if err != nil {
+				return nil, err
+			}
+
 			v := tables[tableName]
 			v.createTable = val
 			tables[tableName] = v
-		case *spansql.CreateIndex:
-			tableName := string(val.Table)
+		case *ast.CreateIndex:
+			tableName, err := extractName(val.TableName)
+			if err != nil {
+				return nil, err
+			}
+
 			v := tables[tableName]
 			v.createIndexes = append(v.createIndexes, val)
 			tables[tableName] = v
-		case *spansql.AlterTable:
+		case *ast.AlterTable:
 			if isAlterTableAddFK(val) {
 				continue
 			}
@@ -69,18 +85,18 @@ func NewSchemaParserSource(fpath string) (SchemaSource, error) {
 	return &schemaParserSource{tables: tables}, nil
 }
 
-func isAlterTableAddFK(at *spansql.AlterTable) bool {
-	ac, ok := at.Alteration.(spansql.AddConstraint)
+func isAlterTableAddFK(at *ast.AlterTable) bool {
+	ac, ok := at.TableAlteration.(*ast.AddTableConstraint)
 	if !ok {
 		return false
 	}
-	_, ok = ac.Constraint.Constraint.(spansql.ForeignKey)
+	_, ok = ac.TableConstraint.Constraint.(*ast.ForeignKey)
 	return ok
 }
 
 type table struct {
-	createTable   *spansql.CreateTable
-	createIndexes []*spansql.CreateIndex
+	createTable   *ast.CreateTable
+	createIndexes []*ast.CreateIndex
 }
 
 type schemaParserSource struct {
@@ -91,12 +107,20 @@ func (s *schemaParserSource) TableList() ([]*SpannerTable, error) {
 	var tables []*SpannerTable
 	for _, t := range s.tables {
 		var parent string
-		if t.createTable.Interleave != nil {
-			parent = string(t.createTable.Interleave.Parent)
+		if t.createTable.Cluster != nil {
+			var err error
+			parent, err = extractName(t.createTable.Cluster.TableName)
+			if err != nil {
+				return nil, err
+			}
+		}
+		tableName, err := extractName(t.createTable.Name)
+		if err != nil {
+			return nil, err
 		}
 
 		tables = append(tables, &SpannerTable{
-			TableName:       string(t.createTable.Name),
+			TableName:       tableName,
 			ParentTableName: parent,
 		})
 	}
@@ -113,19 +137,19 @@ func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
 	table := s.tables[name].createTable
 
 	check := make(map[string]struct{})
-	for _, pk := range table.PrimaryKey {
-		check[string(pk.Column)] = struct{}{}
+	for _, pk := range table.PrimaryKeys {
+		check[pk.Name.Name] = struct{}{}
 	}
 
 	for i, c := range table.Columns {
-		_, pk := check[string(c.Name)]
+		_, pk := check[c.Name.Name]
 		cols = append(cols, &SpannerColumn{
 			FieldOrdinal: i + 1,
-			ColumnName:   string(c.Name),
+			ColumnName:   c.Name.Name,
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
-			IsGenerated:  c.Generated != nil,
+			IsGenerated:  c.GeneratedExpr != nil,
 		})
 	}
 
@@ -135,8 +159,13 @@ func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
 func (s *schemaParserSource) IndexList(name string) ([]*SpannerIndex, error) {
 	var indexes []*SpannerIndex
 	for _, index := range s.tables[name].createIndexes {
+		indexName, err := extractName(index.Name)
+		if err != nil {
+			return nil, err
+		}
+
 		indexes = append(indexes, &SpannerIndex{
-			IndexName: string(index.Name),
+			IndexName: indexName,
 			IsUnique:  index.Unique,
 		})
 	}
@@ -151,23 +180,29 @@ func (s *schemaParserSource) IndexColumnList(table, index string) ([]*SpannerInd
 
 	var cols []*SpannerIndexColumn
 	for _, ix := range s.tables[table].createIndexes {
-		if string(ix.Name) != index {
+		ixName, err := extractName(ix.Name)
+		if err != nil {
+			return nil, err
+		}
+		if ixName != index {
 			continue
 		}
 
-		// add storing columns first
-		for _, storing := range ix.Storing {
-			cols = append(cols, &SpannerIndexColumn{
-				SeqNo:      0,
-				Storing:    true,
-				ColumnName: string(storing),
-			})
+		if ix.Storing != nil {
+			// add storing columns first
+			for _, storing := range ix.Storing.Columns {
+				cols = append(cols, &SpannerIndexColumn{
+					SeqNo:      0,
+					Storing:    true,
+					ColumnName: storing.Name,
+				})
+			}
 		}
 
-		for i, c := range ix.Columns {
+		for i, c := range ix.Keys {
 			cols = append(cols, &SpannerIndexColumn{
 				SeqNo:      i + 1,
-				ColumnName: string(c.Column),
+				ColumnName: c.Name.Name,
 			})
 		}
 		break
@@ -183,10 +218,10 @@ func (s *schemaParserSource) primaryKeyColumnList(table string) ([]*SpannerIndex
 	}
 
 	var cols []*SpannerIndexColumn
-	for i, key := range tbl.createTable.PrimaryKey {
+	for i, key := range tbl.createTable.PrimaryKeys {
 		cols = append(cols, &SpannerIndexColumn{
 			SeqNo:      i + 1,
-			ColumnName: string(key.Column),
+			ColumnName: key.Name.Name,
 		})
 	}
 
