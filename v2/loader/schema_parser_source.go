@@ -21,12 +21,12 @@ package loader
 
 import (
 	"fmt"
-	"github.com/cloudspannerecosystem/memefish/ast"
 	"os"
 	"sort"
 	"strings"
 
 	"github.com/cloudspannerecosystem/memefish"
+	"github.com/cloudspannerecosystem/memefish/ast"
 )
 
 func extractName(path *ast.Path) (string, error) {
