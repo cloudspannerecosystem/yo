@@ -661,7 +661,6 @@ inflections:
    * The original function name based on index column names is ambiguous if there are multiple index that use the same index columns
    * The naming rule for the new function names is `Find` + _TABLE_NAME_ + _INDEX_NAME
    * Use `--use-legacy-index-module` option if you still want to use function names based on index column names
-* Use spansql package instead of memefish to parse DDL statements
 * Generated filenames become snake_case names
 
 ### Deprecations
