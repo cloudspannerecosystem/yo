@@ -18,12 +18,12 @@ func Find{{ .FuncName }}(ctx context.Context, db YODB{{ goParams .Fields true tr
 {{- end }}
 	{{- if not .NullableFields }}
 	const sqlstr = "SELECT " +
-		"{{ columnNames .Type.Fields }} " +
+		"{{ columnNamesWithoutHidden .Type.Fields }} " +
 		"FROM {{ $table }}@{FORCE_INDEX={{ .IndexName }}} " +
 		"WHERE {{ columnNamesQuery .Fields " AND " }}"
 	{{- else }}
 	var sqlstr = "SELECT " +
-		"{{ columnNames .Type.Fields }} " +
+		"{{ columnNamesWithoutHidden .Type.Fields }} " +
 		"FROM {{ $table }}@{FORCE_INDEX={{ .IndexName }}} "
 
 	conds := make([]string, {{ len .Fields }})

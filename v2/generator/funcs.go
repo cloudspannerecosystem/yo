@@ -38,10 +38,11 @@ func (a *Generator) newTemplateFuncs() template.FuncMap {
 		"shortName":    a.shortName,
 		"nullcheck":    a.nullcheck,
 
-		"hasColumn":         a.hasColumn,
-		"columnNames":       a.columnNames,
-		"columnNamesQuery":  a.columnNamesQuery,
-		"columnPrefixNames": a.columnPrefixNames,
+		"hasColumn":                a.hasColumn,
+		"columnNames":              a.columnNames,
+		"columnNamesWithoutHidden": a.columnNamesWithoutHidden,
+		"columnNamesQuery":         a.columnNamesQuery,
+		"columnPrefixNames":        a.columnPrefixNames,
 
 		"hasField":   a.hasField,
 		"fieldNames": a.fieldNames,
@@ -99,6 +100,28 @@ func (a *Generator) columnNames(fields []*models.Field) string {
 	str := ""
 	i := 0
 	for _, f := range fields {
+		if i != 0 {
+			str = str + ", "
+		}
+		str = str + internal.EscapeColumnName(f.ColumnName)
+		i++
+	}
+	return str
+}
+
+// columnNamesWithoutHidden creates a list of the column names found in fields
+// excluding any models.Field with IsHidden set to true.
+//
+// Used to present a comma separated list of column names, that can be used in
+// a SELECT, or UPDATE, or other SQL clause requiring a list of identifiers
+// (ie, "field_1, field_2, field_3, ...").
+func (a *Generator) columnNamesWithoutHidden(fields []*models.Field) string {
+	str := ""
+	i := 0
+	for _, f := range fields {
+		if f.IsHidden {
+			continue
+		}
 		if i != 0 {
 			str = str + ", "
 		}

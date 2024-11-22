@@ -46,6 +46,7 @@ type Field struct {
 	IsNotNull       bool   // not_null
 	IsPrimaryKey    bool   // is_primary_key
 	IsGenerated     bool   // is_generated
+	IsHidden        bool   // is_hidden
 }
 
 // Index is a template item for a index into a table.
