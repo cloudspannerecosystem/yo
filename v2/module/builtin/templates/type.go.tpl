@@ -4,7 +4,8 @@
 // {{ .Name }} represents a row from '{{ $table }}'.
 type {{ .Name }} struct {
 {{- range .Fields }}
-{{- if eq (.SpannerDataType) (.ColumnName) }}
+{{- if .IsHidden }}
+{{- else if eq (.SpannerDataType) (.ColumnName) }}
 	{{ .Name }} string `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }} enum
 {{- else }}
 	{{ .Name }} {{ .Type }} `spanner:"{{ .ColumnName }}" json:"{{ .ColumnName }}"` // {{ .ColumnName }}
@@ -23,7 +24,9 @@ func {{ .Name }}PrimaryKeys() []string {
 func {{ .Name }}Columns() []string {
 	return []string{
 {{- range .Fields }}
+	{{- if not .IsHidden }}
 		"{{ .ColumnName }}",
+	{{- end }}
 {{- end }}
 	}
 }
@@ -43,8 +46,10 @@ func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string) ([]interface{}, er
 	for _, col := range cols {
 		switch col {
 {{- range .Fields }}
+	{{- if not .IsHidden }}
 		case "{{ .ColumnName }}":
 			ret = append(ret, yoDecode(&{{ $short }}.{{ .Name }}))
+	{{- end }}
 {{- end }}
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
@@ -58,8 +63,10 @@ func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, 
 	for _, col := range cols {
 		switch col {
 {{- range .Fields }}
+	{{- if not .IsHidden }}
 		case "{{ .ColumnName }}":
 			ret = append(ret, yoEncode({{ $short }}.{{ .Name }}))
+	{{- end }}
 {{- end }}
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)

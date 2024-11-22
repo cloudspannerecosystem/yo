@@ -241,7 +241,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 			columnSet[column.ColumnName] = struct{}{}
 		}
 
-		for k, _ := range columnTypes {
+		for k := range columnTypes {
 			if _, ok := columnSet[k]; !ok {
 				return fmt.Errorf("unknown custom type column %s in the table %s", k, typeTpl.TableName)
 			}
@@ -282,6 +282,7 @@ func (tl *TypeLoader) LoadColumns(typeTpl *models.Type) error {
 			IsNotNull:       c.NotNull,
 			IsPrimaryKey:    c.IsPrimaryKey,
 			IsGenerated:     c.IsGenerated,
+			IsHidden:        c.IsHidden,
 		}
 
 		// set custom type

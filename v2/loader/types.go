@@ -33,6 +33,7 @@ type SpannerColumn struct {
 	NotNull      bool   // not_null
 	IsPrimaryKey bool   // is_primary_key
 	IsGenerated  bool   // is_generated
+	IsHidden     bool   // is_hidden
 }
 
 // SpannerIndex represents an index.
