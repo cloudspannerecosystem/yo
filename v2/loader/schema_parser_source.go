@@ -27,6 +27,7 @@ import (
 
 	"github.com/cloudspannerecosystem/memefish"
 	"github.com/cloudspannerecosystem/memefish/ast"
+	"github.com/cloudspannerecosystem/memefish/token"
 )
 
 func extractName(path *ast.Path) (string, error) {
@@ -150,6 +151,7 @@ func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
 			IsGenerated:  c.GeneratedExpr != nil,
+			IsHidden:     c.Hidden != token.InvalidPos,
 		})
 	}
 
