@@ -132,13 +132,18 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 		if _, ok := c.DefaultSemantics.(*ast.GeneratedColumnExpr); ok {
 			isGenerated = true
 		}
+		allowCommitTimestamp := false
+		if c.Options != nil {
+			allowCommitTimestamp = c.Options.AllowCommitTimestamp
+		}
 		cols = append(cols, &models.Column{
-			FieldOrdinal: i + 1,
-			ColumnName:   c.Name.Name,
-			DataType:     c.Type.SQL(),
-			NotNull:      c.NotNull,
-			IsPrimaryKey: pk,
-			IsGenerated:  isGenerated,
+			FieldOrdinal:         i + 1,
+			ColumnName:           c.Name.Name,
+			DataType:             c.Type.SQL(),
+			NotNull:              c.NotNull,
+			IsPrimaryKey:         pk,
+			IsGenerated:          isGenerated,
+			AllowCommitTimestamp: allowCommitTimestamp,
 		})
 	}
 
