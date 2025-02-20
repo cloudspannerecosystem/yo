@@ -144,13 +144,14 @@ func (s *schemaParserSource) ColumnList(name string) ([]*SpannerColumn, error) {
 
 	for i, c := range table.Columns {
 		_, pk := check[c.Name.Name]
+		_, isGenerated := c.DefaultSemantics.(*ast.GeneratedColumnExpr)
 		cols = append(cols, &SpannerColumn{
 			FieldOrdinal: i + 1,
 			ColumnName:   c.Name.Name,
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
-			IsGenerated:  c.GeneratedExpr != nil,
+			IsGenerated:  isGenerated,
 			IsHidden:     c.Hidden != token.InvalidPos,
 		})
 	}
