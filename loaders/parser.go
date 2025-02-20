@@ -47,16 +47,16 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 	for _, ddl := range ddls {
 		switch val := ddl.(type) {
 		case *ast.CreateTable:
-			v := tables[val.Name.Name]
+			v := tables[val.Name.SQL()]
 			v.createTable = val
-			tables[val.Name.Name] = v
+			tables[val.Name.SQL()] = v
 		case *ast.CreateIndex:
-			v, ok := tables[val.TableName.Name]
+			v, ok := tables[val.TableName.SQL()]
 			if !ok {
-				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", val.TableName.Name, ddl.SQL())
+				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", val.TableName.SQL(), ddl.SQL())
 			}
 			v.createIndexes = append(v.createIndexes, val)
-			tables[val.TableName.Name] = v
+			tables[val.TableName.SQL()] = v
 		case *ast.AlterTable:
 			if _, ok := val.TableAlteration.(*ast.AddTableConstraint); ok {
 				continue
@@ -97,7 +97,7 @@ func (s *SpannerLoaderFromDDL) TableList() ([]*models.Table, error) {
 	var tables []*models.Table
 	for _, t := range s.tables {
 		tables = append(tables, &models.Table{
-			TableName: t.createTable.Name.Name,
+			TableName: t.createTable.Name.SQL(),
 			ManualPk:  true,
 		})
 	}
@@ -116,13 +116,17 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 
 	for i, c := range table.Columns {
 		_, pk := check[c.Name.Name]
+		isGenerated := false
+		if _, ok := c.DefaultSemantics.(*ast.GeneratedColumnExpr); ok {
+			isGenerated = true
+		}
 		cols = append(cols, &models.Column{
 			FieldOrdinal: i + 1,
 			ColumnName:   c.Name.Name,
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
-			IsGenerated:  c.GeneratedExpr != nil,
+			IsGenerated:  isGenerated,
 		})
 	}
 
@@ -133,7 +137,7 @@ func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
 	var indexes []*models.Index
 	for _, index := range s.tables[name].createIndexes {
 		indexes = append(indexes, &models.Index{
-			IndexName: index.Name.Name,
+			IndexName: index.Name.SQL(),
 			IsUnique:  index.Unique,
 		})
 	}
@@ -148,7 +152,7 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 
 	var cols []*models.IndexColumn
 	for _, ix := range s.tables[table].createIndexes {
-		if ix.Name.Name != index {
+		if ix.Name.SQL() != index {
 			continue
 		}
 
