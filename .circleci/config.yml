@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   test:
     docker:
-      - image: golang:1.24
+      - image: golang:1.23
         environment:
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_EMULATOR_HOST_REST: localhost:9020
@@ -55,7 +55,7 @@ jobs:
 
   v2test:
     docker:
-      - image: golang:1.24
+      - image: golang:1.23
         environment:
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_EMULATOR_HOST_REST: localhost:9020
@@ -100,7 +100,7 @@ jobs:
             git diff v2/test/
   check_lint:
     docker:
-      - image: golang:1.24
+      - image: golang:1.23
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -110,7 +110,7 @@ jobs:
             make check_lint
   check_go_mod:
     docker:
-      - image: golang:1.24
+      - image: golang:1.23
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
