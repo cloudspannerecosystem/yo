@@ -62,7 +62,7 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 			v.createTable = val
 			tables[tableName] = v
 		case *ast.CreateIndex:
-			tableName, err := extractName(val.Name)
+			tableName, err := extractName(val.TableName)
 			if err != nil {
 				return nil, err
 			}
@@ -111,8 +111,12 @@ func (s *SpannerLoaderFromDDL) ValidCustomType(dataType string, customType strin
 func (s *SpannerLoaderFromDDL) TableList() ([]*models.Table, error) {
 	var tables []*models.Table
 	for _, t := range s.tables {
+		tableName, err := extractName(t.createTable.Name)
+		if err != nil {
+			return nil, err
+		}
 		tables = append(tables, &models.Table{
-			TableName: t.createTable.Name.Idents[0].Name,
+			TableName: tableName,
 			ManualPk:  true,
 		})
 	}
@@ -148,8 +152,12 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
 	var indexes []*models.Index
 	for _, index := range s.tables[name].createIndexes {
+		tableName, err := extractName(index.Name)
+		if err != nil {
+			return nil, err
+		}
 		indexes = append(indexes, &models.Index{
-			IndexName: index.Name.Idents[0].Name,
+			IndexName: tableName,
 			IsUnique:  index.Unique,
 		})
 	}
@@ -164,7 +172,11 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 
 	var cols []*models.IndexColumn
 	for _, ix := range s.tables[table].createIndexes {
-		if ix.Name.Idents[0].Name != index {
+		tableName, err := extractName(ix.Name)
+		if err != nil {
+			return nil, err
+		}
+		if tableName != index {
 			continue
 		}
 
