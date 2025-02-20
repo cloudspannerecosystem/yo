@@ -34,7 +34,7 @@ jobs:
           name: regenerate testdata-from-ddl and check diff
           command: |
             make testdata-from-ddl YOBIN=./yo
-            git diff --quiet test/
+            git diff test/
 
       - run:
           name: regenerate template files and check diff
