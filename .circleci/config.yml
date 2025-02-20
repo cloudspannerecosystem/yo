@@ -10,7 +10,7 @@ jobs:
           PROJECT: yo-test
           INSTANCE: yo-test
           DATABASE: yo-test
-      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.27
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.9
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -62,7 +62,7 @@ jobs:
           PROJECT: yo-test
           INSTANCE: yo-test
           DATABASE: yo-test
-      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.27
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.9
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
