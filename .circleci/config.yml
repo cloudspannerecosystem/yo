@@ -51,7 +51,7 @@ jobs:
           name: regenerate testdata and check diff
           command: |
             make testdata YOBIN=./yo
-            git diff --quiet test/
+            git diff test/
 
   v2test:
     docker:
@@ -97,7 +97,7 @@ jobs:
           name: regenerate testdata and check diff
           command: |
             make -C v2 testdata YOBIN=./yo
-            git diff --quiet v2/test/
+            git diff v2/test/
   check_lint:
     docker:
       - image: golang:1.24
