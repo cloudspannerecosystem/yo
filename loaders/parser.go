@@ -29,6 +29,13 @@ import (
 	"go.mercari.io/yo/models"
 )
 
+func extractName(path *ast.Path) (string, error) {
+	if len(path.Idents) != 1 {
+		return "", fmt.Errorf("path isn't simple ident: %v", path.SQL())
+	}
+	return path.Idents[0].Name, nil
+}
+
 func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 	b, err := ioutil.ReadFile(fpath)
 	if err != nil {
@@ -47,16 +54,24 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 	for _, ddl := range ddls {
 		switch val := ddl.(type) {
 		case *ast.CreateTable:
-			v := tables[val.Name.Name]
+			tableName, err := extractName(val.Name)
+			if err != nil {
+				return nil, err
+			}
+			v := tables[tableName]
 			v.createTable = val
-			tables[val.Name.Name] = v
+			tables[tableName] = v
 		case *ast.CreateIndex:
-			v, ok := tables[val.TableName.Name]
+			tableName, err := extractName(val.Name)
+			if err != nil {
+				return nil, err
+			}
+			v, ok := tables[tableName]
 			if !ok {
-				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", val.TableName.Name, ddl.SQL())
+				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", tableName, ddl.SQL())
 			}
 			v.createIndexes = append(v.createIndexes, val)
-			tables[val.TableName.Name] = v
+			tables[tableName] = v
 		case *ast.AlterTable:
 			if _, ok := val.TableAlteration.(*ast.AddTableConstraint); ok {
 				continue
@@ -97,7 +112,7 @@ func (s *SpannerLoaderFromDDL) TableList() ([]*models.Table, error) {
 	var tables []*models.Table
 	for _, t := range s.tables {
 		tables = append(tables, &models.Table{
-			TableName: t.createTable.Name.Name,
+			TableName: t.createTable.Name.Idents[0].Name,
 			ManualPk:  true,
 		})
 	}
@@ -116,13 +131,14 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 
 	for i, c := range table.Columns {
 		_, pk := check[c.Name.Name]
+		_, isGenerated := c.DefaultSemantics.(*ast.GeneratedColumnExpr)
 		cols = append(cols, &models.Column{
 			FieldOrdinal: i + 1,
 			ColumnName:   c.Name.Name,
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
-			IsGenerated:  c.GeneratedExpr != nil,
+			IsGenerated:  isGenerated,
 		})
 	}
 
@@ -133,7 +149,7 @@ func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
 	var indexes []*models.Index
 	for _, index := range s.tables[name].createIndexes {
 		indexes = append(indexes, &models.Index{
-			IndexName: index.Name.Name,
+			IndexName: index.Name.Idents[0].Name,
 			IsUnique:  index.Unique,
 		})
 	}
@@ -148,7 +164,7 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 
 	var cols []*models.IndexColumn
 	for _, ix := range s.tables[table].createIndexes {
-		if ix.Name.Name != index {
+		if ix.Name.Idents[0].Name != index {
 			continue
 		}
 
