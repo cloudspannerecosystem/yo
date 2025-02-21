@@ -47,16 +47,24 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 	for _, ddl := range ddls {
 		switch val := ddl.(type) {
 		case *ast.CreateTable:
-			v := tables[val.Name.Name]
+			tableName, err := extractName(val.Name)
+			if err != nil {
+				return nil, err
+			}
+			v := tables[tableName]
 			v.createTable = val
-			tables[val.Name.Name] = v
+			tables[tableName] = v
 		case *ast.CreateIndex:
-			v, ok := tables[val.TableName.Name]
+			tableName, err := extractName(val.TableName)
+			if err != nil {
+				return nil, err
+			}
+			v, ok := tables[tableName]
 			if !ok {
-				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", val.TableName.Name, ddl.SQL())
+				return nil, fmt.Errorf("table '%s' is undefined, but got '%s'", tableName, ddl.SQL())
 			}
 			v.createIndexes = append(v.createIndexes, val)
-			tables[val.TableName.Name] = v
+			tables[tableName] = v
 		case *ast.AlterTable:
 			if _, ok := val.TableAlteration.(*ast.AddTableConstraint); ok {
 				continue
@@ -96,8 +104,12 @@ func (s *SpannerLoaderFromDDL) ValidCustomType(dataType string, customType strin
 func (s *SpannerLoaderFromDDL) TableList() ([]*models.Table, error) {
 	var tables []*models.Table
 	for _, t := range s.tables {
+		tableName, err := extractName(t.createTable.Name)
+		if err != nil {
+			return nil, err
+		}
 		tables = append(tables, &models.Table{
-			TableName: t.createTable.Name.Name,
+			TableName: tableName,
 			ManualPk:  true,
 		})
 	}
@@ -116,13 +128,17 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 
 	for i, c := range table.Columns {
 		_, pk := check[c.Name.Name]
+		isGenerated := false
+		if _, ok := c.DefaultSemantics.(*ast.GeneratedColumnExpr); ok {
+			isGenerated = true
+		}
 		cols = append(cols, &models.Column{
 			FieldOrdinal: i + 1,
 			ColumnName:   c.Name.Name,
 			DataType:     c.Type.SQL(),
 			NotNull:      c.NotNull,
 			IsPrimaryKey: pk,
-			IsGenerated:  c.GeneratedExpr != nil,
+			IsGenerated:  isGenerated,
 		})
 	}
 
@@ -132,8 +148,12 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 func (s *SpannerLoaderFromDDL) IndexList(name string) ([]*models.Index, error) {
 	var indexes []*models.Index
 	for _, index := range s.tables[name].createIndexes {
+		idxName, err := extractName(index.Name)
+		if err != nil {
+			return nil, err
+		}
 		indexes = append(indexes, &models.Index{
-			IndexName: index.Name.Name,
+			IndexName: idxName,
 			IsUnique:  index.Unique,
 		})
 	}
@@ -148,7 +168,11 @@ func (s *SpannerLoaderFromDDL) IndexColumnList(table, index string) ([]*models.I
 
 	var cols []*models.IndexColumn
 	for _, ix := range s.tables[table].createIndexes {
-		if ix.Name.Name != index {
+		idxName, err := extractName(ix.Name)
+		if err != nil {
+			return nil, err
+		}
+		if idxName != index {
 			continue
 		}
 
@@ -190,4 +214,11 @@ func (s *SpannerLoaderFromDDL) primaryKeyColumnList(table string) ([]*models.Ind
 	}
 
 	return cols, nil
+}
+
+func extractName(path *ast.Path) (string, error) {
+	if len(path.Idents) != 1 {
+		return "", fmt.Errorf("path isn't simple ident: %v", path.SQL())
+	}
+	return path.Idents[0].Name, nil
 }
