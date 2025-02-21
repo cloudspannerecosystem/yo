@@ -132,10 +132,21 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 		if _, ok := c.DefaultSemantics.(*ast.GeneratedColumnExpr); ok {
 			isGenerated = true
 		}
+
 		allowCommitTimestamp := false
 		if c.Options != nil {
-			allowCommitTimestamp = c.Options.AllowCommitTimestamp
+			for _, r := range c.Options.Records {
+				if r.Name.Name == "allow_commit_timestamp" {
+					boolLiteral, ok := r.Value.(*ast.BoolLiteral)
+					if !ok {
+						return nil, fmt.Errorf("the type of 'allow_commit_timestamp' should be 'bool', but got '%T'", r.Value)
+					}
+					allowCommitTimestamp = boolLiteral.Value
+					break
+				}
+			}
 		}
+
 		cols = append(cols, &models.Column{
 			FieldOrdinal:         i + 1,
 			ColumnName:           c.Name.Name,
