@@ -37,7 +37,7 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "SNAPSHOT-{{ .Tag }}"
+  version_template: "SNAPSHOT-{{ .Tag }}"
 
 changelog:
   sort: asc
