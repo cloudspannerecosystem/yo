@@ -27,7 +27,7 @@ archives:
     wrap_in_directory: true
     format_overrides:
       - goos: windows
-        format: zip
+        formats: zip
     name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     files:
       - LICENSE
