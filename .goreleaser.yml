@@ -23,7 +23,7 @@ builds:
         goarch: 386
 
 archives:
-  - format: tar.gz
+  - formats: tar.gz
     wrap_in_directory: true
     format_overrides:
       - goos: windows
