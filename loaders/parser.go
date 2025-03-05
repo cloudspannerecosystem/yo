@@ -148,13 +148,13 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 		}
 
 		cols = append(cols, &models.Column{
-			FieldOrdinal:         i + 1,
-			ColumnName:           c.Name.Name,
-			DataType:             c.Type.SQL(),
-			NotNull:              c.NotNull,
-			IsPrimaryKey:         pk,
-			IsGenerated:          isGenerated,
-			AllowCommitTimestamp: allowCommitTimestamp,
+			FieldOrdinal:           i + 1,
+			ColumnName:             c.Name.Name,
+			DataType:               c.Type.SQL(),
+			NotNull:                c.NotNull,
+			IsPrimaryKey:           pk,
+			IsGenerated:            isGenerated,
+			IsAllowCommitTimestamp: allowCommitTimestamp,
 		})
 	}
 

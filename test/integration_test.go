@@ -579,6 +579,72 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 	})
 }
 
+func TestAllowCommitTimestamp(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	v := &models.AllowCommitTimestamp{
+		ID:        300,
+		UpdatedAt: spanner.CommitTimestamp,
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{v.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	var insertTime time.Time
+	t.Run("Insert", func(t *testing.T) {
+		got, err := models.FindAllowCommitTimestamp(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got.UpdatedAt.IsZero() {
+			t.Errorf("got UpdatedAt.IsZero")
+		}
+		insertTime = got.UpdatedAt
+	})
+
+	t.Run("Update", func(t *testing.T) {
+		gc := &models.AllowCommitTimestamp{
+			ID:        300,
+			UpdatedAt: spanner.CommitTimestamp,
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := models.FindAllowCommitTimestamp(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !got.UpdatedAt.After(insertTime) {
+			t.Errorf("expected UpdatedAt (%v) to be after insertTime (%v)", got.UpdatedAt, insertTime)
+		}
+	})
+
+	t.Run("InsertOrUpdate", func(t *testing.T) {
+		gc := &models.AllowCommitTimestamp{
+			ID:        300,
+			UpdatedAt: spanner.CommitTimestamp,
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.InsertOrUpdate(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := models.FindAllowCommitTimestamp(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if got.UpdatedAt.IsZero() {
+			t.Errorf("got UpdatedAt.IsZero")
+		}
+	})
+}
+
 func TestGeneratedColumn(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -67,7 +67,9 @@ func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, 
 		switch col {
 {{- range .Fields }}
 		case "{{ colname .Col }}":
-			{{- if .CustomType }}
+		    {{- if .Col.IsAllowCommitTimestamp }}
+		    ret = append(ret, spanner.CommitTimestamp)
+			{{- else if .CustomType }}
 			ret = append(ret, {{ .Type }}({{ $short }}.{{ .Name }}))
 			{{- else }}
 			ret = append(ret, {{ $short }}.{{ .Name }})

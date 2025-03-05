@@ -69,8 +69,8 @@ testdata-from-ddl/default:
 	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --package models --out test/testmodels/default/
 
 testdata-from-ddl/underscore:
-	rm -rf test/testmodels/underscores && mkdir -p test/testmodels/underscores
-	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --package models --underscore --out test/testmodels/underscores/
+	rm -rf test/testmodels/underscore && mkdir -p test/testmodels/underscore
+	$(YOBIN) generate ./test/testdata/schema.sql --from-ddl --package models --underscore --out test/testmodels/underscore/
 
 testdata-from-ddl/single:
 	rm -rf test/testmodels/single && mkdir -p test/testmodels/single
