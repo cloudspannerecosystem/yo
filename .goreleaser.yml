@@ -1,3 +1,4 @@
+version: 2
 before:
   hooks:
     - go mod download
@@ -22,11 +23,11 @@ builds:
         goarch: 386
 
 archives:
-  - format: tar.gz
+  - formats: tar.gz
     wrap_in_directory: true
     format_overrides:
       - goos: windows
-        format: zip
+        formats: zip
     name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     files:
       - LICENSE
@@ -36,7 +37,7 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "SNAPSHOT-{{ .Tag }}"
+  version_template: "SNAPSHOT-{{ .Tag }}"
 
 changelog:
   sort: asc
