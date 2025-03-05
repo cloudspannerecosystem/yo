@@ -116,3 +116,8 @@ CREATE TABLE GeneratedColumns (
   LastName STRING(50) NOT NULL,
   FullName STRING(100) NOT NULL AS (ARRAY_TO_STRING([FirstName, LastName], " ")) STORED,
 ) PRIMARY KEY (ID);
+
+CREATE TABLE AllowCommitTimestamp (
+  ID INT64 NOT NULL,
+  UpdatedAt TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+) PRIMARY KEY(ID);
