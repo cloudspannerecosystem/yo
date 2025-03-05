@@ -10,8 +10,14 @@ application is not officially supported as part of the Cloud Spanner product.
 
 ## Installation
 
+[Install Go](https://go.dev/doc/install) and run the following command.
+
 ```sh
-$ go get -u go.mercari.io/yo
+# For Go 1.16+
+go install go.mercari.io/yo@latest
+
+# For Go <1.16
+go get -u go.mercari.io/yo
 ```
 
 ## Quickstart
