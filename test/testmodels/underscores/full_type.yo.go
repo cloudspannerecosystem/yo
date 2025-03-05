@@ -4,13 +4,14 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"strings"
+	"time"
 
+	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // FullType represents a row from 'FullTypes'.
