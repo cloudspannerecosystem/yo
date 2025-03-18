@@ -250,7 +250,13 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 		`  AND ic.COLUMN_NAME = c.COLUMN_NAME` +
 		`  AND ic.INDEX_NAME = "PRIMARY_KEY" ` +
 		`) IS_PRIMARY_KEY, ` +
-		`IS_GENERATED = "ALWAYS" AS IS_GENERATED ` +
+		`IS_GENERATED = "ALWAYS" AS IS_GENERATED, ` +
+		`EXISTS (` +
+		`	SELECT 1 FROM INFORMATION_SCHEMA.COLUMN_OPTIONS ic` +
+		`	WHERE ic.TABLE_SCHEMA = "" AND ic.TABLE_NAME = c.TABLE_NAME` +
+		`	AND ic.COLUMN_NAME = c.COLUMN_NAME` +
+		`	AND ic.OPTION_NAME = "allow_commit_timestamp"` +
+		`) IS_ALLOW_COMMIT_TIMESTAMP,` +
 		`FROM INFORMATION_SCHEMA.COLUMNS c ` +
 		`WHERE c.TABLE_SCHEMA = "" AND c.TABLE_NAME = @table ` +
 		`ORDER BY c.ORDINAL_POSITION`
@@ -294,6 +300,9 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 			return nil, err
 		}
 		if err := row.ColumnByName("IS_GENERATED", &c.IsGenerated); err != nil {
+			return nil, err
+		}
+		if err := row.ColumnByName("IS_ALLOW_COMMIT_TIMESTAMP", &c.IsAllowCommitTimestamp); err != nil {
 			return nil, err
 		}
 

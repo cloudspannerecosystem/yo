@@ -32,6 +32,7 @@ import (
 	"cloud.google.com/go/spanner"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gax-go/v2/apierror"
+	"go.mercari.io/yo/loaders"
 	"go.mercari.io/yo/test/testmodels/customtypes"
 	models "go.mercari.io/yo/test/testmodels/default"
 	"go.mercari.io/yo/test/testutil"
@@ -641,6 +642,30 @@ func TestAllowCommitTimestamp(t *testing.T) {
 
 		if got.UpdatedAt.IsZero() {
 			t.Errorf("got UpdatedAt.IsZero")
+		}
+	})
+
+	t.Run("IsAllowCommitTimestamp", func(t *testing.T) {
+		gc := &models.AllowCommitTimestamp{
+			ID:        300,
+			UpdatedAt: spanner.CommitTimestamp,
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		cols, err := loaders.SpanTableColumns(client, "AllowCommitTimestamp")
+		if err != nil {
+			t.Fatalf("SpanTableColumns failed: %v", err)
+		}
+
+		for _, col := range cols {
+			if col.ColumnName == "UpdatedAt" {
+				if !col.IsAllowCommitTimestamp {
+					t.Errorf("updated_at is not AllowCommitTimestamp")
+				}
+			}
 		}
 	})
 }
