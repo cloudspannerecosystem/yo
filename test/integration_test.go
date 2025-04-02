@@ -32,6 +32,7 @@ import (
 	"cloud.google.com/go/spanner"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gax-go/v2/apierror"
+	"go.mercari.io/yo/loaders"
 	"go.mercari.io/yo/test/testmodels/customtypes"
 	models "go.mercari.io/yo/test/testmodels/default"
 	"go.mercari.io/yo/test/testutil"
@@ -575,6 +576,96 @@ func TestCustomCompositePrimaryKey(t *testing.T) {
 		}
 		if diff := cmp.Diff(expected, got[0]); diff != "" {
 			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
+func TestAllowCommitTimestamp(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	v := &models.AllowCommitTimestamp{
+		ID:        300,
+		UpdatedAt: spanner.CommitTimestamp,
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{v.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	var insertTime time.Time
+	t.Run("Insert", func(t *testing.T) {
+		got, err := models.FindAllowCommitTimestamp(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got.UpdatedAt.IsZero() {
+			t.Errorf("got UpdatedAt.IsZero")
+		}
+		insertTime = got.UpdatedAt
+	})
+
+	t.Run("Update", func(t *testing.T) {
+		gc := &models.AllowCommitTimestamp{
+			ID:        300,
+			UpdatedAt: spanner.CommitTimestamp,
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := models.FindAllowCommitTimestamp(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !got.UpdatedAt.After(insertTime) {
+			t.Errorf("expected UpdatedAt (%v) to be after insertTime (%v)", got.UpdatedAt, insertTime)
+		}
+	})
+
+	t.Run("InsertOrUpdate", func(t *testing.T) {
+		gc := &models.AllowCommitTimestamp{
+			ID:        300,
+			UpdatedAt: spanner.CommitTimestamp,
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.InsertOrUpdate(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := models.FindAllowCommitTimestamp(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if got.UpdatedAt.IsZero() {
+			t.Errorf("got UpdatedAt.IsZero")
+		}
+	})
+
+	t.Run("IsAllowCommitTimestamp", func(t *testing.T) {
+		gc := &models.AllowCommitTimestamp{
+			ID:        300,
+			UpdatedAt: spanner.CommitTimestamp,
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		cols, err := loaders.SpanTableColumns(client, "AllowCommitTimestamp")
+		if err != nil {
+			t.Fatalf("SpanTableColumns failed: %v", err)
+		}
+
+		for _, col := range cols {
+			if col.ColumnName == "UpdatedAt" {
+				if !col.IsAllowCommitTimestamp {
+					t.Errorf("updated_at is not AllowCommitTimestamp")
+				}
+			}
 		}
 	})
 }
