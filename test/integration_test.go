@@ -831,6 +831,30 @@ func TestHiddenColumn(t *testing.T) {
 			t.Errorf("(-got, +want)\n%s", diff)
 		}
 	})
+
+	t.Run("IsHidden", func(t *testing.T) {
+		gc := &models.FullTextSearch{
+			ID:      300,
+			Content: "Hello",
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		cols, err := loaders.SpanTableColumns(client, "FullTextSearch")
+		if err != nil {
+			t.Fatalf("SpanTableColumns failed: %v", err)
+		}
+
+		for _, col := range cols {
+			if col.ColumnName == "Content_Tokens" {
+				if !col.IsHidden {
+					t.Errorf("Content_Tokens is not Hidden")
+				}
+			}
+		}
+	})
 }
 
 func TestSessionNotFound(t *testing.T) {
