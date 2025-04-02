@@ -756,6 +756,83 @@ func TestGeneratedColumn(t *testing.T) {
 	})
 }
 
+func TestHiddenColumn(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	gc := &models.FullTextSearch{
+		ID:      300,
+		Content: "Hello",
+	}
+
+	if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Insert(ctx)}); err != nil {
+		t.Fatalf("Apply failed: %v", err)
+	}
+
+	t.Run("Insert", func(t *testing.T) {
+		got, err := models.FindFullTextSearch(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &models.FullTextSearch{
+			ID:      300,
+			Content: "Hello",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("Update", func(t *testing.T) {
+		gc := &models.FullTextSearch{
+			ID:      300,
+			Content: "Good Bye",
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.Update(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := models.FindGeneratedColumn(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &models.FullTextSearch{
+			ID:      300,
+			Content: "Good Bye",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+
+	t.Run("InsertOrUpdate", func(t *testing.T) {
+		gc := &models.FullTextSearch{
+			ID:      300,
+			Content: "Good Morning",
+		}
+
+		if _, err := client.Apply(ctx, []*spanner.Mutation{gc.InsertOrUpdate(ctx)}); err != nil {
+			t.Fatalf("Apply failed: %v", err)
+		}
+
+		got, err := models.FindGeneratedColumn(ctx, client.Single(), 300)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := &models.FullTextSearch{
+			ID:      300,
+			Content: "Good Morning",
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("(-got, +want)\n%s", diff)
+		}
+	})
+}
+
 func TestSessionNotFound(t *testing.T) {
 	dbName := testutil.DatabaseName(spannerProjectName, spannerInstanceName, spannerDatabaseName)
 

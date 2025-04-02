@@ -121,3 +121,11 @@ CREATE TABLE AllowCommitTimestamp (
   ID INT64 NOT NULL,
   UpdatedAt TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
 ) PRIMARY KEY(ID);
+
+CREATE TABLE FullTextSearch (
+  ID INT64 NOT NULL,
+  Content STRING(2048) NOT NULL,
+  Content_Tokens TOKENLIST AS (TOKENIZE_FULLTEXT(Content)) HIDDEN,
+) PRIMARY KEY(ID);
+
+CREATE SEARCH INDEX FullTextSeachContentIndex ON FullTextSearch(Content_Tokens);
