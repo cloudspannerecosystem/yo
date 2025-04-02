@@ -154,6 +154,7 @@ func (s *SpannerLoaderFromDDL) ColumnList(name string) ([]*models.Column, error)
 			NotNull:                c.NotNull,
 			IsPrimaryKey:           pk,
 			IsGenerated:            isGenerated,
+			IsHidden:               !c.Hidden.Invalid(),
 			IsAllowCommitTimestamp: allowCommitTimestamp,
 		})
 	}
