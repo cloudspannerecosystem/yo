@@ -7,7 +7,7 @@ toolchain go1.23.5
 require (
 	cloud.google.com/go v0.118.3
 	cloud.google.com/go/spanner v1.76.1
-	github.com/cloudspannerecosystem/memefish v0.4.0
+	github.com/cloudspannerecosystem/memefish v0.5.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/google/go-cmp v0.6.0
 	github.com/googleapis/gax-go/v2 v2.14.1
