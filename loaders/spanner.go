@@ -22,7 +22,9 @@ package loaders
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -377,6 +379,7 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 
 	defer iter.Stop()
 
+	var storing bool
 	res := []*models.IndexColumn{}
 	for {
 		row, err := iter.Next()
@@ -395,6 +398,7 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 		i.SeqNo = int(ord.Int64)
 		if !ord.Valid {
 			i.Storing = true
+			storing = true
 		}
 		if err := row.ColumnByName("COLUMN_NAME", &i.ColumnName); err != nil {
 			return nil, err
@@ -403,6 +407,17 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 		res = append(res, &i)
 	}
 
+	// Since the value of ORDINAL_POSITION is NULL for the STORING column, the order is undetermined.
+	// Spanner Instances are implicitly returned in the order of their definition, but the Spanner Emulator's specifications make the order random.
+	// Currently, the Spanner Instance's Information Schema and DDL return the results in the order expected by the developer.
+	// For this reason, only when using the Spanner Emulator are we sorted by column name to fix the order.
+	// In reality, using the Spanner Emulator's Information Schema is not recommended, and this is a measure only for Unit Testing.
+	// https://github.com/cloudspannerecosystem/yo/issues/154
+	if os.Getenv("SPANNER_EMULATOR_HOST") != "" && storing {
+		sort.Slice(res, func(i, j int) bool {
+			return res[i].ColumnName < res[j].ColumnName
+		})
+	}
 	return res, nil
 }
 
