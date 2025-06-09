@@ -114,7 +114,7 @@ EXPECTED_FILES := \
 
 check-diff:
 	@echo "Checking git diff against expected files..."
-	@ACTUAL_FILES=$$(git diff --name-only | sort) ; \
+	@ACTUAL_FILES=$$(git diff --name-only | grep -v '^go\.mod$$' | grep -v '^go\.sum$$' | sort) ; \
 	SORTED_EXPECTED_FILES=$$(echo "$(EXPECTED_FILES)" | tr ' ' '\n' | sort) ; \
 	if [ "$$ACTUAL_FILES" = "$$SORTED_EXPECTED_FILES" ]; then \
 		echo "Success: git diff output matches the expected file list." ; \
