@@ -103,3 +103,26 @@ check_gomod: gomod ## check whether or not go mod tidy has been run
 		echo "Please run make gomod locally before pushing."; \
 		exit 1; \
 	fi
+
+.PHONY: check-diff
+
+EXPECTED_FILES := \
+	test/testmodels/customtypes/compositeprimarykey.yo.go \
+	test/testmodels/default/compositeprimarykey.yo.go \
+	test/testmodels/single/single_file.go \
+	test/testmodels/underscore/composite_primary_key.yo.go
+
+check-diff:
+	@echo "Checking git diff against expected files..."
+	@ACTUAL_FILES=$$(git diff --name-only | sort) ; \
+	SORTED_EXPECTED_FILES=$$(echo "$(EXPECTED_FILES)" | tr ' ' '\n' | sort) ; \
+	if [ "$$ACTUAL_FILES" = "$$SORTED_EXPECTED_FILES" ]; then \
+		echo "Success: git diff output matches the expected file list." ; \
+	else \
+		echo "Error: git diff output does not match the expected file list." ; \
+		echo "--- Expected Files ---" ; \
+		echo "$$SORTED_EXPECTED_FILES" ; \
+		echo "--- Actual Files ---" ; \
+		echo "$$ACTUAL_FILES" ; \
+		exit 1 ; \
+	fi
