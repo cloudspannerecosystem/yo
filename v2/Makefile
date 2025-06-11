@@ -55,7 +55,10 @@ testdata/dump_types:
 .PHONY: check-diff
 
 EXPECTED_FILES := \
-	v2/test/testmodels/default/composite_primary_key.yo.go
+	v2/test/testmodels/default/composite_primary_key.yo.go \
+    v2/test/testmodels/default/custom_composite_primary_key.yo.go \
+    v2/test/testmodels/legacy_default/composite_primary_key.yo.go \
+    v2/test/testmodels/legacy_default/custom_composite_primary_key.yo.go
 
 check-diff:
 	@echo "Checking git diff against expected files..."
