@@ -10,7 +10,7 @@ jobs:
           PROJECT: yo-test
           INSTANCE: yo-test
           DATABASE: yo-test
-      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.9
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.34
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -51,7 +51,7 @@ jobs:
           name: regenerate testdata and check diff
           command: |
             make testdata YOBIN=./yo
-            git diff --quiet test/
+            make check-diff
 
   v2test:
     docker:
@@ -62,7 +62,7 @@ jobs:
           PROJECT: yo-test
           INSTANCE: yo-test
           DATABASE: yo-test
-      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.9
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.34
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -97,7 +97,7 @@ jobs:
           name: regenerate testdata and check diff
           command: |
             make -C v2 testdata YOBIN=./yo
-            git diff --quiet v2/test/
+            make -C v2 check-diff
   check_lint:
     docker:
       - image: golang:1.23-bullseye
