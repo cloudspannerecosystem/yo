@@ -51,7 +51,7 @@ jobs:
           name: regenerate testdata and check diff
           command: |
             make testdata YOBIN=./yo
-            git diff --quiet test/
+            make check-diff
 
   v2test:
     docker:
