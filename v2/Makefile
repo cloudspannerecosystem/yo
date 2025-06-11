@@ -51,3 +51,26 @@ testdata/legacy_default:
 testdata/dump_types:
 	rm -rf test/testmodels/dump_types && mkdir -p test/testmodels/dump_types
 	$(YOBIN) generate $(GENERATE_OPT) --suffix '.txt' --disable-format --disable-default-modules --type-module test/testdata/dump_types.go.tpl --package models --out test/testmodels/dump_types/
+
+.PHONY: check-diff
+
+EXPECTED_FILES := \
+	v2/test/testmodels/default/composite_primary_key.yo.go \
+    v2/test/testmodels/default/custom_composite_primary_key.yo.go \
+    v2/test/testmodels/legacy_default/composite_primary_key.yo.go \
+    v2/test/testmodels/legacy_default/custom_composite_primary_key.yo.go
+
+check-diff:
+	@echo "Checking git diff against expected files..."
+	@ACTUAL_FILES=$$(git diff --name-only | grep -v '^go\.mod$$' | grep -v '^go\.sum$$' | sort) ; \
+	SORTED_EXPECTED_FILES=$$(echo "$(EXPECTED_FILES)" | tr ' ' '\n' | sort) ; \
+	if [ "$$ACTUAL_FILES" = "$$SORTED_EXPECTED_FILES" ]; then \
+		echo "Success: git diff output matches the expected file list." ; \
+	else \
+		echo "Error: git diff output does not match the expected file list." ; \
+		echo "--- Expected Files ---" ; \
+		echo "$$SORTED_EXPECTED_FILES" ; \
+		echo "--- Actual Files ---" ; \
+		echo "$$ACTUAL_FILES" ; \
+		exit 1 ; \
+	fi
