@@ -21,6 +21,8 @@ package loader
 
 import (
 	"context"
+	"os"
+	"sort"
 
 	"cloud.google.com/go/spanner"
 	"google.golang.org/api/iterator"
@@ -99,6 +101,7 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*SpannerColumn, er
 	iter := s.client.Single().Query(ctx, stmt)
 	defer iter.Stop()
 
+	var storing bool
 	var res []*SpannerColumn
 	for {
 		row, err := iter.Next()
@@ -110,11 +113,14 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*SpannerColumn, er
 		}
 
 		var c SpannerColumn
-		var ord int64
+		var ord spanner.NullInt64
 		if err := row.ColumnByName("ORDINAL_POSITION", &ord); err != nil {
 			return nil, err
 		}
-		c.FieldOrdinal = int(ord)
+		if !ord.Valid {
+			storing = true
+		}
+		c.FieldOrdinal = int(ord.Int64)
 		if err := row.ColumnByName("COLUMN_NAME", &c.ColumnName); err != nil {
 			return nil, err
 		}
@@ -136,6 +142,18 @@ func (s *informationSchemaSource) ColumnList(table string) ([]*SpannerColumn, er
 		}
 
 		res = append(res, &c)
+	}
+
+	// Since the value of ORDINAL_POSITION is NULL for the STORING column, the order is undetermined.
+	// Spanner Instances are implicitly returned in the order of their definition, but the Spanner Emulator's specifications make the order random.
+	// Currently, the Spanner Instance's Information Schema and DDL return the results in the order expected by the developer.
+	// For this reason, only when using the Spanner Emulator are we sorted by column name to fix the order.
+	// In reality, using the Spanner Emulator's Information Schema is not recommended, and this is a measure only for Unit Testing.
+	// https://github.com/cloudspannerecosystem/yo/issues/154
+	if os.Getenv("SPANNER_EMULATOR_HOST") != "" && storing {
+		sort.Slice(res, func(i, j int) bool {
+			return res[i].ColumnName < res[j].ColumnName
+		})
 	}
 
 	return res, nil
