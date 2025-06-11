@@ -34,6 +34,7 @@ type Column struct {
 	NotNull                bool   // not_null
 	IsPrimaryKey           bool   // is_primary_key
 	IsGenerated            bool   // is_generated
+	IsHidden               bool   // is_hidden
 	IsAllowCommitTimestamp bool   // is_allow_commit_timestamp
 }
 

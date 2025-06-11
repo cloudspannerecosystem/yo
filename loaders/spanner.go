@@ -253,6 +253,7 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 		`  AND ic.INDEX_NAME = "PRIMARY_KEY" ` +
 		`) IS_PRIMARY_KEY, ` +
 		`IS_GENERATED = "ALWAYS" AS IS_GENERATED, ` +
+		`IS_HIDDEN,` +
 		`EXISTS (` +
 		`	SELECT 1 FROM INFORMATION_SCHEMA.COLUMN_OPTIONS ic` +
 		`	WHERE ic.TABLE_SCHEMA = "" AND ic.TABLE_NAME = c.TABLE_NAME` +
@@ -304,6 +305,9 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 		if err := row.ColumnByName("IS_GENERATED", &c.IsGenerated); err != nil {
 			return nil, err
 		}
+		if err := row.ColumnByName("IS_HIDDEN", &c.IsHidden); err != nil {
+			return nil, err
+		}
 		if err := row.ColumnByName("IS_ALLOW_COMMIT_TIMESTAMP", &c.IsAllowCommitTimestamp); err != nil {
 			return nil, err
 		}
@@ -324,7 +328,7 @@ func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, er
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`INDEX_NAME, IS_UNIQUE ` +
+		`INDEX_NAME, IS_UNIQUE, INDEX_TYPE = "SEARCH" AS IS_SEARCH ` +
 		`FROM INFORMATION_SCHEMA.INDEXES ` +
 		`WHERE TABLE_SCHEMA = "" ` +
 		`AND INDEX_NAME != "PRIMARY_KEY" ` +
@@ -345,6 +349,16 @@ func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, er
 				break
 			}
 			return nil, err
+		}
+
+		var search bool
+		if err := row.ColumnByName("IS_SEARCH", &search); err != nil {
+			return nil, err
+		}
+		if search {
+			//　Currently, the ability to identify FullTextSearch Index is not supported.
+			//　If there is a demand, it might be supported along with DDL.
+			continue
 		}
 
 		var i models.Index
