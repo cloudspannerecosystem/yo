@@ -97,7 +97,7 @@ jobs:
           name: regenerate testdata and check diff
           command: |
             make -C v2 testdata YOBIN=./yo
-            git diff --quiet v2/test/
+            git diff v2/test/
   check_lint:
     docker:
       - image: golang:1.23-bullseye
