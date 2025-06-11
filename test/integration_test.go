@@ -794,7 +794,7 @@ func TestHiddenColumn(t *testing.T) {
 			t.Fatalf("Apply failed: %v", err)
 		}
 
-		got, err := models.FindGeneratedColumn(ctx, client.Single(), 300)
+		got, err := models.FindFullTextSearch(ctx, client.Single(), 300)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -818,7 +818,7 @@ func TestHiddenColumn(t *testing.T) {
 			t.Fatalf("Apply failed: %v", err)
 		}
 
-		got, err := models.FindGeneratedColumn(ctx, client.Single(), 300)
+		got, err := models.FindFullTextSearch(ctx, client.Single(), 300)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
