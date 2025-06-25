@@ -127,5 +127,3 @@ CREATE TABLE FullTextSearch (
   Content STRING(2048) NOT NULL,
   Content_Tokens TOKENLIST AS (TOKENIZE_FULLTEXT(Content)) HIDDEN,
 ) PRIMARY KEY(ID);
-
-CREATE SEARCH INDEX FullTextSeachContentIndex ON FullTextSearch(Content_Tokens);
