@@ -191,7 +191,8 @@ func SpanParseType(dt string, nullable bool) (int, string, string) {
 	default:
 		if strings.HasPrefix(dt, "ARRAY<") {
 			eleDataType := strings.TrimSuffix(strings.TrimPrefix(dt, "ARRAY<"), ">")
-			_, _, eleTyp := SpanParseType(eleDataType, false)
+			// Array type can contain NULL elements. See https://cloud.google.com/spanner/docs/reference/standard-sql/data-types#array_nulls
+			_, _, eleTyp := SpanParseType(eleDataType, true)
 			typ, nilVal = "[]"+eleTyp, "nil"
 			if !nullable {
 				nilVal = typ + "{}"
