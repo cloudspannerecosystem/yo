@@ -16,7 +16,9 @@ build: regen ## build yo command and regenerate template bin
 	go build
 
 .PHONY: regen
-regen: tplbin/templates.go ## regenerate template bin
+regen:
+	rm tplbin/templates.go
+	$(MAKE) tplbin/templates.go ## regenerate template bin
 
 deps:
 	go install github.com/jessevdk/go-assets-builder@latest
