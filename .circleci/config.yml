@@ -29,8 +29,8 @@ jobs:
           command: |
             set -x
             go-assets-builder -help
-	        rm tplbin/templates.go
-	        go-assets-builder --package=tplbin --strip-prefix="/templates/" --output tplbin/templates.go templates/*.tpl
+            rm tplbin/templates.go
+            go-assets-builder --package=tplbin --strip-prefix="/templates/" --output tplbin/templates.go templates/*.tpl
             make regen
             git diff --quiet tplbin/
 
