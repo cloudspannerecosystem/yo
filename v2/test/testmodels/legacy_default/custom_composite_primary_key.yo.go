@@ -363,10 +363,10 @@ func ReadCustomCompositePrimaryKeysByZError(ctx context.Context, db YODB, keys s
 	return res, nil
 }
 
-// FindCustomCompositePrimaryKeysByZYError retrieves multiple rows from 'CustomCompositePrimaryKeys' as a slice of CustomCompositePrimaryKey.
+// FindCustomCompositePrimaryKeysByYZError retrieves multiple rows from 'CustomCompositePrimaryKeys' as a slice of CustomCompositePrimaryKey.
 //
 // Generated from index 'CustomCompositePrimaryKeysByError3'.
-func FindCustomCompositePrimaryKeysByZYError(ctx context.Context, db YODB, e int8) ([]*CustomCompositePrimaryKey, error) {
+func FindCustomCompositePrimaryKeysByYZError(ctx context.Context, db YODB, e int8) ([]*CustomCompositePrimaryKey, error) {
 	const sqlstr = "SELECT " +
 		"Id, PKey1, PKey2, Error, X, Y, Z " +
 		"FROM CustomCompositePrimaryKeys@{FORCE_INDEX=CustomCompositePrimaryKeysByError3} " +
@@ -390,12 +390,12 @@ func FindCustomCompositePrimaryKeysByZYError(ctx context.Context, db YODB, e int
 			if err == iterator.Done {
 				break
 			}
-			return nil, newError("FindCustomCompositePrimaryKeysByZYError", "CustomCompositePrimaryKeys", err)
+			return nil, newError("FindCustomCompositePrimaryKeysByYZError", "CustomCompositePrimaryKeys", err)
 		}
 
 		ccpk, err := decoder(row)
 		if err != nil {
-			return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKeysByZYError", "CustomCompositePrimaryKeys", err)
+			return nil, newErrorWithCode(codes.Internal, "FindCustomCompositePrimaryKeysByYZError", "CustomCompositePrimaryKeys", err)
 		}
 
 		res = append(res, ccpk)
@@ -404,21 +404,21 @@ func FindCustomCompositePrimaryKeysByZYError(ctx context.Context, db YODB, e int
 	return res, nil
 }
 
-// ReadCustomCompositePrimaryKeysByZYError retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
+// ReadCustomCompositePrimaryKeysByYZError retrieves multiples rows from 'CustomCompositePrimaryKeys' by KeySet as a slice.
 //
 // This does not retrieve all columns of 'CustomCompositePrimaryKeys' because an index has only columns
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
 // Generated from unique index 'CustomCompositePrimaryKeysByError3'.
-func ReadCustomCompositePrimaryKeysByZYError(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
+func ReadCustomCompositePrimaryKeysByYZError(ctx context.Context, db YODB, keys spanner.KeySet) ([]*CustomCompositePrimaryKey, error) {
 	var res []*CustomCompositePrimaryKey
 	columns := []string{
 		"PKey1",
 		"PKey2",
 		"Error",
-		"Z",
 		"Y",
+		"Z",
 	}
 
 	decoder := newCustomCompositePrimaryKey_Decoder(columns)
@@ -434,7 +434,7 @@ func ReadCustomCompositePrimaryKeysByZYError(ctx context.Context, db YODB, keys 
 		return nil
 	})
 	if err != nil {
-		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKeysByZYError", "CustomCompositePrimaryKeys", err)
+		return nil, newErrorWithCode(codes.Internal, "ReadCustomCompositePrimaryKeysByYZError", "CustomCompositePrimaryKeys", err)
 	}
 
 	return res, nil

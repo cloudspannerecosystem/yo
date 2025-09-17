@@ -417,8 +417,8 @@ func ReadCompositePrimaryKeysByCompositePrimaryKeysByError3(ctx context.Context,
 		"PKey1",
 		"PKey2",
 		"Error",
-		"Z",
 		"Y",
+		"Z",
 	}
 
 	decoder := newCompositePrimaryKey_Decoder(columns)
