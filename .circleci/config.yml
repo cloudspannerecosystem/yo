@@ -32,6 +32,7 @@ jobs:
             rm tplbin/templates.go
             go-assets-builder --package=tplbin --strip-prefix="/templates/" --output tplbin/templates.go templates/*.tpl
             make regen
+            git diff tplbin/ | cat
             git diff --quiet tplbin/
 
       - run:
