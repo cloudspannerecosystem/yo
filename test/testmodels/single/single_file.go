@@ -17,6 +17,169 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// AllowCommitTimestamp represents a row from 'AllowCommitTimestamp'.
+type AllowCommitTimestamp struct {
+	ID        int64     `spanner:"ID" json:"ID"`               // ID
+	UpdatedAt time.Time `spanner:"UpdatedAt" json:"UpdatedAt"` // UpdatedAt
+}
+
+func AllowCommitTimestampPrimaryKeys() []string {
+	return []string{
+		"ID",
+	}
+}
+
+func AllowCommitTimestampColumns() []string {
+	return []string{
+		"ID",
+		"UpdatedAt",
+	}
+}
+
+func AllowCommitTimestampWritableColumns() []string {
+	return []string{
+		"ID",
+		"UpdatedAt",
+	}
+}
+
+func (act *AllowCommitTimestamp) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "ID":
+			ret = append(ret, &act.ID)
+		case "UpdatedAt":
+			ret = append(ret, &act.UpdatedAt)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (act *AllowCommitTimestamp) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "ID":
+			ret = append(ret, act.ID)
+		case "UpdatedAt":
+			ret = append(ret, spanner.CommitTimestamp)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newAllowCommitTimestamp_Decoder returns a decoder which reads a row from *spanner.Row
+// into AllowCommitTimestamp. The decoder is not goroutine-safe. Don't use it concurrently.
+func newAllowCommitTimestamp_Decoder(cols []string) func(*spanner.Row) (*AllowCommitTimestamp, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*AllowCommitTimestamp, error) {
+		var act AllowCommitTimestamp
+		ptrs, err := act.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &act, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (act *AllowCommitTimestamp) Insert(ctx context.Context) *spanner.Mutation {
+	values, _ := act.columnsToValues(AllowCommitTimestampWritableColumns())
+	return spanner.Insert("AllowCommitTimestamp", AllowCommitTimestampWritableColumns(), values)
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (act *AllowCommitTimestamp) Update(ctx context.Context) *spanner.Mutation {
+	values, _ := act.columnsToValues(AllowCommitTimestampWritableColumns())
+	return spanner.Update("AllowCommitTimestamp", AllowCommitTimestampWritableColumns(), values)
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (act *AllowCommitTimestamp) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	values, _ := act.columnsToValues(AllowCommitTimestampWritableColumns())
+	return spanner.InsertOrUpdate("AllowCommitTimestamp", AllowCommitTimestampWritableColumns(), values)
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (act *AllowCommitTimestamp) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, AllowCommitTimestampPrimaryKeys()...)
+
+	values, err := act.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "AllowCommitTimestamp.UpdateColumns", "AllowCommitTimestamp", err)
+	}
+
+	return spanner.Update("AllowCommitTimestamp", colsWithPKeys, values), nil
+}
+
+// FindAllowCommitTimestamp gets a AllowCommitTimestamp by primary key
+func FindAllowCommitTimestamp(ctx context.Context, db YORODB, id int64) (*AllowCommitTimestamp, error) {
+	key := spanner.Key{id}
+	row, err := db.ReadRow(ctx, "AllowCommitTimestamp", key, AllowCommitTimestampColumns())
+	if err != nil {
+		return nil, newError("FindAllowCommitTimestamp", "AllowCommitTimestamp", err)
+	}
+
+	decoder := newAllowCommitTimestamp_Decoder(AllowCommitTimestampColumns())
+	act, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindAllowCommitTimestamp", "AllowCommitTimestamp", err)
+	}
+
+	return act, nil
+}
+
+// ReadAllowCommitTimestamp retrieves multiples rows from AllowCommitTimestamp by KeySet as a slice.
+func ReadAllowCommitTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*AllowCommitTimestamp, error) {
+	var res []*AllowCommitTimestamp
+
+	decoder := newAllowCommitTimestamp_Decoder(AllowCommitTimestampColumns())
+
+	rows := db.Read(ctx, "AllowCommitTimestamp", keys, AllowCommitTimestampColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		act, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, act)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadAllowCommitTimestamp", "AllowCommitTimestamp", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the AllowCommitTimestamp from the database.
+func (act *AllowCommitTimestamp) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := act.columnsToValues(AllowCommitTimestampPrimaryKeys())
+	return spanner.Delete("AllowCommitTimestamp", spanner.Key(values))
+}
+
 // CompositePrimaryKey represents a row from 'CompositePrimaryKeys'.
 type CompositePrimaryKey struct {
 	ID    int64  `spanner:"Id" json:"Id"`       // Id
@@ -384,6 +547,169 @@ func ReadFereignItem(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*Fe
 func (fi *FereignItem) Delete(ctx context.Context) *spanner.Mutation {
 	values, _ := fi.columnsToValues(FereignItemPrimaryKeys())
 	return spanner.Delete("FereignItems", spanner.Key(values))
+}
+
+// FullTextSearch represents a row from 'FullTextSearch'.
+type FullTextSearch struct {
+	ID      int64  `spanner:"ID" json:"ID"`           // ID
+	Content string `spanner:"Content" json:"Content"` // Content
+}
+
+func FullTextSearchPrimaryKeys() []string {
+	return []string{
+		"ID",
+	}
+}
+
+func FullTextSearchColumns() []string {
+	return []string{
+		"ID",
+		"Content",
+	}
+}
+
+func FullTextSearchWritableColumns() []string {
+	return []string{
+		"ID",
+		"Content",
+	}
+}
+
+func (fts *FullTextSearch) columnsToPtrs(cols []string, customPtrs map[string]interface{}) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		if val, ok := customPtrs[col]; ok {
+			ret = append(ret, val)
+			continue
+		}
+
+		switch col {
+		case "ID":
+			ret = append(ret, &fts.ID)
+		case "Content":
+			ret = append(ret, &fts.Content)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+	return ret, nil
+}
+
+func (fts *FullTextSearch) columnsToValues(cols []string) ([]interface{}, error) {
+	ret := make([]interface{}, 0, len(cols))
+	for _, col := range cols {
+		switch col {
+		case "ID":
+			ret = append(ret, fts.ID)
+		case "Content":
+			ret = append(ret, fts.Content)
+		default:
+			return nil, fmt.Errorf("unknown column: %s", col)
+		}
+	}
+
+	return ret, nil
+}
+
+// newFullTextSearch_Decoder returns a decoder which reads a row from *spanner.Row
+// into FullTextSearch. The decoder is not goroutine-safe. Don't use it concurrently.
+func newFullTextSearch_Decoder(cols []string) func(*spanner.Row) (*FullTextSearch, error) {
+	customPtrs := map[string]interface{}{}
+
+	return func(row *spanner.Row) (*FullTextSearch, error) {
+		var fts FullTextSearch
+		ptrs, err := fts.columnsToPtrs(cols, customPtrs)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := row.Columns(ptrs...); err != nil {
+			return nil, err
+		}
+
+		return &fts, nil
+	}
+}
+
+// Insert returns a Mutation to insert a row into a table. If the row already
+// exists, the write or transaction fails.
+func (fts *FullTextSearch) Insert(ctx context.Context) *spanner.Mutation {
+	values, _ := fts.columnsToValues(FullTextSearchWritableColumns())
+	return spanner.Insert("FullTextSearch", FullTextSearchWritableColumns(), values)
+}
+
+// Update returns a Mutation to update a row in a table. If the row does not
+// already exist, the write or transaction fails.
+func (fts *FullTextSearch) Update(ctx context.Context) *spanner.Mutation {
+	values, _ := fts.columnsToValues(FullTextSearchWritableColumns())
+	return spanner.Update("FullTextSearch", FullTextSearchWritableColumns(), values)
+}
+
+// InsertOrUpdate returns a Mutation to insert a row into a table. If the row
+// already exists, it updates it instead. Any column values not explicitly
+// written are preserved.
+func (fts *FullTextSearch) InsertOrUpdate(ctx context.Context) *spanner.Mutation {
+	values, _ := fts.columnsToValues(FullTextSearchWritableColumns())
+	return spanner.InsertOrUpdate("FullTextSearch", FullTextSearchWritableColumns(), values)
+}
+
+// UpdateColumns returns a Mutation to update specified columns of a row in a table.
+func (fts *FullTextSearch) UpdateColumns(ctx context.Context, cols ...string) (*spanner.Mutation, error) {
+	// add primary keys to columns to update by primary keys
+	colsWithPKeys := append(cols, FullTextSearchPrimaryKeys()...)
+
+	values, err := fts.columnsToValues(colsWithPKeys)
+	if err != nil {
+		return nil, newErrorWithCode(codes.InvalidArgument, "FullTextSearch.UpdateColumns", "FullTextSearch", err)
+	}
+
+	return spanner.Update("FullTextSearch", colsWithPKeys, values), nil
+}
+
+// FindFullTextSearch gets a FullTextSearch by primary key
+func FindFullTextSearch(ctx context.Context, db YORODB, id int64) (*FullTextSearch, error) {
+	key := spanner.Key{id}
+	row, err := db.ReadRow(ctx, "FullTextSearch", key, FullTextSearchColumns())
+	if err != nil {
+		return nil, newError("FindFullTextSearch", "FullTextSearch", err)
+	}
+
+	decoder := newFullTextSearch_Decoder(FullTextSearchColumns())
+	fts, err := decoder(row)
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "FindFullTextSearch", "FullTextSearch", err)
+	}
+
+	return fts, nil
+}
+
+// ReadFullTextSearch retrieves multiples rows from FullTextSearch by KeySet as a slice.
+func ReadFullTextSearch(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullTextSearch, error) {
+	var res []*FullTextSearch
+
+	decoder := newFullTextSearch_Decoder(FullTextSearchColumns())
+
+	rows := db.Read(ctx, "FullTextSearch", keys, FullTextSearchColumns())
+	err := rows.Do(func(row *spanner.Row) error {
+		fts, err := decoder(row)
+		if err != nil {
+			return err
+		}
+		res = append(res, fts)
+
+		return nil
+	})
+	if err != nil {
+		return nil, newErrorWithCode(codes.Internal, "ReadFullTextSearch", "FullTextSearch", err)
+	}
+
+	return res, nil
+}
+
+// Delete deletes the FullTextSearch from the database.
+func (fts *FullTextSearch) Delete(ctx context.Context) *spanner.Mutation {
+	values, _ := fts.columnsToValues(FullTextSearchPrimaryKeys())
+	return spanner.Delete("FullTextSearch", spanner.Key(values))
 }
 
 // FullType represents a row from 'FullTypes'.

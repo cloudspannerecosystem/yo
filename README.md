@@ -10,8 +10,14 @@ application is not officially supported as part of the Cloud Spanner product.
 
 ## Installation
 
+[Install Go](https://go.dev/doc/install) and run the following command.
+
 ```sh
-$ go get -u go.mercari.io/yo
+# For Go 1.16+
+go install go.mercari.io/yo@latest
+
+# For Go <1.16
+go get -u go.mercari.io/yo
 ```
 
 ## Quickstart
@@ -41,6 +47,12 @@ Usage:
   yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME [flags]
 
 Examples:
+  # Generate models from DDL under the models directory
+  yo generate schame.sql --from-ddl -o models
+  
+  # Generate models from DDL under the models directory with custom types
+  yo generate schame.sql --from-ddl -o models --custom-types-file custom_column_types.yml
+  
   # Generate models under models directory
   yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 

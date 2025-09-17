@@ -28,12 +28,14 @@ type Table struct {
 
 // Column represents column info.
 type Column struct {
-	FieldOrdinal int    // field_ordinal
-	ColumnName   string // column_name
-	DataType     string // data_type
-	NotNull      bool   // not_null
-	IsPrimaryKey bool   // is_primary_key
-	IsGenerated  bool   // is_generated
+	FieldOrdinal           int    // field_ordinal
+	ColumnName             string // column_name
+	DataType               string // data_type
+	NotNull                bool   // not_null
+	IsPrimaryKey           bool   // is_primary_key
+	IsGenerated            bool   // is_generated
+	IsHidden               bool   // is_hidden
+	IsAllowCommitTimestamp bool   // is_allow_commit_timestamp
 }
 
 // Index represents an index.

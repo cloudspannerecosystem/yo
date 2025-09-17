@@ -3,13 +3,15 @@
 // {{ .Name }} represents a row from '{{ $table }}'.
 type {{ .Name }} struct {
 {{- range .Fields }}
-{{- if eq (.Col.DataType) (.Col.ColumnName) }}
-	{{ .Name }} string `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }} enum
-{{- else if .CustomType }}
-	{{ .Name }} {{ retype .CustomType }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
-{{- else }}
-	{{ .Name }} {{ .Type }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
-{{- end }}
+{{- if not .Col.IsHidden }}
+    {{- if eq (.Col.DataType) (.Col.ColumnName) }}
+        {{ .Name }} string `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }} enum
+    {{- else if .CustomType }}
+        {{ .Name }} {{ retype .CustomType }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
+    {{- else }}
+        {{ .Name }} {{ .Type }} `spanner:"{{ .Col.ColumnName }}" json:"{{ .Col.ColumnName }}"` // {{ .Col.ColumnName }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 }
 
@@ -26,7 +28,9 @@ func {{ .Name }}PrimaryKeys() []string {
 func {{ .Name }}Columns() []string {
 	return []string{
 {{- range .Fields }}
+    {{- if not .Col.IsHidden }}
 		"{{ colname .Col }}",
+	{{- end }}
 {{- end }}
 	}
 }
@@ -51,8 +55,10 @@ func ({{ $short }} *{{ .Name }}) columnsToPtrs(cols []string, customPtrs map[str
 
 		switch col {
 {{- range .Fields }}
+    {{- if not .Col.IsHidden }}
 		case "{{ colname .Col }}":
 			ret = append(ret, &{{ $short }}.{{ .Name }})
+	{{- end }}
 {{- end }}
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)
@@ -66,12 +72,16 @@ func ({{ $short }} *{{ .Name }}) columnsToValues(cols []string) ([]interface{}, 
 	for _, col := range cols {
 		switch col {
 {{- range .Fields }}
+    {{- if not .Col.IsHidden }}
 		case "{{ colname .Col }}":
-			{{- if .CustomType }}
+		    {{- if .Col.IsAllowCommitTimestamp }}
+		    ret = append(ret, spanner.CommitTimestamp)
+			{{- else if .CustomType }}
 			ret = append(ret, {{ .Type }}({{ $short }}.{{ .Name }}))
 			{{- else }}
 			ret = append(ret, {{ $short }}.{{ .Name }})
 			{{- end }}
+    {{- end }}
 {{- end }}
 		default:
 			return nil, fmt.Errorf("unknown column: %s", col)

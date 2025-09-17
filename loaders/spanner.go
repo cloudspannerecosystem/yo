@@ -22,7 +22,9 @@ package loaders
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -250,7 +252,14 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 		`  AND ic.COLUMN_NAME = c.COLUMN_NAME` +
 		`  AND ic.INDEX_NAME = "PRIMARY_KEY" ` +
 		`) IS_PRIMARY_KEY, ` +
-		`IS_GENERATED = "ALWAYS" AS IS_GENERATED ` +
+		`IS_GENERATED = "ALWAYS" AS IS_GENERATED, ` +
+		`IS_HIDDEN,` +
+		`EXISTS (` +
+		`	SELECT 1 FROM INFORMATION_SCHEMA.COLUMN_OPTIONS ic` +
+		`	WHERE ic.TABLE_SCHEMA = "" AND ic.TABLE_NAME = c.TABLE_NAME` +
+		`	AND ic.COLUMN_NAME = c.COLUMN_NAME` +
+		`	AND ic.OPTION_NAME = "allow_commit_timestamp"` +
+		`) IS_ALLOW_COMMIT_TIMESTAMP,` +
 		`FROM INFORMATION_SCHEMA.COLUMNS c ` +
 		`WHERE c.TABLE_SCHEMA = "" AND c.TABLE_NAME = @table ` +
 		`ORDER BY c.ORDINAL_POSITION`
@@ -296,6 +305,12 @@ func spanTableColumns(client *spanner.Client, table string) ([]*models.Column, e
 		if err := row.ColumnByName("IS_GENERATED", &c.IsGenerated); err != nil {
 			return nil, err
 		}
+		if err := row.ColumnByName("IS_HIDDEN", &c.IsHidden); err != nil {
+			return nil, err
+		}
+		if err := row.ColumnByName("IS_ALLOW_COMMIT_TIMESTAMP", &c.IsAllowCommitTimestamp); err != nil {
+			return nil, err
+		}
 
 		res = append(res, &c)
 	}
@@ -313,7 +328,7 @@ func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, er
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`INDEX_NAME, IS_UNIQUE ` +
+		`INDEX_NAME, IS_UNIQUE, INDEX_TYPE = "SEARCH" AS IS_SEARCH ` +
 		`FROM INFORMATION_SCHEMA.INDEXES ` +
 		`WHERE TABLE_SCHEMA = "" ` +
 		`AND INDEX_NAME != "PRIMARY_KEY" ` +
@@ -334,6 +349,16 @@ func SpanTableIndexes(client *spanner.Client, table string) ([]*models.Index, er
 				break
 			}
 			return nil, err
+		}
+
+		var search bool
+		if err := row.ColumnByName("IS_SEARCH", &search); err != nil {
+			return nil, err
+		}
+		if search {
+			//　Currently, the ability to identify FullTextSearch Index is not supported.
+			//　If there is a demand, it might be supported along with DDL.
+			continue
 		}
 
 		var i models.Index
@@ -368,6 +393,7 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 
 	defer iter.Stop()
 
+	var storing bool
 	res := []*models.IndexColumn{}
 	for {
 		row, err := iter.Next()
@@ -386,6 +412,7 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 		i.SeqNo = int(ord.Int64)
 		if !ord.Valid {
 			i.Storing = true
+			storing = true
 		}
 		if err := row.ColumnByName("COLUMN_NAME", &i.ColumnName); err != nil {
 			return nil, err
@@ -394,6 +421,17 @@ func SpanIndexColumns(client *spanner.Client, table string, index string) ([]*mo
 		res = append(res, &i)
 	}
 
+	// Since the value of ORDINAL_POSITION is NULL for the STORING column, the order is undetermined.
+	// Spanner Instances are implicitly returned in the order of their definition, but the Spanner Emulator's specifications make the order random.
+	// Currently, the Spanner Instance's Information Schema and DDL return the results in the order expected by the developer.
+	// For this reason, only when using the Spanner Emulator are we sorted by column name to fix the order.
+	// In reality, using the Spanner Emulator's Information Schema is not recommended, and this is a measure only for Unit Testing.
+	// https://github.com/cloudspannerecosystem/yo/issues/154
+	if os.Getenv("SPANNER_EMULATOR_HOST") != "" && storing {
+		sort.Slice(res, func(i, j int) bool {
+			return res[i].ColumnName < res[j].ColumnName
+		})
+	}
 	return res, nil
 }
 
