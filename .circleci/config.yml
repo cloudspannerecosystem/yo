@@ -27,7 +27,12 @@ jobs:
       - run:
           name: regenerate templates and check diff
           command: |
+            set -x
+            ls -ltr tplbin/
+            rm tplbin/templates.go
+            go-assets-builder --package=tplbin --strip-prefix="/templates/" --output tplbin/templates.go templates/*.tpl
             make regen
+            git diff tplbin/ | cat
             git diff --quiet tplbin/
 
       - run:
