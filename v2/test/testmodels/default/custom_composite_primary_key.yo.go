@@ -417,8 +417,8 @@ func ReadCustomCompositePrimaryKeysByCustomCompositePrimaryKeysByError3(ctx cont
 		"PKey1",
 		"PKey2",
 		"Error",
-		"Z",
 		"Y",
+		"Z",
 	}
 
 	decoder := newCustomCompositePrimaryKey_Decoder(columns)

@@ -1,0 +1,12 @@
+# Field list of FullTextSearch
+
+* ID INT64 int64
+* Content STRING(2048) string
+* ContentTokens TOKENLIST TOKENLIST
+
+# Primary Key
+
+* ID INT64 int64
+
+# Index list of FullTextSearch
+
