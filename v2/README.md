@@ -25,7 +25,7 @@ $ cd $GOPATH/src/path/to/project
 # make an output directory
 $ mkdir -p models
 
-# generate code for a schema
+# generate code for a schema (deprecated: use --from-ddl instead)
 $ yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 ```
 
@@ -43,12 +43,6 @@ yo generate schema.sql --from-ddl -o models
 
 # Generate models from DDL under the models directory with custom types
 yo generate schema.sql --from-ddl -o models --custom-types-file custom_column_types.yml
-
-# Generate models under the models directory
-yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
-
-# Generate models under the models directory with custom types
-yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 ```
 
 #### Flags

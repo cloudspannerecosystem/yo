@@ -50,7 +50,7 @@ var version string
 var (
 	rootOpts = internal.ArgType{}
 	rootCmd  = &cobra.Command{
-		Use:   "yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME",
+		Use:   "yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME (deprecated: use `yo generate <DDL_FILE> --from-ddl` instead)",
 		Short: "yo is a command-line tool to generate Go code for Google Cloud Spanner.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 3 {
@@ -60,6 +60,9 @@ var (
 		},
 		Example: strings.Trim(exampleUsage, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 3 {
+				fmt.Println("Warning: Generating models directly from Spanner project, instance, and database names is deprecated. Please use `yo generate <DDL_FILE> --from-ddl` instead.")
+			}
 			if err := processArgs(&rootOpts, args); err != nil {
 				return err
 			}
