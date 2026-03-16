@@ -31,7 +31,7 @@ $ cd $GOPATH/src/path/to/project
 # make an output directory
 $ mkdir -p models
 
-# generate code for a schema
+# generate code for a schema (deprecated: use --from-ddl instead)
 $ yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 ```
 
@@ -44,7 +44,8 @@ $ yo --help
 yo is a command-line tool to generate Go code for Google Cloud Spanner.
 
 Usage:
-  yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME [flags]
+  yo generate [DDL_FILE] [flags]
+  yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME [flags] (deprecated: use `yo generate DDL_FILE --from-ddl` instead)
 
 Examples:
   # Generate models from DDL under the models directory
@@ -52,12 +53,6 @@ Examples:
   
   # Generate models from DDL under the models directory with custom types
   yo generate schame.sql --from-ddl -o models --custom-types-file custom_column_types.yml
-  
-  # Generate models under models directory
-  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
-
-  # Generate models under models directory with custom types
-  yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 
 Flags:
       --custom-type-package string   Go package name to use for custom or unknown types

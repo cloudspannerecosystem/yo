@@ -117,14 +117,12 @@ var (
 
   # Generate models from DDL under the models directory with custom types
   yo generate schema.sql --from-ddl -o models --custom-types-file custom_column_types.yml
-
-  # Generate models under the models directory
-  yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
-
-  # Generate models under the models directory with custom types
-  yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 3 {
+				fmt.Println("Warning: Generating models directly from Spanner project, instance, and database names is deprecated. Please use `yo generate <DDL_FILE> --from-ddl` instead.")
+			}
+
 			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 			defer cancel()
 
