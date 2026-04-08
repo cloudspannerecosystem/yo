@@ -3,7 +3,11 @@
 `yo` is a command-line tool to generate Go code for [Google Cloud Spanner](https://cloud.google.com/spanner/),
 forked from [xo](https://github.com/xo/xo) :rose:.
 
-`yo` uses database schema to generate code by using [Information Schema](https://cloud.google.com/spanner/docs/information-schema). `yo` runs SQL queries against tables in `INFORMATION_SCHEMA` to fetch metadata for a database, and applies the metadata to Go templates to generate code/models to access Cloud Spanner.
+`yo` can generate code from database schema using either DDL files or [Information Schema](https://cloud.google.com/spanner/docs/information-schema).
+
+**⚠️ Note: Using Information Schema for code generation is now deprecated due to column ordering issues (see [#154](https://github.com/cloudspannerecosystem/yo/issues/154)). Please use DDL files for reliable code generation instead.**
+
+When using Information Schema, `yo` runs SQL queries against tables in `INFORMATION_SCHEMA` to fetch metadata for a database. When using DDL files (recommended), `yo` parses the DDL directly. In both cases, the metadata is applied to Go templates to generate code/models to access Cloud Spanner.
 
 Please feel free to report issues and send pull requests, but note that this
 application is not officially supported as part of the Cloud Spanner product.
@@ -24,6 +28,7 @@ go get -u go.mercari.io/yo
 
 The following is a quick overview of using `yo` on the command-line:
 
+**Recommended: Generate from DDL file**
 ```sh
 # change to project directory
 $ cd $GOPATH/src/path/to/project
@@ -31,7 +36,16 @@ $ cd $GOPATH/src/path/to/project
 # make an output directory
 $ mkdir -p models
 
-# generate code for a schema
+# generate code from DDL file (recommended)
+$ yo generate schema.sql --from-ddl -o models
+```
+
+**⚠️ Deprecated: Generate from Information Schema**
+```sh
+# make an output directory
+$ mkdir -p models
+
+# generate code from Information Schema (deprecated - see issue #154)
 $ yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 ```
 
@@ -47,16 +61,16 @@ Usage:
   yo PROJECT_NAME INSTANCE_NAME DATABASE_NAME [flags]
 
 Examples:
-  # Generate models from DDL under the models directory
-  yo generate schame.sql --from-ddl -o models
-  
-  # Generate models from DDL under the models directory with custom types
-  yo generate schame.sql --from-ddl -o models --custom-types-file custom_column_types.yml
-  
-  # Generate models under models directory
+  # Generate models from DDL under the models directory (recommended)
+  yo generate schema.sql --from-ddl -o models
+
+  # Generate models from DDL under the models directory with custom types (recommended)
+  yo generate schema.sql --from-ddl -o models --custom-types-file custom_column_types.yml
+
+  # Generate models under models directory (deprecated - see issue #154)
   yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 
-  # Generate models under models directory with custom types
+  # Generate models under models directory with custom types (deprecated - see issue #154)
   yo $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 
 Flags:

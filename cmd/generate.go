@@ -21,6 +21,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"go.mercari.io/yo/generator"
@@ -39,16 +40,16 @@ var (
 			}
 			return nil
 		},
-		Example: `  # Generate models from ddl under models directory
+		Example: `  # Generate models from ddl under models directory (recommended)
   yo generate schema.sql --from-ddl -o models
 
-  # Generate models from ddl under models directory with custom types
+  # Generate models from ddl under models directory with custom types (recommended)
   yo generate schema.sql --from-ddl -o models --custom-types-file custom_column_types.yml
 
-  # Generate models under models directory
+  # Generate models under models directory (deprecated - see issue #154)
   yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models
 
-  # Generate models under models directory with custom types
+  # Generate models under models directory with custom types (deprecated - see issue #154)
   yo generate $SPANNER_PROJECT_NAME $SPANNER_INSTANCE_NAME $SPANNER_DATABASE_NAME -o models --custom-types-file custom_column_types.yml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -68,6 +69,7 @@ var (
 				}
 				loader = internal.NewTypeLoader(spannerLoader, inflector)
 			} else {
+				fmt.Fprintf(os.Stderr, "Warning: Using Information Schema for code generation is deprecated due to column ordering issues (see https://github.com/cloudspannerecosystem/yo/issues/154). Please use DDL files for reliable code generation instead.\n")
 				spannerClient, err := connectSpanner(&rootOpts)
 				if err != nil {
 					return fmt.Errorf("error: %v", err)
