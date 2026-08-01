@@ -257,7 +257,7 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByError'.
+// Generated from index 'CompositePrimaryKeysByError'.
 func ReadCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -332,7 +332,7 @@ func FindCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) (
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByError2'.
+// Generated from index 'CompositePrimaryKeysByError2'.
 func ReadCompositePrimaryKeysByZError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -408,7 +408,7 @@ func FindCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, e int64) 
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByError3'.
+// Generated from index 'CompositePrimaryKeysByError3'.
 func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -486,7 +486,7 @@ func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y st
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByXY'.
+// Generated from index 'CompositePrimaryKeysByXY'.
 func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{

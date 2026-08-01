@@ -2107,7 +2107,7 @@ func FindCompositePrimaryKeysByError(ctx context.Context, db YORODB, e int64) ([
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByError'.
+// Generated from index 'CompositePrimaryKeysByError'.
 func ReadCompositePrimaryKeysByError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -2182,7 +2182,7 @@ func FindCompositePrimaryKeysByZError(ctx context.Context, db YORODB, e int64) (
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByError2'.
+// Generated from index 'CompositePrimaryKeysByError2'.
 func ReadCompositePrimaryKeysByZError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -2258,7 +2258,7 @@ func FindCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, e int64) 
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByError3'.
+// Generated from index 'CompositePrimaryKeysByError3'.
 func ReadCompositePrimaryKeysByZYError(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -2336,7 +2336,7 @@ func FindCompositePrimaryKeysByXY(ctx context.Context, db YORODB, x string, y st
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'CompositePrimaryKeysByXY'.
+// Generated from index 'CompositePrimaryKeysByXY'.
 func ReadCompositePrimaryKeysByXY(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*CompositePrimaryKey, error) {
 	var res []*CompositePrimaryKey
 	columns := []string{
@@ -2409,7 +2409,7 @@ func FindFullTypeByFTString(ctx context.Context, db YORODB, fTString string) (*F
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByFTString'.
+// Generated from index 'FullTypesByFTString'.
 func ReadFullTypeByFTString(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -2492,7 +2492,7 @@ func FindFullTypesByFTIntFTTimestampNull(ctx context.Context, db YORODB, fTInt i
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByInTimestampNull'.
+// Generated from index 'FullTypesByInTimestampNull'.
 func ReadFullTypesByFTIntFTTimestampNull(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -2568,7 +2568,7 @@ func FindFullTypesByFTIntFTDate(ctx context.Context, db YORODB, fTInt int64, fTD
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByIntDate'.
+// Generated from index 'FullTypesByIntDate'.
 func ReadFullTypesByFTIntFTDate(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -2644,7 +2644,7 @@ func FindFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, fTInt int64
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByIntTimestamp'.
+// Generated from index 'FullTypesByIntTimestamp'.
 func ReadFullTypesByFTIntFTTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -2719,7 +2719,7 @@ func FindFullTypesByFTTimestamp(ctx context.Context, db YORODB, fTTimestamp time
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'FullTypesByTimestamp'.
+// Generated from index 'FullTypesByTimestamp'.
 func ReadFullTypesByFTTimestamp(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*FullType, error) {
 	var res []*FullType
 	columns := []string{
@@ -2794,7 +2794,7 @@ func FindSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, stringID 
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'snake_cases_by_string_id'.
+// Generated from index 'snake_cases_by_string_id'.
 func ReadSnakeCasesByStringIDFooBarBaz(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*SnakeCase, error) {
 	var res []*SnakeCase
 	columns := []string{
@@ -2866,7 +2866,7 @@ func FindUUIDTypeByName(ctx context.Context, db YORODB, name string) (*UUIDType,
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'UuidTypesByName'.
+// Generated from index 'UuidTypesByName'.
 func ReadUUIDTypeByName(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*UUIDType, error) {
 	var res []*UUIDType
 	columns := []string{
@@ -2947,7 +2947,7 @@ func FindUUIDTypesByOptionalID(ctx context.Context, db YORODB, optionalID spanne
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'UuidTypesByOptionalID'.
+// Generated from index 'UuidTypesByOptionalID'.
 func ReadUUIDTypesByOptionalID(ctx context.Context, db YORODB, keys spanner.KeySet) ([]*UUIDType, error) {
 	var res []*UUIDType
 	columns := []string{
