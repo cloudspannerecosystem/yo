@@ -237,7 +237,7 @@ func FindUUIDTypeByName(ctx context.Context, db YODB, name string) (*UUIDType, e
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'UuidTypesByName'.
+// Generated from index 'UuidTypesByName'.
 func ReadUUIDTypeByName(ctx context.Context, db YODB, keys spanner.KeySet) ([]*UUIDType, error) {
 	var res []*UUIDType
 	columns := []string{
@@ -318,7 +318,7 @@ func FindUUIDTypesByOptionalID(ctx context.Context, db YODB, optionalID spanner.
 // used for primary key, index key and storing columns. If you need more columns, add storing
 // columns or Read by primary key or Query with join.
 //
-// Generated from unique index 'UuidTypesByOptionalID'.
+// Generated from index 'UuidTypesByOptionalID'.
 func ReadUUIDTypesByOptionalID(ctx context.Context, db YODB, keys spanner.KeySet) ([]*UUIDType, error) {
 	var res []*UUIDType
 	columns := []string{
