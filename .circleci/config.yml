@@ -3,14 +3,14 @@ version: 2.1
 jobs:
   test:
     docker:
-      - image: golang:1.24-bullseye
+      - image: golang:1.26-bookworm
         environment:
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_EMULATOR_HOST_REST: localhost:9020
           PROJECT: yo-test
           INSTANCE: yo-test
           DATABASE: yo-test
-      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.47
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.55
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -55,14 +55,14 @@ jobs:
 
   v2test:
     docker:
-      - image: golang:1.24-bullseye
+      - image: golang:1.26-bookworm
         environment:
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_EMULATOR_HOST_REST: localhost:9020
           PROJECT: yo-test
           INSTANCE: yo-test
           DATABASE: yo-test
-      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.47
+      - image: gcr.io/cloud-spanner-emulator/emulator:1.5.55
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -100,7 +100,7 @@ jobs:
             make -C v2 check-diff
   check_lint:
     docker:
-      - image: golang:1.24-bullseye
+      - image: golang:1.26-bookworm
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
@@ -110,7 +110,7 @@ jobs:
             make check_lint
   check_go_mod:
     docker:
-      - image: golang:1.24-bullseye
+      - image: golang:1.26-bookworm
     working_directory: /go/src/github.com/cloudspannerecosystem/yo
     steps:
       - checkout
