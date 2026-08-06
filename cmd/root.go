@@ -128,7 +128,7 @@ func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
 	cmd.Flags().StringVarP(&opts.Package, "package", "p", "", "package name used in generated Go code")
 	cmd.Flags().StringVar(&opts.CustomTypePackage, "custom-type-package", "", "Go package name to use for custom or unknown types")
 	cmd.Flags().StringArrayVar(&opts.TargetTables, "target-tables", nil, "tables to include from the generated Go code")
-	cmd.Flags().StringArrayVar(&opts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code")
+	cmd.Flags().StringArrayVar(&opts.IgnoreFields, "ignore-fields", nil, "fields to exclude from the generated Go code (format: \"#{column}\" for all tables or \"#{table}.#{column}\" for specific table)")
 	cmd.Flags().StringArrayVar(&opts.IgnoreTables, "ignore-tables", nil, "tables to exclude from the generated Go code")
 	cmd.Flags().StringVar(&opts.TemplatePath, "template-path", "", "user supplied template path")
 	cmd.Flags().StringVar(&opts.Tags, "tags", "", "build tags to add to package header")
