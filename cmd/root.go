@@ -133,6 +133,8 @@ func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
 	cmd.Flags().StringVar(&opts.TemplatePath, "template-path", "", "user supplied template path")
 	cmd.Flags().StringVar(&opts.Tags, "tags", "", "build tags to add to package header")
 	cmd.Flags().StringVar(&opts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
+	cmd.Flags().BoolVar(&opts.UseIndexNameForFuncName, "use-index-name-for-func-name", false, "build index func names from index names instead of index column names (same as yo v2)")
+	cmd.Flags().StringArrayVar(&opts.UseIndexNameForFuncNameIndexes, "use-index-name-for-func-name-index", nil, "index names to build func names from index names (same as --use-index-name-for-func-name but only for the given indexes)")
 
 	helpFn := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {

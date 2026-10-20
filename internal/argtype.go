@@ -82,4 +82,12 @@ type ArgType struct {
 
 	// InflectionRuleFile is custom inflection rule file.
 	InflectionRuleFile string
+
+	// UseIndexNameForFuncName builds index func names from index names
+	// instead of index column names, as yo v2 does.
+	UseIndexNameForFuncName bool
+
+	// UseIndexNameForFuncNameIndexes is the list of index names whose func names
+	// are built from index names. It allows migrating index by index.
+	UseIndexNameForFuncNameIndexes []string
 }

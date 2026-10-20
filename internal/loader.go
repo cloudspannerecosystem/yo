@@ -294,6 +294,20 @@ func (tl *TypeLoader) LoadIndexes(args *ArgType, tableMap map[string]*Type) (map
 		}
 	}
 
+	// check that all specified indexes exist to detect typos
+	for _, name := range args.UseIndexNameForFuncNameIndexes {
+		var found bool
+		for _, ix := range ixMap {
+			if ix.Index.IndexName == name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("index %q specified by --use-index-name-for-func-name-index is not found", name)
+		}
+	}
+
 	return ixMap, nil
 }
 
@@ -328,7 +342,11 @@ func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[s
 		}
 
 		// build func name
-		ixTpl.FuncName = tl.buildIndexFuncName(ixTpl)
+		if useIndexNameForFuncName(args, ix.IndexName) {
+			ixTpl.FuncName = tl.buildIndexFuncNameFromIndexName(ixTpl)
+		} else {
+			ixTpl.FuncName = tl.buildIndexFuncName(ixTpl)
+		}
 
 		ixMap[typeTpl.Table.TableName+"_"+ix.IndexName] = ixTpl
 	}
@@ -354,6 +372,29 @@ func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
 	}
 
 	return funcName + strings.Join(paramNames, "")
+}
+
+// useIndexNameForFuncName reports whether the func name of the index is built from index name.
+func useIndexNameForFuncName(args *ArgType, indexName string) bool {
+	if args.UseIndexNameForFuncName {
+		return true
+	}
+	for _, name := range args.UseIndexNameForFuncNameIndexes {
+		if name == indexName {
+			return true
+		}
+	}
+	return false
+}
+
+// buildIndexFuncNameFromIndexName builds func name from index name.
+// This is the same naming as yo v2.
+func (tl *TypeLoader) buildIndexFuncNameFromIndexName(ixTpl *Index) string {
+	funcName := ixTpl.Type.Name
+	if !ixTpl.Index.IsUnique {
+		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
+	}
+	return funcName + "By" + snaker.ForceCamelIdentifier(ixTpl.Index.IndexName)
 }
 
 // LoadIndexColumns loads the index column information.
