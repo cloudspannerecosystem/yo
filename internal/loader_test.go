@@ -1,9 +1,15 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"go.mercari.io/yo/loaders"
 	"go.mercari.io/yo/models"
 )
 
@@ -189,23 +195,120 @@ func Test_setIndexesToTables(t *testing.T) {
 	}
 }
 
-func Test_useIndexNameForFuncName(t *testing.T) {
+func TestLoadSchema_UseIndexNameForFuncName(t *testing.T) {
+	const ddl = `
+CREATE TABLE Examples (
+  PKey STRING(32) NOT NULL,
+  Num INT64 NOT NULL,
+  Name STRING(32) NOT NULL,
+  CreatedAt TIMESTAMP NOT NULL,
+) PRIMARY KEY(PKey);
+CREATE UNIQUE INDEX ExamplesByNum ON Examples(Num) STORING (CreatedAt);
+CREATE INDEX ExamplesByName ON Examples(Name);
+CREATE INDEX Name ON Examples(Name, Num);
+
+CREATE TABLE Others (
+  PKey STRING(32) NOT NULL,
+  Value INT64 NOT NULL,
+) PRIMARY KEY(PKey);
+CREATE INDEX OthersByValue ON Others(Value);
+`
+	path := filepath.Join(t.TempDir(), "schema.sql")
+	if err := os.WriteFile(path, []byte(ddl), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
 	tests := []struct {
-		name      string
-		args      *ArgType
-		indexName string
-		want      bool
+		name    string
+		args    *ArgType
+		want    map[string]string // index name -> func name
+		wantErr error
+		errText string
 	}{
-		{name: "default", args: &ArgType{}, indexName: "IndexA", want: false},
-		{name: "all", args: &ArgType{UseIndexNameForFuncName: true}, indexName: "IndexA", want: true},
-		{name: "specified", args: &ArgType{UseIndexNameForFuncNameIndexes: []string{"IndexA", "IndexB"}}, indexName: "IndexB", want: true},
-		{name: "not specified", args: &ArgType{UseIndexNameForFuncNameIndexes: []string{"IndexA"}}, indexName: "IndexB", want: false},
+		{
+			name: "default",
+			args: &ArgType{IgnoreTables: []string{"Others"}},
+			want: map[string]string{
+				"ExamplesByNum":  "ExampleByCreatedAtNum",
+				"ExamplesByName": "ExamplesByName",
+				"Name":           "ExamplesByNameNum",
+			},
+		},
+		{
+			name: "specified index only, case insensitive",
+			args: &ArgType{IgnoreTables: []string{"Others"}, UseIndexNameForFuncNameIndexes: []string{"examplesbynum"}},
+			want: map[string]string{
+				"ExamplesByNum":  "ExampleByExamplesByNum",
+				"ExamplesByName": "ExamplesByName",
+				"Name":           "ExamplesByNameNum",
+			},
+		},
+		{
+			name: "index of excluded table is not an error",
+			args: &ArgType{IgnoreTables: []string{"Others"}, UseIndexNameForFuncNameIndexes: []string{"OthersByValue"}},
+			want: map[string]string{
+				"ExamplesByNum":  "ExampleByCreatedAtNum",
+				"ExamplesByName": "ExamplesByName",
+				"Name":           "ExamplesByNameNum",
+			},
+		},
+		{
+			name:    "index not found",
+			args:    &ArgType{UseIndexNameForFuncNameIndexes: []string{"NoSuchIndex", "ExamplesByNum"}},
+			wantErr: ErrIndexNotFound,
+			errText: "NoSuchIndex",
+		},
+		{
+			name:    "func name conflict",
+			args:    &ArgType{IgnoreTables: []string{"Others"}, UseIndexNameForFuncNameIndexes: []string{"Name"}},
+			errText: `index func name "ExamplesByName" conflicts`,
+		},
+		{
+			name: "all indexes",
+			args: &ArgType{IgnoreTables: []string{"Others"}, UseIndexNameForFuncName: true},
+			want: map[string]string{
+				"ExamplesByNum":  "ExampleByExamplesByNum",
+				"ExamplesByName": "ExamplesByExamplesByName",
+				"Name":           "ExamplesByName",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := useIndexNameForFuncName(tt.args, tt.indexName); got != tt.want {
-				t.Errorf("want:%v got:%v", tt.want, got)
+			l, err := loaders.NewSpannerLoaderFromDDL(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			inflector, err := NewInflector("")
+			if err != nil {
+				t.Fatal(err)
+			}
+			tl := NewTypeLoader(l, inflector)
+
+			_, ixMap, err := tl.LoadSchema(tt.args)
+			if tt.wantErr != nil || tt.errText != "" {
+				if err == nil {
+					t.Fatalf("want error, got nil")
+				}
+				if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+					t.Errorf("want error %v, got %v", tt.wantErr, err)
+				}
+				if !strings.Contains(err.Error(), tt.errText) {
+					t.Errorf("want error containing %q, got %v", tt.errText, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			got := map[string]string{}
+			for _, ix := range ixMap {
+				got[ix.Index.IndexName] = ix.FuncName
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("(-want +got):\n%s", diff)
 			}
 		})
 	}

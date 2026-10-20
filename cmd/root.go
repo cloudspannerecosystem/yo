@@ -21,6 +21,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	pathpkg "path"
@@ -85,7 +86,7 @@ var (
 			// load defs into type map
 			tableMap, ixMap, err := loader.LoadSchema(&rootOpts)
 			if err != nil {
-				return fmt.Errorf("error: %v", err)
+				return loadSchemaError(err)
 			}
 
 			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
@@ -248,4 +249,12 @@ func versionInfo() string {
 		return "(devel)"
 	}
 	return info.Main.Version
+}
+
+// loadSchemaError adds the flag context to the error of LoadSchema.
+func loadSchemaError(err error) error {
+	if errors.Is(err, internal.ErrIndexNotFound) {
+		return fmt.Errorf("error: --use-index-name-for-func-name-index: %v", err)
+	}
+	return fmt.Errorf("error: %v", err)
 }

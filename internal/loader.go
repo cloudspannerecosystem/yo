@@ -20,6 +20,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -281,38 +282,120 @@ func (tl *TypeLoader) LoadColumns(args *ArgType, typeTpl *Type) error {
 	return nil
 }
 
+// ErrIndexNotFound is returned when the index specified by
+// ArgType.UseIndexNameForFuncNameIndexes is not found in the schema.
+var ErrIndexNotFound = errors.New("index not found")
+
+// targetIndexes is the set of index names whose func names are built from index names.
+// Keys are lower case because Spanner identifiers are case insensitive.
+type targetIndexes map[string]*targetIndex
+
+type targetIndex struct {
+	name   string
+	loaded bool
+}
+
+func newTargetIndexes(names []string) targetIndexes {
+	t := make(targetIndexes, len(names))
+	for _, name := range names {
+		t[strings.ToLower(name)] = &targetIndex{name: name}
+	}
+	return t
+}
+
+// lookup returns the target index of the index name, or nil if it is not a target.
+func (t targetIndexes) lookup(indexName string) *targetIndex {
+	return t[strings.ToLower(indexName)]
+}
+
 // LoadIndexes loads schema index definitions.
 func (tl *TypeLoader) LoadIndexes(args *ArgType, tableMap map[string]*Type) (map[string]*Index, error) {
 	var err error
 
+	targets := newTargetIndexes(args.UseIndexNameForFuncNameIndexes)
+
 	ixMap := map[string]*Index{}
 	for _, t := range tableMap {
 		// load table indexes
-		err = tl.LoadTableIndexes(args, t, ixMap)
+		err = tl.LoadTableIndexes(args, t, ixMap, targets)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// check that all specified indexes exist to detect typos
-	for _, name := range args.UseIndexNameForFuncNameIndexes {
-		var found bool
-		for _, ix := range ixMap {
-			if ix.Index.IndexName == name {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return nil, fmt.Errorf("index %q specified by --use-index-name-for-func-name-index is not found", name)
+	if err := tl.checkTargetIndexesExist(targets); err != nil {
+		return nil, err
+	}
+
+	if args.UseIndexNameForFuncName || len(targets) != 0 {
+		if err := checkIndexFuncNameConflict(ixMap); err != nil {
+			return nil, err
 		}
 	}
 
 	return ixMap, nil
 }
 
+// checkTargetIndexesExist checks that all target indexes exist in the schema to detect typos.
+// It is not an error that the table of the target index is excluded from the generation.
+func (tl *TypeLoader) checkTargetIndexesExist(targets targetIndexes) error {
+	notLoaded := map[string]*targetIndex{}
+	for key, t := range targets {
+		if !t.loaded {
+			notLoaded[key] = t
+		}
+	}
+	if len(notLoaded) == 0 {
+		return nil
+	}
+
+	tables, err := tl.loader.TableList()
+	if err != nil {
+		return err
+	}
+	for _, t := range tables {
+		indexes, err := tl.loader.IndexList(t.TableName)
+		if err != nil {
+			return err
+		}
+		for _, ix := range indexes {
+			delete(notLoaded, strings.ToLower(ix.IndexName))
+		}
+	}
+	if len(notLoaded) == 0 {
+		return nil
+	}
+
+	names := make([]string, 0, len(notLoaded))
+	for _, t := range notLoaded {
+		names = append(names, t.name)
+	}
+	sort.Strings(names)
+	return fmt.Errorf("%w: %s", ErrIndexNotFound, strings.Join(names, ", "))
+}
+
+// checkIndexFuncNameConflict checks that index func names are unique.
+// Func names built from index names may conflict with ones built from index column names.
+func checkIndexFuncNameConflict(ixMap map[string]*Index) error {
+	keys := make([]string, 0, len(ixMap))
+	for k := range ixMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	funcNames := make(map[string]*Index, len(ixMap))
+	for _, k := range keys {
+		ix := ixMap[k]
+		if other, ok := funcNames[ix.FuncName]; ok {
+			return fmt.Errorf("index func name %q conflicts between index %q and %q", ix.FuncName, other.Index.IndexName, ix.Index.IndexName)
+		}
+		funcNames[ix.FuncName] = ix
+	}
+	return nil
+}
+
 // LoadTableIndexes loads schema index definitions per table.
-func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[string]*Index) error {
+func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[string]*Index, targets targetIndexes) error {
 	var err error
 	var priIxLoaded bool
 
@@ -342,7 +425,11 @@ func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[s
 		}
 
 		// build func name
-		if useIndexNameForFuncName(args, ix.IndexName) {
+		target := targets.lookup(ix.IndexName)
+		if target != nil {
+			target.loaded = true
+		}
+		if args.UseIndexNameForFuncName || target != nil {
 			ixTpl.FuncName = tl.buildIndexFuncNameFromIndexName(ixTpl)
 		} else {
 			ixTpl.FuncName = tl.buildIndexFuncName(ixTpl)
@@ -354,14 +441,17 @@ func (tl *TypeLoader) LoadTableIndexes(args *ArgType, typeTpl *Type, ixMap map[s
 	return nil
 }
 
-func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
-	// build func name
+// indexFuncNamePrefix returns the prefix of index func name.
+// The type name will be singular if the index is unique index, or plural if the index is not unique.
+func (tl *TypeLoader) indexFuncNamePrefix(ixTpl *Index) string {
 	funcName := ixTpl.Type.Name
 	if !ixTpl.Index.IsUnique {
 		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
 	}
-	funcName = funcName + "By"
+	return funcName + "By"
+}
 
+func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
 	// add param names
 	paramNames := make([]string, 0, len(ixTpl.Fields))
 	for _, f := range ixTpl.StoringFields {
@@ -371,30 +461,13 @@ func (tl *TypeLoader) buildIndexFuncName(ixTpl *Index) string {
 		paramNames = append(paramNames, f.Name)
 	}
 
-	return funcName + strings.Join(paramNames, "")
-}
-
-// useIndexNameForFuncName reports whether the func name of the index is built from index name.
-func useIndexNameForFuncName(args *ArgType, indexName string) bool {
-	if args.UseIndexNameForFuncName {
-		return true
-	}
-	for _, name := range args.UseIndexNameForFuncNameIndexes {
-		if name == indexName {
-			return true
-		}
-	}
-	return false
+	return tl.indexFuncNamePrefix(ixTpl) + strings.Join(paramNames, "")
 }
 
 // buildIndexFuncNameFromIndexName builds func name from index name.
 // This is the same naming as yo v2.
 func (tl *TypeLoader) buildIndexFuncNameFromIndexName(ixTpl *Index) string {
-	funcName := ixTpl.Type.Name
-	if !ixTpl.Index.IsUnique {
-		funcName = tl.inflector.Pluralize(ixTpl.Type.Name)
-	}
-	return funcName + "By" + snaker.ForceCamelIdentifier(ixTpl.Index.IndexName)
+	return tl.indexFuncNamePrefix(ixTpl) + snaker.ForceCamelIdentifier(ixTpl.Index.IndexName)
 }
 
 // LoadIndexColumns loads the index column information.

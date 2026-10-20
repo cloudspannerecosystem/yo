@@ -138,7 +138,9 @@ Naming convention of generated functions is `FindXXXByYYY`. The XXX is table nam
 
 Because storing columns are part of YYY, adding a storing column to an index changes the function name. With `--use-index-name-for-func-name`, YYY is the index name instead, so the function name does not change when the index columns change. This is the same naming as yo v2.
 
-To migrate index by index, use `--use-index-name-for-func-name-index` with index names instead. It can be specified multiple times, and yo returns an error if the specified index is not found.
+To migrate index by index, use `--use-index-name-for-func-name-index` with index names instead. It can be specified multiple times, and index names are case insensitive. yo returns an error if the specified index is not found in the schema. It is not an error that the table of the specified index is excluded by `--ignore-tables` or `--target-tables`.
+
+When either option is used, yo also returns an error if generated func names conflict. For example, the func name built from index name `Name ON Examples(Name, Num)` is `ExamplesByName`, which conflicts with the func name built from index column names of `ExamplesByName ON Examples(Name)`.
 
 ```
 yo generate schema.sql --from-ddl -o models --use-index-name-for-func-name-index ExamplesByNum
