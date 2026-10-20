@@ -28,8 +28,8 @@ github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
-github.com/cloudspannerecosystem/memefish v0.8.1 h1:W8TmFa+Jqh7U1Hg7JBMovzijLCR+tEtpiFPQTM64D78=
-github.com/cloudspannerecosystem/memefish v0.8.1/go.mod h1:DSCf+q0TogWWO04iTsinOLQXjS/b5UWN1oirGoWaWd4=
+github.com/cloudspannerecosystem/memefish v0.9.0 h1:UfMv4ALO5iIOmg88/OyEtiYCqshAEA4RF1dwgfYsMHg=
+github.com/cloudspannerecosystem/memefish v0.9.0/go.mod h1:v7Inh4V9KpoWLIgpCFTfyVKcJbL82fSOI0Uf8P8H4bQ=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 h1:aBangftG7EVZoUb69Os8IaYg++6uMOdKK83QtkkvJik=
 github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2/go.mod h1:qwXFYgsP6T7XnJtbKlf1HP8AjxZZyzxMmc+Lq5GjlU4=

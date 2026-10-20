@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	cloud.google.com/go v0.123.0
 	cloud.google.com/go/spanner v1.94.0
-	github.com/cloudspannerecosystem/memefish v0.8.1
+	github.com/cloudspannerecosystem/memefish v0.9.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
