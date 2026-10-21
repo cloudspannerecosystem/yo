@@ -88,7 +88,7 @@ var (
 			// load defs into type map
 			tableMap, ixMap, err := loader.LoadSchema(&generateOpts)
 			if err != nil {
-				return fmt.Errorf("error: %v", err)
+				return loadSchemaError(err)
 			}
 
 			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{

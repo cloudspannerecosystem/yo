@@ -87,6 +87,8 @@ Flags:
       --tags string                  build tags to add to package header
       --template-path string         user supplied template path
       --underscore                   toggle underscores in file names
+      --use-index-name-for-func-name build index func names from index names instead of index column names (same as yo v2)
+      --use-index-name-for-func-name-index stringArray  index names to build func names from index names (same as --use-index-name-for-func-name but only for the given indexes)
 ```
 
 ## Generated code
@@ -132,7 +134,24 @@ An operation against a table is represented as mutation in Cloud Spanner. `yo` g
 
 `yo` generates functions to read data from Cloud Spanner. The functions are generated based on index.
 
-Naming convention of generated functions is `FindXXXByYYY`. The XXX is table name and YYY is index name. XXX will be singular if the index is unique index, or plural if the index is not unique.
+Naming convention of generated functions is `FindXXXByYYY`. The XXX is table name and YYY is the concatenation of storing column names and index column names. XXX will be singular if the index is unique index, or plural if the index is not unique.
+
+Because storing columns are part of YYY, adding a storing column to an index changes the function name. With `--use-index-name-for-func-name`, YYY is the index name instead, so the function name does not change when the index columns change. This is the same naming as yo v2.
+
+To migrate index by index, use `--use-index-name-for-func-name-index` with index names instead. It can be specified multiple times, and index names are case insensitive. yo returns an error if the specified index is not found in the schema. It is not an error that the table of the specified index is excluded by `--ignore-tables` or `--target-tables`.
+
+When either option is used, yo also returns an error if generated func names conflict. For example, the func name built from index name `Name ON Examples(Name, Num)` is `ExamplesByName`, which conflicts with the func name built from index column names of `ExamplesByName ON Examples(Name)`.
+
+```
+yo generate schema.sql --from-ddl -o models --use-index-name-for-func-name-index ExamplesByNum
+```
+
+For example, with `CREATE UNIQUE INDEX ExamplesByNum ON Examples(Num) STORING (CreatedAt)`:
+
+| Option | Function name |
+| --- | --- |
+| (default) | `FindExampleByCreatedAtNum` |
+| `--use-index-name-for-func-name` | `FindExampleByExamplesByNum` |
 
 
 **TODO**

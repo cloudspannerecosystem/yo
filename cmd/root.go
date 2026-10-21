@@ -21,6 +21,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	pathpkg "path"
@@ -85,7 +86,7 @@ var (
 			// load defs into type map
 			tableMap, ixMap, err := loader.LoadSchema(&rootOpts)
 			if err != nil {
-				return fmt.Errorf("error: %v", err)
+				return loadSchemaError(err)
 			}
 
 			g := generator.NewGenerator(loader, inflector, generator.GeneratorOption{
@@ -133,6 +134,8 @@ func setRootOpts(cmd *cobra.Command, opts *internal.ArgType) {
 	cmd.Flags().StringVar(&opts.TemplatePath, "template-path", "", "user supplied template path")
 	cmd.Flags().StringVar(&opts.Tags, "tags", "", "build tags to add to package header")
 	cmd.Flags().StringVar(&opts.InflectionRuleFile, "inflection-rule-file", "", "custom inflection rule file")
+	cmd.Flags().BoolVar(&opts.UseIndexNameForFuncName, "use-index-name-for-func-name", false, "build index func names from index names instead of index column names (same as yo v2)")
+	cmd.Flags().StringArrayVar(&opts.UseIndexNameForFuncNameIndexes, "use-index-name-for-func-name-index", nil, "index names to build func names from index names (same as --use-index-name-for-func-name but only for the given indexes)")
 
 	helpFn := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
@@ -246,4 +249,12 @@ func versionInfo() string {
 		return "(devel)"
 	}
 	return info.Main.Version
+}
+
+// loadSchemaError adds the flag context to the error of LoadSchema.
+func loadSchemaError(err error) error {
+	if errors.Is(err, internal.ErrIndexNotFound) {
+		return fmt.Errorf("error: --use-index-name-for-func-name-index: %v", err)
+	}
+	return fmt.Errorf("error: %v", err)
 }
