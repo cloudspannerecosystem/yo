@@ -52,7 +52,7 @@ func TestNullModule(t *testing.T) {
 		}
 
 		if len(b) != 0 {
-			t.Errorf("null module must have no contents %q: %s", m.Type(), b)
+			t.Errorf("null module must have no contents %q: %s", m.Name(), b)
 		}
 	}
 }
